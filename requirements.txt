@@ -1,1 +1,3 @@
 networkx==2.8.8
+parglare==0.16.0
+Naked==0.1.32

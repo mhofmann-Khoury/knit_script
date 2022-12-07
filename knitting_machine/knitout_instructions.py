@@ -15,7 +15,7 @@ def rack(machine_state, racking: float, comment: str = "") -> str:
     :param comment: additional details to document in the knitout
     :return: the racking instruction
     """
-    machine_state.racking = racking
+    machine_state._racking = racking
     # if racking != .25 and racking != -.75:  # racking for all needle knitting
     #     racking = math.floor(racking)
     return f"rack {racking} ;{comment}\n"
