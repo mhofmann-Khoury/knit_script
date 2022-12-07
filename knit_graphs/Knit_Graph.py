@@ -16,7 +16,7 @@ class Knit_Graph:
     Attributes
     ----------
     graph : networkx.DiGraph
-        the directed-graph structure of loops pulled through other loops
+        the directed-graph structure of loops pulled through other loops.
     loops: Dict[int, Loop]
         A map of each unique loop id to its loop
     yarns: Dict[str, Yarn]
@@ -31,6 +31,7 @@ class Knit_Graph:
 
     def add_loop(self, loop: Loop):
         """
+        Adds a loop to the graph
         :param loop: the loop to be added in as a node in the graph
         """
         self.graph.add_node(loop.loop_id, loop=loop)
@@ -44,6 +45,7 @@ class Knit_Graph:
 
     def add_yarn(self, yarn: Yarn):
         """
+        Adds a yarn to the graph. Assumes that loops do not need to be added
         :param yarn: the yarn to be added to the graph structure
         """
         self.yarns[yarn.yarn_id] = yarn
@@ -100,6 +102,7 @@ class Knit_Graph:
 
     def __contains__(self, item):
         """
+        Returns true if the item is in the graph
         :param item: the loop being checked for in the graph
         :return: true if the loop_id of item or the loop is in the graph
         """
@@ -112,6 +115,7 @@ class Knit_Graph:
 
     def __getitem__(self, item: int) -> Loop:
         """
+        Gets the loop by an id
         :param item: the loop_id being checked for in the graph
         :return: the Loop in the graph with the matching id
         """

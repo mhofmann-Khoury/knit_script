@@ -52,7 +52,7 @@ class Yarn:
         Adds the loop at the end of the yarn
         :param knit_graph: Optional Knit_Graph used to calculate last loop id in knitgraph
         :param is_twisted: The parameter used for twisting the loop if it is created in the method
-        :param loop: The loop to be added at this id. If none, an non-twisted loop will be created
+        :param loop: The loop to be added at this id. If none, a non-twisted loop will be created
         :param loop_id: the id of the new loop, if the loopId is none, it defaults to 1 more than last loop in the graph
         :return: the loop_id added to the yarn, the loop added to the yarn
         """
@@ -68,7 +68,7 @@ class Yarn:
             :param insert_after: if true, will add the loop to the yarn after neighbor
             :param neighbor_loop_id: the neighbor loop id to add to
             :param is_twisted: The parameter used for twisting the loop if it is created in the method
-            :param loop: The loop to be added at this id. If none, an non-twisted loop will be created
+            :param loop: The loop to be added at this id. If none, a non-twisted loop will be created
             :param loop_id: the id of the new loop, if the loopId is none, it defaults to 1 more than last loop in the graph
             :return: the loop_id added to the yarn, the loop added to the yarn
             """
@@ -103,6 +103,7 @@ class Yarn:
 
     def __contains__(self, item):
         """
+        Return true if the loop is on the yarn
         :param item: the loop being checked for in the yarn
         :return: true if the loop_id of item or the loop is in the yarn
         """
@@ -115,6 +116,7 @@ class Yarn:
 
     def __getitem__(self, item: int) -> Loop:
         """
+        Collect the loop of a given id
         :param item: the loop_id being checked for in the yarn
         :return: the Loop on the yarn with the matching id
         """

@@ -39,7 +39,7 @@ class Loop:
 
     def add_parent_loop(self, parent, stack_position: Optional[int] = None):
         """
-        Adds the parent Loop onto the stack of parent_loops.
+        Adds the parent Loop onto the stack of parent_loops
         :param parent: the Loop to be added onto the stack
         :param stack_position: The position to insert the parent into, by default add on top of the stack
         """
