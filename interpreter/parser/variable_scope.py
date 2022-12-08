@@ -1,13 +1,9 @@
 """Code manages a variable scope symbol table with undefined variables by default"""
 from typing import Dict, Any, Optional, Set, Union
 
-from interpreter.expressions.needle_set_expression import Needle_Sets
-from interpreter.expressions.values import Bed_Side
-from interpreter.statements.header_statement import Machine_Type, Header_ID
 from knitting_machine.Machine_State import Machine_State
 from knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knitting_machine.machine_components.machine_pass_direction import Pass_Direction
-from knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 from knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
 
 
@@ -41,12 +37,6 @@ class Variable_Scope:
                                           "of", "from", "layer", "at", "rack", "all", "current", "carrier", "push",  "sheets",
                                           "True", "False", self._direction_id, self._carrier_id, self._rack_id, self._gauge_id
                                           }
-        self._reserved_words.update({v for v in Bed_Side})
-        self._reserved_words.update({v for v in Machine_Bed_Position})
-        self._reserved_words.update({v for v in Machine_Position})
-        self._reserved_words.update({v for v in Machine_Type})
-        self._reserved_words.update({v for v in Header_ID})
-        self._reserved_words.update({v for v in Needle_Sets})
         if self._parent_scope is None:
             self.current_direction = Pass_Direction.Right_to_Left_Decreasing
             self.current_carrier = None

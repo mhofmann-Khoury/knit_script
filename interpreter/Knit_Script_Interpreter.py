@@ -1,6 +1,6 @@
 """Interpreter processes knitpass into knitout instructions"""
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 from parglare import Grammar, Parser
 
@@ -77,6 +77,13 @@ class Knit_Script_Interpreter:
         if reset_context:
             self._reset_context()
         return knitout, knitgraph
+
+    def evaluate_expression(self, exp) -> Any:
+        """
+        :param exp: expression to evaluate
+        :return: evaluation result
+        """
+        return exp.evaluate(self._knit_pass_context)
 
 
 def knitscript_to_knitout_to_dat(pattern: str, out_file_name: str, pattern_is_filename: bool = False) -> Knit_Graph:

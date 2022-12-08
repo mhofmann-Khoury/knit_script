@@ -187,7 +187,13 @@ class List_Comp(Expression):
         return values
 
     def __str__(self):
-        return f"[{self._fill_exp} for {self._vars} in {self._iter_exp}]"
+        spacer = ""
+        if self._spacer is not None:
+            spacer = f" every {self._spacer}"
+        comp = ""
+        if self._comp_cond is not None:
+            comp = f" if {self._comp_cond}"
+        return f"[{self._fill_exp} for{spacer} {self._vars} in {self._iter_exp}{comp}]"
 
     def __repr__(self):
         return str(self)
@@ -229,7 +235,9 @@ class Dictionary_Comprehension(Expression):
         Used for supporting dictionary comprehension
     """
 
-    def __init__(self, key: Expression, value: Expression, variables: List[Variable_Expression], iter_exp: Expression):
+    def __init__(self, key: Expression, value: Expression,
+                 variables: List[Variable_Expression], iter_exp: Expression,
+                 spacer: Optional[Union[str, Expression]]=None, comp_cond:Optional[Expression] = None ):
         """
         Instantiate
         :param key: key expression
@@ -239,6 +247,8 @@ class Dictionary_Comprehension(Expression):
         todo add conditions to comprehension
         """
         super().__init__()
+        self._spacer = spacer
+        self._comp_cond = comp_cond
         self._key: Expression = key
         self._value: Expression = value
         self._iter_exp: Expression = iter_exp
@@ -252,9 +262,21 @@ class Dictionary_Comprehension(Expression):
         """
         :param context:
         :return: result of list comprehension inside list
+        Todo: test comprehension with conditions and spacing
         """
         iterable = self._iter_exp.evaluate(context)
         assert isinstance(iterable, Iterable), f'Cannot iterate over non-iterable value {iterable}'
+        if self._spacer is not None:
+            if isinstance(self._spacer, str):
+                if self._spacer == "even":
+                    iterable = [val for i, val in enumerate(iterable) if i % 2 == 0]
+                elif self._spacer == "odd":
+                    iterable = [val for i, val in enumerate(iterable) if i % 2 == 1]
+                else:  # "other"
+                    iterable = iterable[::2]
+            else:
+                spacer = int(self._spacer.evaluate(context))
+                iterable = iterable[::spacer]
         context.enter_sub_scope()  # create new scope that holds iterator variable
         values = {}
         for var in iterable:
@@ -265,12 +287,23 @@ class Dictionary_Comprehension(Expression):
                 assert len(iterated_var) == len(self._vars), "Unpacked values do not match variables provided"
                 for var_name, var_val in zip(self._vars, iterated_var):
                     context.variable_scope[var_name.variable_name] = var_val
-            values[self._key.evaluate(context)] = self._value.evaluate(context)
+            if self._comp_cond is None:
+                condition_result = True
+            else:
+                condition_result = bool(self._comp_cond.evaluate(context))
+            if condition_result:
+                values[self._key.evaluate(context)] = self._value.evaluate(context)
         context.exit_current_scope()  # exit scope, removing access to iterator variable
         return values
 
     def __str__(self):
-        return "{" + f"{self._key}:{self._value} for {self._vars} in {self._iter_exp}" + "}"
+        spacer = ""
+        if self._spacer is not None:
+            spacer = f" every {self._spacer}"
+        comp = ""
+        if self._comp_cond is not None:
+            comp = f" if {self._comp_cond}"
+        return "{" + f"{self._key}:{self._value} for{spacer} {self._vars} in {self._iter_exp}{comp}" + "}"
 
     def __repr__(self):
         return str(self)

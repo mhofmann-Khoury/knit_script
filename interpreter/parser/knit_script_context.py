@@ -1,8 +1,8 @@
 """Manages variable scope and machine state of knit pass during execution"""
 from typing import Optional, List, Union
 
+from interpreter.parser.header_structure import Header
 from interpreter.parser.variable_scope import Variable_Scope
-from interpreter.statements.header_statement import Header
 from knitting_machine.Machine_State import Machine_State
 from knitting_machine.knitout_instructions import inhook, bring_in, rack, releasehook
 from knitting_machine.machine_components.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle, Sheet_Identifier
@@ -10,6 +10,7 @@ from knitting_machine.machine_components.machine_pass_direction import Pass_Dire
 from knitting_machine.machine_components.machine_position import Machine_Position
 from knitting_machine.machine_components.needles import Needle, Slider_Needle
 from knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+
 
 class Knit_Script_Context:
     """Manages state of the Knitting machine during program execution"""
@@ -169,3 +170,4 @@ class Knit_Script_Context:
         :return: Get the exact needle instance that is in use on the machine state
         """
         return self.machine_state[self.get_needle(is_front, pos, is_slider, global_needle, sheet, gauge)]
+

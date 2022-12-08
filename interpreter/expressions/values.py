@@ -1,10 +1,9 @@
 """Expression values that don't need context to evaluate"""
-from enum import Enum
 from typing import Any
 
 from interpreter.expressions.expressions import Expression
+from interpreter.parser.header_structure import Header_ID, Machine_Type
 from interpreter.parser.knit_script_context import Knit_Script_Context
-from interpreter.statements.header_statement import Machine_Type, Header_ID
 from knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 
 
@@ -25,7 +24,7 @@ class _Context_Free_Value(Expression):
         pass
 
     def __str__(self):
-        return self._context_free_evaluation()
+        return str(self._context_free_evaluation())
 
     def __repr__(self):
         return str(self)
@@ -99,33 +98,6 @@ class Bed_Value(_Context_Free_Value):
         """
         capitalize = self._bed_str.capitalize()
         return Machine_Bed_Position[capitalize]
-
-
-class Bed_Side(Enum):
-    """Representation of left or right side of bed"""
-    Right = "Right"
-    Left = "Left"
-
-
-class Bed_Side_Value(_Context_Free_Value):
-    """
-        Tracks which side of the bed the machine is currently on
-    """
-
-    def __init__(self, side: str):
-        """
-        Instantiate
-        :param side:string representing the which bed to use
-        """
-        super().__init__()
-        self._side:str = side
-
-    def _context_free_evaluation(self) -> Bed_Side:
-        """
-        :return: Bed side represented by term
-        """
-        return Bed_Side[self._side]
-
 
 class Boolean_Value(_Context_Free_Value):
     """

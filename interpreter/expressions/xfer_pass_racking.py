@@ -3,9 +3,9 @@
 from typing import Optional
 
 from interpreter.expressions.expressions import Expression
-from interpreter.expressions.values import Bed_Side
 from interpreter.parser.knit_script_context import Knit_Script_Context
 from knitting_machine.Machine_State import Machine_State
+from knitting_machine.machine_components.machine_position import Machine_Position
 
 
 class Xfer_Pass_Racking(Expression):
@@ -40,8 +40,9 @@ class Xfer_Pass_Racking(Expression):
         else:
             distance = int(self._distance_expression.evaluate(context))
             direction = self._side.evaluate(context)
-            assert isinstance(direction, Bed_Side), f"Expected Left or Right Direction but got {direction}"
-            if direction is Bed_Side.Left:
+            assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right],\
+                f"Expected Left or Right Direction but got {direction}"
+            if direction is Machine_Position.Left:
                 return Machine_State.get_rack(front_pos=0, back_pos=distance)
             else:
                 return Machine_State.get_rack(front_pos=0, back_pos=-1 * distance)

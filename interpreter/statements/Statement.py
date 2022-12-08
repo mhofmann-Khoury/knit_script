@@ -32,6 +32,13 @@ class Expression_Statement(Statement):
         super().__init__()
         self._expression: Expression = expression
 
+    @property
+    def expression(self) -> Expression:
+        """
+        :return: expression in the statement
+        """
+        return self._expression
+
     def __str__(self):
         return str(self._expression)
 

@@ -3,30 +3,32 @@ from typing import List, Tuple, Union, Optional
 
 from parglare import get_collector
 
+from _helper_functions.enum_extension import in_enum
 from interpreter.expressions.Gauge_Expression import Gauge_Expression
 from interpreter.expressions.accessors import Attribute_Accessor_Expression, Method_Call, Indexing_Expression
+from interpreter.expressions.carrier import Carrier_Expression
+from interpreter.expressions.direction import Pass_Direction_Expression
 from interpreter.expressions.expressions import Expression
-from interpreter.expressions.variables import Variable_Expression
+from interpreter.expressions.formatted_string import Formatted_String_Value
 from interpreter.expressions.function_expressions import Function_Call
 from interpreter.expressions.instruction_expression import Needle_Instruction_Exp, Needle_Instruction
 from interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, List_Comp, Dictionary_Comprehension, Unpack, Sliced_List
 from interpreter.expressions.machine_accessor import Machine_Accessor, Sheet_Expression
 from interpreter.expressions.needle_expression import Needle_Expression
-from interpreter.expressions.carrier import Carrier_Expression
 from interpreter.expressions.needle_set_expression import Needle_Sets, Needle_Set_Expression
 from interpreter.expressions.not_expression import Not_Expression
 from interpreter.expressions.operator_expressions import Operator_Expression
-from interpreter.expressions.values import Boolean_Value, Bed_Side_Value, Bed_Value, Float_Value, Int_Value, String_Value, None_Value, Bed_Side, Machine_Position_Value, \
+from interpreter.expressions.values import Boolean_Value, Bed_Value, Float_Value, Int_Value, String_Value, None_Value, Machine_Position_Value, \
     Machine_Type_Value, Header_ID_Value
-from interpreter.expressions.formatted_string import Formatted_String_Value
-from interpreter.expressions.direction import Pass_Direction_Expression
+from interpreter.expressions.variables import Variable_Expression
 from interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
+from interpreter.parser.header_structure import Header_ID, Machine_Type
+from interpreter.statements.Assertion import Assertion
 from interpreter.statements.Drop_Pass import Drop_Pass
+from interpreter.statements.Print import Print
 from interpreter.statements.Push_Statement import Push_Statement
 from interpreter.statements.Statement import Statement, Expression_Statement
 from interpreter.statements.Variable_Declaration import Variable_Declaration
-from interpreter.statements.Assertion import Assertion
-from interpreter.statements.Print import Print
 from interpreter.statements.With_Statement import With_Statement
 from interpreter.statements.assignment import Assignment
 from interpreter.statements.branch_statements import If_Statement
@@ -34,10 +36,10 @@ from interpreter.statements.carrier_statements import Cut_Statement, Remove_Stat
 from interpreter.statements.code_block_statements import Code_Block
 from interpreter.statements.control_loop_statements import While_Statement, For_Each_Statement
 from interpreter.statements.function_dec_statement import Function_Declaration
-from interpreter.statements.header_statement import Machine_Type, Header_ID, Header_Statement
-from interpreter.statements.return_statement import Return_Statement
+from interpreter.statements.header_statement import Header_Statement
 from interpreter.statements.in_direction_statement import In_Direction_Statement
 from interpreter.statements.instruction_statements import Pause_Statement
+from interpreter.statements.return_statement import Return_Statement
 from interpreter.statements.try_catch_statements import Try_Catch_Statement
 # some boiler plate parglare code
 from interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
@@ -77,19 +79,17 @@ def identifier(_, node: str) -> Expression:
         return None_Value()
     elif node == "True" or node == "False":
         return Boolean_Value(node)
-    elif node in Bed_Side:
-        return Bed_Side_Value(node)
-    elif node in Machine_Bed_Position:
+    elif in_enum(node, Machine_Bed_Position):
         return Bed_Value(node)
-    elif node in Machine_Position:
+    elif in_enum(node, Machine_Position):
         return Machine_Position_Value(node)
-    elif node in Machine_Type:
+    elif in_enum(node, Machine_Type):
         return Machine_Type_Value(node)
-    elif node in Header_ID:
+    elif in_enum(node, Header_ID):
         return Header_ID_Value(node)
     elif node == "machine":
         return Machine_Accessor()
-    elif node in Needle_Sets:
+    elif in_enum(node, Needle_Sets):
         return Needle_Set_Expression(node)
     else:
         return Variable_Expression(node)
@@ -294,9 +294,8 @@ def list_expression(_, __, exps: List[Expression]):
 
 
 @action
-def list_comp(_, __, fill_exp: Expression, spacer: Optional[Union[str, Expression]],
-              variables: List[Variable_Expression], iter_exp: Expression,
-              comp_cond: Expression) -> List_Comp:
+def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression], iter_exp: Expression,
+              spacer: Optional[Union[str, Expression]]= None, comp_cond: Expression = None) -> List_Comp:
     """
     :param _:
     :param __:
@@ -324,24 +323,6 @@ def sliced_list(_, __, iter_exp: Expression, start: Optional[Expression],
     """
     return Sliced_List(iter_exp, start, end, spacer)
 
-
-# @action
-# def spacer_splice(_, __, spacer: Expression) -> Expression:
-#     """
-#     component of sliced list
-#     :param _:
-#     :param __:
-#     :param spacer: expression to space by
-#     :return: the spacer
-#     """
-#     return spacer
-
-
-# @action
-# def comp_condition(_, __, condition: Expression) -> Expression:
-#     return condition
-
-
 @action
 def dict_assign(_, __, key: Expression, exp: Expression) -> Tuple[Expression, Expression]:
     """
@@ -368,8 +349,11 @@ def dict_expression(_, __, kwargs: List[Tuple[Expression, Expression]]):
 
 @action
 def dict_comp(_, __, key:Expression, value:Expression,
-              variables: List[Variable_Expression], iter_exp: Expression) -> Dictionary_Comprehension:
+              variables: List[Variable_Expression], iter_exp: Expression,
+              spacer:Optional[Union[str, Expression]] = None, comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
     """
+    :param spacer: spacing to jump over list
+    :param comp_cond: conditional on variables to skip specific designs
     :param _:
     :param __:
     :param key: key expression
@@ -378,7 +362,7 @@ def dict_comp(_, __, key:Expression, value:Expression,
     :param iter_exp: the iterable to parse over
     :return: Dictionary comprehension
     """
-    return Dictionary_Comprehension(key, value, variables, iter_exp)  # todo add conditionals
+    return Dictionary_Comprehension(key, value, variables, iter_exp, spacer, comp_cond)
 
 
 @action
@@ -649,7 +633,7 @@ def negation(_, __, exp: Expression) -> Not_Expression:
 
 
 @action
-def xfer_rack(_, __, is_across: Optional[str], dist_exp: Optional[Expression], side_id: Optional[Expression]) -> Xfer_Pass_Racking:
+def xfer_rack(_, __, is_across: Optional[str]= None, dist_exp: Optional[Expression]=None, side_id: Optional[Expression]=None) -> Xfer_Pass_Racking:
     """
     :param _:
     :param __:
@@ -808,3 +792,12 @@ def push_statement(_, __, needles: List[Expression], push_val: Union[str, Expres
     :return: Push statement
     """
     return Push_Statement(needles, push_val)
+
+@action
+def pass_second(_, nodes:list):
+    """
+    :param _:
+    :param nodes: nodes parsed
+    :return: the second node in the list
+    """
+    return nodes[1]

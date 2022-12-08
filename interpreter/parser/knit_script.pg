@@ -6,7 +6,9 @@ header: eol eol type_id=identifier ":" value=expression eol;
 
 declare_variable: assign=assignment eol;
 
-assertion: "assert" exp=expression (comma error=expression)? eol;
+assertion: "assert" exp=expression error=assert_error? eol;
+@pass_second
+assert_error: comma expression;
 
 try_catch: "try" try_block=statement "catch" catch_block=statement;
 
@@ -33,7 +35,7 @@ carriage_pass: "in" pass_dir=expression "direction" ":" "{" instructions=instruc
 
 param_list: args=identifier+[comma] comma kwargs=assignment+[comma] {3, right} |
 				kwargs= assignment+[comma] {2} |
-				args= identifier+[comma] {1}
+				args= identifier+[comma] {1};
 
 
 function_declaration: "def" func_name=identifier "(" params=param_list? ")" ":" block=code_block;
@@ -46,7 +48,10 @@ exp_statement: exp=expression eol;
 
 xfer_rack: is_across="across" | dist_exp=expression "to" side_id=expression;
 
-xfer_pass: "xfer" needles=expression+[comma] rack_val=xfer_rack ("to" bed=expression "bed")? slider="sliders"? eol;
+xfer_pass: "xfer" needles=expression+[comma] rack_val=xfer_rack bed=to_bed? slider="sliders"? eol;
+
+@pass_inner
+to_bed: "to" expression "bed";
 
 drop_pass: "drop" needles=expression+[comma] eol;
 
@@ -104,14 +109,22 @@ function_call: func_name=identifier "(" args=call_list? ")";
 list_expression: "[" exps=expression*[comma] "]";
 
 list_comp: "[" fill_exp=expression "for"
-	("every" spacer=("even"|"odd"|"other"|expression))?
+	spacer=every_spacer?
 	variables=identifier+[comma] "in" iter_exp=expression
-	("if" comp_cond=expression)?
+	comp_cond=if_comp?
 	"]";
+
+@pass_second
+every_spacer: "every" ("even"|"odd"|"other"|expression);
+@pass_second
+if_comp: "if" expression;
 
 dict_assign: key=expression ":" exp=expression;
 dict_expression: "{" kwargs=dict_assign*[comma] "}";
-dict_comp: "{" key=expression ":" value=expression "for" variables=identifier+[comma] "in" iter_exp=expression "}";
+dict_comp: "{" key=expression ":" value=expression
+				"for" spacer=every_spacer?  variables=identifier+[comma] "in" iter_exp=expression
+ 				comp_cond=if_comp?
+ 				"}";
 
 sliced_list: iter_exp=expression "[" start=expression? ":" end=expression? (":" spacer=expression)? "]" {4,left};
 
@@ -144,7 +157,7 @@ expression: expression "^" expression {right, 16}
             | expression "or" expression {left, 11}
             | negation {11}
             | gauge_exp {11}
-            | "(" expression ")" {10}
+            | "(" expression ")" {17}
             | unpack {10}
             | float_exp {10}
             | int_exp {10}
