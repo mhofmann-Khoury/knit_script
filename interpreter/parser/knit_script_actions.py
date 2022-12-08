@@ -16,7 +16,8 @@ from interpreter.expressions.carrier import Carrier_Expression
 from interpreter.expressions.needle_set_expression import Needle_Sets, Needle_Set_Expression
 from interpreter.expressions.not_expression import Not_Expression
 from interpreter.expressions.operator_expressions import Operator_Expression
-from interpreter.expressions.values import Boolean_Value, Bed_Side_Value, Bed_Value, Float_Value, Int_Value, String_Value, None_Value
+from interpreter.expressions.values import Boolean_Value, Bed_Side_Value, Bed_Value, Float_Value, Int_Value, String_Value, None_Value, Bed_Side, Machine_Position_Value, \
+    Machine_Type_Value, Header_ID_Value
 from interpreter.expressions.formatted_string import Formatted_String_Value
 from interpreter.expressions.direction import Pass_Direction_Expression
 from interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
@@ -33,16 +34,37 @@ from interpreter.statements.carrier_statements import Cut_Statement, Remove_Stat
 from interpreter.statements.code_block_statements import Code_Block
 from interpreter.statements.control_loop_statements import While_Statement, For_Each_Statement
 from interpreter.statements.function_dec_statement import Function_Declaration
+from interpreter.statements.header_statement import Machine_Type, Header_ID, Header_Statement
 from interpreter.statements.return_statement import Return_Statement
 from interpreter.statements.in_direction_statement import In_Direction_Statement
 from interpreter.statements.instruction_statements import Pause_Statement
 from interpreter.statements.try_catch_statements import Try_Catch_Statement
 # some boiler plate parglare code
 from interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
+from knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 
 action = get_collector()
 
-
+@action
+def program(_, __, head: List[Header_Statement], statements: List[Statement]):
+    """
+    :param _:
+    :param __:
+    :param head: list of header values to set the machine state
+    :param statements: the list of statements to execute
+    :return: header, statements
+    """
+    return head, statements
+@action
+def header(_, __, type_id:Header_ID_Value, value: Expression):
+    """
+    :param _:
+    :param __:
+    :param type_id: Value of header to update
+    :param value: the value to update to
+    :return: Statement for updating header
+    """
+    return Header_Statement(type_id, value)
 # basic expressions and statements
 @action
 def identifier(_, node: str) -> Expression:
@@ -53,21 +75,21 @@ def identifier(_, node: str) -> Expression:
     """
     if node == "None":
         return None_Value()
-    elif node == "True":
+    elif node == "True" or node == "False":
         return Boolean_Value(node)
-    elif node == "False":
-        return Boolean_Value(node)
-    elif node == "Right":
+    elif node in Bed_Side:
         return Bed_Side_Value(node)
-    elif node == "Left":
-        return Bed_Side_Value(node)
-    elif node == "Front":
+    elif node in Machine_Bed_Position:
         return Bed_Value(node)
-    elif node == "Back":
-        return Bed_Value(node)
+    elif node in Machine_Position:
+        return Machine_Position_Value(node)
+    elif node in Machine_Type:
+        return Machine_Type_Value(node)
+    elif node in Header_ID:
+        return Header_ID_Value(node)
     elif node == "machine":
         return Machine_Accessor()
-    elif node in Needle_Sets.values():
+    elif node in Needle_Sets:
         return Needle_Set_Expression(node)
     else:
         return Variable_Expression(node)

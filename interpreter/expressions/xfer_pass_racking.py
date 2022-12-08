@@ -4,7 +4,7 @@ from typing import Optional
 
 from interpreter.expressions.expressions import Expression
 from interpreter.expressions.values import Bed_Side
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from knitting_machine.Machine_State import Machine_State
 
 

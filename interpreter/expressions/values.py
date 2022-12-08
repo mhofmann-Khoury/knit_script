@@ -3,8 +3,10 @@ from enum import Enum
 from typing import Any
 
 from interpreter.expressions.expressions import Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
-from knitting_machine.machine_components.machine_position import Machine_Bed_Position
+from interpreter.parser.knit_script_context import Knit_Script_Context
+from interpreter.statements.header_statement import Machine_Type, Header_ID
+from knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
+
 
 class _Context_Free_Value(Expression):
 
@@ -113,7 +115,7 @@ class Bed_Side_Value(_Context_Free_Value):
     def __init__(self, side: str):
         """
         Instantiate
-        :param side:string representing the bed side
+        :param side:string representing the which bed to use
         """
         super().__init__()
         self._side:str = side
@@ -168,3 +170,35 @@ class String_Value(_Context_Free_Value):
         """
         return self._string
 
+class Machine_Position_Value(_Context_Free_Value):
+    """
+        Used for evaluating Machine Position identifiers in headers
+    """
+    def __init__(self, position_str: str):
+        super().__init__()
+        self._position_str = position_str
+
+    def _context_free_evaluation(self) -> Machine_Position:
+        return Machine_Position[self._position_str]
+
+class Machine_Type_Value(_Context_Free_Value):
+    """
+        Used for evaluating Machine Position identifiers in headers
+    """
+    def __init__(self, type_str: str):
+        super().__init__()
+        self._type_str = type_str
+
+    def _context_free_evaluation(self) -> Machine_Type:
+        return Machine_Type[self._type_str]
+
+class Header_ID_Value(_Context_Free_Value):
+    """
+        Used for evaluating strings of header types
+    """
+    def __init__(self, hid_str: str):
+        super().__init__()
+        self._hid_str = hid_str
+
+    def _context_free_evaluation(self) -> Header_ID:
+        return Header_ID[self._hid_str]

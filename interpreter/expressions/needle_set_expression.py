@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List
 
 from interpreter.expressions.expressions import Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from knitting_machine.machine_components.needles import Needle
 
 
@@ -23,13 +23,6 @@ class Needle_Sets(Enum):
     Front_Slider_Loops = "Front_Slider_Loops"
     Back_Slider_Loops = "Back_Slider_Loops"
 
-    @staticmethod
-    def values() -> List[str]:
-        """
-        :return: value strings of KP_Type
-        """
-        return [*(e.value for e in Needle_Sets)]
-
 
 class Needle_Set_Expression(Expression):
     """Evaluates keywords to sets of needles on the machine"""
@@ -41,6 +34,13 @@ class Needle_Set_Expression(Expression):
         """
         super().__init__()
         self._set_str:str = set_str
+
+    @property
+    def set_str(self) -> str:
+        """
+        :return: string for the set of needles to collect
+        """
+        return self._set_str
 
     def evaluate(self, context: Knit_Script_Context) -> List[Needle]:
         """

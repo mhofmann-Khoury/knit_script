@@ -3,8 +3,8 @@ from typing import List, Dict
 
 from interpreter.expressions.expressions import Expression
 from interpreter.expressions.instruction_expression import Needle_Instruction_Exp, Needle_Instruction
-from interpreter.parser.knit_pass_context import Knit_Script_Context
-from interpreter.statements.Machine_Pass import Carriage_Pass
+from interpreter.parser.knit_script_context import Knit_Script_Context
+from interpreter.statements.Carriage_Pass import Carriage_Pass
 from interpreter.statements.Statement import Statement
 from knitting_machine.machine_components.needles import Needle
 

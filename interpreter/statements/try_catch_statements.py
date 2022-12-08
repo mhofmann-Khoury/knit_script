@@ -1,5 +1,5 @@
 """Try catch execution"""
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from interpreter.statements.Statement import Statement
 
 

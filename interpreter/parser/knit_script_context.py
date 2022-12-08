@@ -2,6 +2,7 @@
 from typing import Optional, List, Union
 
 from interpreter.parser.variable_scope import Variable_Scope
+from interpreter.statements.header_statement import Header
 from knitting_machine.Machine_State import Machine_State
 from knitting_machine.knitout_instructions import inhook, bring_in, rack, releasehook
 from knitting_machine.machine_components.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle, Sheet_Identifier
@@ -10,34 +11,26 @@ from knitting_machine.machine_components.machine_position import Machine_Positio
 from knitting_machine.machine_components.needles import Needle, Slider_Needle
 from knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
 
-start working on clean up here
 class Knit_Script_Context:
     """Manages state of the Knitting machine during program execution"""
-
     def __init__(self, parent_scope: Optional[Variable_Scope] = None,
-                 bed_width: int = 250, layers: int = 1,
-                 machine_gauge: int = 5, machine_position: Machine_Position = Machine_Position.Center):
-        self.layers = layers
-        self.machine_gauge = machine_gauge
-        self.machine_position = machine_position
+                 bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center):
         self.variable_scope = Variable_Scope(parent_scope)
-        self.machine_state: Machine_State = Machine_State(bed_width)
-        uw = [
-            ";!knitout-2\n",
-            ";;Machine: SWG091N2\n",
-            ";;Carriers: 1 2 3 4 5 6 7 8 9 10\n",
-            ";;Gauge: 7\n",
-            ";;Width: 250\n",
-            ";;Position: Center\n"
-        ]
-        mit = [
-            ";!knitout-2\n",
-            ";;Machine: SWG091N2\n",
-            ";;Width: 540\n",
-            ";;Carriers: 1 2 3 4 5 6 7 8 9 10\n",
-            ";;Position: Center\n"
-        ]
-        self.knitout: List[str] = uw
+        self._header: Header = Header(bed_width, machine_position)
+        self.machine_state: Machine_State = self._header.machine_state()
+        self.knitout: List[str] = self._header.header_lines()
+
+    @property
+    def header(self) -> Header:
+        """
+        :return: The header used to define the machine state
+        """
+        return self._header
+
+    @header.setter
+    def header(self, value: Header):
+        self._header = value
+        self.machine_state = self._header.machine_state()
 
     def enter_sub_scope(self, function_name: Optional[str] = None):
         """

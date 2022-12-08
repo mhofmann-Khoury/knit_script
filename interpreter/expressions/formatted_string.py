@@ -2,7 +2,7 @@
 from typing import List
 
 from interpreter.expressions.expressions import Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 
 
 class Formatted_String_Value(Expression):

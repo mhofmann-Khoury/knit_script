@@ -5,7 +5,7 @@ from interpreter.expressions.expressions import Expression
 from interpreter.expressions.variables import Variable_Expression
 from interpreter.expressions.function_expressions import Function_Call
 from interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from interpreter.statements.function_dec_statement import Function_Signature
 from knitting_machine.Machine_State import Machine_State
 from knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
@@ -48,7 +48,7 @@ class Attribute_Accessor_Expression(Expression):
             else:
                 return attr
         elif isinstance(self._attribute, Needle_Set_Expression):  # get needle set from machine or sheet specification
-            kp_set = Needle_Sets[self._attribute._set_str]
+            kp_set = Needle_Sets[self._attribute.set_str]
             if isinstance(parent, Machine_State):
                 if kp_set is Needle_Sets.Front_Needles:
                     return context.machine_state.front_needles(on_sheet=False)

@@ -1,9 +1,13 @@
 """Code manages a variable scope symbol table with undefined variables by default"""
 from typing import Dict, Any, Optional, Set, Union
 
+from interpreter.expressions.needle_set_expression import Needle_Sets
+from interpreter.expressions.values import Bed_Side
+from interpreter.statements.header_statement import Machine_Type, Header_ID
 from knitting_machine.Machine_State import Machine_State
 from knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knitting_machine.machine_components.machine_pass_direction import Pass_Direction
+from knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 from knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
 
 
@@ -13,25 +17,36 @@ class Variable_Scope:
     """
 
     def __init__(self, parent_scope=None, function_name: Optional[str] = None):
-        self.function_name: Optional[str] = function_name
+        """
+        Instantiate
+        :param parent_scope: scope for entering sub-scope, defaults to none at top
+        :param function_name: the name of the function that this scope belongs to, may be none
+        """
+        self._function_name: Optional[str] = function_name
         self._parent_scope: Optional[Variable_Scope] = parent_scope
         self._child_scope: Optional[Variable_Scope] = None
         self._variable_values: Dict[str, Any] = {}
         self.return_value: Any = None
         self.has_return: bool = False
-        self.direction_id = "Direction"
-        self.carrier_id = "Carrier"
-        self.rack_id = "Racking"
-        self.sheet_id = "Sheet"
-        self.gauge_id = "Gauge"
-        self._reserved_words: Set[str] = {"def", "repeat", "while", "if", "else", "None", "in", "direction", "with",
-                                          "knit", "tuck", "split", "miss", "drop", "xfer",
-                                          "to", "slider", "sliders", "strict", "strictly", "for", "needles",
-                                          "on", "every", "of", "from", "to", "layer", "at", "rack", "all",
-                                          "inhook", "outhook", "releasehook", "current", "carrier", "int",
-                                          "bool", "Carrier", "Bed", "direction", "reverse",
-                                          self.direction_id, self.carrier_id, self.rack_id, self.gauge_id
+        self._direction_id = "Direction"
+        self._carrier_id = "Carrier"
+        self._rack_id = "Racking"
+        self._sheet_id = "Sheet"
+        self._gauge_id = "Gauge"
+        self._reserved_words: Set[str] = {"def", "while", "try", "catch", "for",  "in","assert", "print", "pause",
+                                          "if", "elif", "else", "not", "with", "as", "return",
+                                          "None", "direction",  "across","Carrier", "Bed", "direction", "reverse", "machine",
+                                          "knit", "tuck", "split", "miss", "drop", "xfer", "cut", "remove",
+                                          "to", "slider", "sliders", "needles", "on", "every", "even", "odd", "other",
+                                          "of", "from", "layer", "at", "rack", "all", "current", "carrier", "push",  "sheets",
+                                          "True", "False", self._direction_id, self._carrier_id, self._rack_id, self._gauge_id
                                           }
+        self._reserved_words.update({v for v in Bed_Side})
+        self._reserved_words.update({v for v in Machine_Bed_Position})
+        self._reserved_words.update({v for v in Machine_Position})
+        self._reserved_words.update({v for v in Machine_Type})
+        self._reserved_words.update({v for v in Header_ID})
+        self._reserved_words.update({v for v in Needle_Sets})
         if self._parent_scope is None:
             self.current_direction = Pass_Direction.Right_to_Left_Decreasing
             self.current_carrier = None
@@ -41,10 +56,11 @@ class Variable_Scope:
 
     @property
     def _is_function_scope(self):
-        return self.function_name is not None
+        return self._function_name is not None
 
     def return_scope(self, set_value: bool = False, value: Any = None):
         """
+        Collect the scope that holds a return value
         :param set_value: if True, sets the given value as the return value
         :param value: value to be returned
         :return: the function_scope that has the set return value.
@@ -69,7 +85,7 @@ class Variable_Scope:
         """
         :return: The active sheet_id for N-Bed Knitting
         """
-        return self[self.sheet_id]
+        return self[self._sheet_id]
 
     @current_sheet.setter
     def current_sheet(self, value: Optional[Union[int, Sheet_Identifier]]):
@@ -80,14 +96,14 @@ class Variable_Scope:
                 f"Sheet must be between 0 and gauge {self.current_gauge}, {value}"
             value = Sheet_Identifier(value, self.current_gauge)
         self.current_gauge = value.gauge
-        self[self.sheet_id] = value
+        self[self._sheet_id] = value
 
     @property
     def current_gauge(self) -> int:
         """
         :return: The current Gauge being worked, the number of layers that can be accessed
         """
-        gauge = self[self.gauge_id]
+        gauge = self[self._gauge_id]
         assert 0 < gauge < Machine_State.MAX_GAUGE, \
             f"KnitScript Error: Gauge must be between 0 and {Machine_State.MAX_GAUGE} but got {gauge}"
         return gauge
@@ -98,7 +114,7 @@ class Variable_Scope:
             value = 1
         assert 0 < value < Machine_State.MAX_GAUGE, \
             f"KnitScript Error: Gauge must be between 0 and {Machine_State.MAX_GAUGE} but got {value}"
-        self[self.gauge_id] = int(value)
+        self[self._gauge_id] = int(value)
 
 
     @property
@@ -106,20 +122,20 @@ class Variable_Scope:
         """
         :return: Machine direction at current scope
         """
-        direction = self[self.direction_id]
+        direction = self[self._direction_id]
         return direction
 
     @current_direction.setter
     def current_direction(self, value: Pass_Direction):
         assert isinstance(value, Pass_Direction), f"Direction has been set to non-direction {value}"
-        self[self.direction_id] = value
+        self[self._direction_id] = value
 
     @property
     def current_carrier(self) -> Optional[Yarn_Carrier]:
         """
         :return: Active carrier at current scope
         """
-        carrier = self[self.carrier_id]
+        carrier = self[self._carrier_id]
         return carrier
 
     @current_carrier.setter
@@ -131,19 +147,19 @@ class Variable_Scope:
         elif isinstance(carrier, list):
             carrier = Yarn_Carrier(carrier)
         assert carrier is None or isinstance(carrier, Yarn_Carrier), f"Cannot set Carrier to non-carrier, int, or list of ints/carriers {carrier}"
-        self[self.carrier_id] = carrier
+        self[self._carrier_id] = carrier
 
     @property
     def current_racking(self) -> int:
         """
         :return: Racking value at scope
         """
-        rack = self[self.rack_id]
+        rack = self[self._rack_id]
         return rack
 
     @current_racking.setter
     def current_racking(self, value: int):
-        self[self.rack_id] = value
+        self[self._rack_id] = value
 
     def is_reserved_word(self, word: str) -> bool:
         """
@@ -257,7 +273,10 @@ class Variable_Scope:
     def __delitem__(self, var_name: str):
         self.delete_item_in_scope(var_name)
 
-    def var_depth(self):
+    def var_depth(self)-> int:
+        """
+        :return: The depth of this scope
+        """
         d = -1
         current_scope = self
         while current_scope is not None:
@@ -268,7 +287,7 @@ class Variable_Scope:
     def __str__(self):
         scope_str = f"{self.var_depth()}"
         if self._is_function_scope:
-            scope_str = f"{self.function_name}({scope_str})"
+            scope_str = f"{self._function_name}({scope_str})"
         if self.has_return:
             scope_str = f"{scope_str}=={self.return_value}"
         if self._parent_scope is None:

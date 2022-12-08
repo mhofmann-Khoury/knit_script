@@ -1,6 +1,6 @@
 """Expression for identifying needles"""
 from interpreter.expressions.expressions import Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from knitting_machine.machine_components.needles import Needle
 
 

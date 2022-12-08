@@ -3,7 +3,7 @@ Base class of all expression values
 """
 from typing import Any, List
 
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 
 
 class Expression:

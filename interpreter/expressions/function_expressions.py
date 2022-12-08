@@ -3,9 +3,9 @@ from typing import List, Optional, Any
 
 from interpreter.expressions.expressions import Expression
 from interpreter.expressions.variables import Variable_Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
+from interpreter.statements.assignment import Assignment
 from interpreter.statements.function_dec_statement import Function_Signature
-from interpreter.statements.language_structures import Assignment
 
 
 class Function_Call(Expression):

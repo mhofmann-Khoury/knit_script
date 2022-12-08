@@ -2,7 +2,7 @@
 from typing import Union, Tuple, List
 
 from interpreter.expressions.expressions import Expression, get_expression_value_list
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from interpreter.statements.Statement import Statement
 from knitting_machine.machine_components.needles import Needle
 

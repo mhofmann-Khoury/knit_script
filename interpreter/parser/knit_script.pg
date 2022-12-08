@@ -1,6 +1,8 @@
 S: program;
 
-program: statement+;
+program: head=header* statements=statement+;
+
+header: eol eol type_id=identifier ":" value=expression eol;
 
 declare_variable: assign=assignment eol;
 

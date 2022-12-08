@@ -2,7 +2,7 @@
 from typing import Optional, Dict, Set
 
 from interpreter.expressions.instruction_expression import Needle_Instruction
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from knitting_machine.knitout_instructions import releasehook
 from knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knitting_machine.machine_components.machine_position import Machine_Bed_Position

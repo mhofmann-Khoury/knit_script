@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional, Tuple, List, Union
 
 from interpreter.expressions.expressions import Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from knitting_machine.Machine_State import Machine_State
 from knitting_machine.knitout_instructions import knit, tuck, xfer, split, miss, drop
 from knitting_machine.machine_components.machine_pass_direction import Pass_Direction

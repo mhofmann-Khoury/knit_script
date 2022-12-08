@@ -35,19 +35,21 @@ class Machine_State:
     """
     MAX_GAUGE = 10
 
-    def __init__(self, needle_count: int = 250, racking: float = 0, max_rack: float = 4.25):
+    def __init__(self, needle_count: int = 250, max_rack: float = 4.25, carrier_count:int = 10, hook_size:int = 5):
         """
         Maintains the state of the machine
         :param needle_count:the number of needles that are on this bed
-        :param racking:the current racking between the front and back bed: r=f-b
+        :param max_rack: Maximum allowed racking on machine
+        :param carrier_count: Number of carriers available on the machine
+        :param hook_size: the number of needles blocked by the yarn inserting hook
         """
         self._max_rack = max_rack
-        self.racking: float = racking
+        self.racking: float = 0.0
         self.front_bed: Machine_Bed = Machine_Bed(is_front=True, needle_count=needle_count)
         self.back_bed: Machine_Bed = Machine_Bed(is_front=False, needle_count=needle_count)
         self.last_carriage_direction: Pass_Direction = Pass_Direction.Left_to_Right_Increasing
         # Presumes carriage is left on Right side before knitting
-        self.yarn_manager: Carrier_Insertion_System = Carrier_Insertion_System()
+        self.yarn_manager: Carrier_Insertion_System = Carrier_Insertion_System(carrier_count, hook_size)
         self._loop_id_counter: int = 0
         self.knit_graph: Knit_Graph = Knit_Graph()
         self._gauge: int = 1

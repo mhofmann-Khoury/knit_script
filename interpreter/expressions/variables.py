@@ -2,7 +2,7 @@
 from typing import Any
 
 from interpreter.expressions.expressions import Expression
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 
 
 class Variable_Expression(Expression):
@@ -10,13 +10,13 @@ class Variable_Expression(Expression):
         A structure for accessing variables by name from the current context scope
     """
 
-    def __init__(self, var_name: str):
+    def __init__(self, variable_name: str):
         """
         Instantiate
-        :param var_name: name of variable
+        :param variable_name: name of variable
         """
         super().__init__()
-        self._variable_name:str = var_name
+        self._variable_name:str = variable_name
 
     @property
     def variable_name(self)->str:

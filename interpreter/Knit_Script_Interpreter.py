@@ -5,8 +5,9 @@ from typing import List, Tuple
 from parglare import Grammar, Parser
 
 from interpreter.dat_compiler.run_dat_compiler import knitout_to_dat
-from interpreter.parser.knit_pass_context import Knit_Script_Context
+from interpreter.parser.knit_script_context import Knit_Script_Context
 from interpreter.statements.Statement import Statement
+from interpreter.statements.header_statement import Header_Statement
 from knit_graphs.Knit_Graph import Knit_Graph
 
 
@@ -15,6 +16,12 @@ class Knit_Script_Interpreter:
         A class to manage parsing a knit script file with parglare
     """
     def __init__(self, debug_grammar: bool = True, debug_parser: bool = True, debug_parser_layout: bool = True):
+        """
+        Instantiate
+        :param debug_grammar: Will provide full parglare output for grammar states
+        :param debug_parser: Will provide full parglare output for parsed file shift reduce status
+        :param debug_parser_layout: Will provide layout information from parser
+        """
         self._debug_parser_layout = debug_parser_layout
         self._debug_parser = debug_parser
         directory = os.path.dirname(__file__)
@@ -23,13 +30,15 @@ class Knit_Script_Interpreter:
         self._parser = Parser(self._grammar, debug=debug_parser, debug_layout=debug_parser_layout)
         self._knit_pass_context = Knit_Script_Context()
 
-    def reset_context(self):
+    def _reset_context(self):
         """
         Resets the context of the interpreter to a starting state with no set variables or operations on the machine
         """
+        header = self._knit_pass_context.header
         self._knit_pass_context = Knit_Script_Context()
+        self._knit_pass_context.header = header # resets machine state as well
 
-    def interpret(self, pattern: str, pattern_is_file: bool = False) -> List[Statement]:
+    def interpret(self, pattern: str, pattern_is_file: bool = False) -> Tuple[List[Header_Statement], List[Statement]]:
         """
         Executes the parsing code for the parglare parser
         :param pattern: either a file or the knitspeak string to be parsed
@@ -55,7 +64,9 @@ class Knit_Script_Interpreter:
         :param pattern: the pattern string or file name to interpret
         :param reset_context: If true, resets context at end of program
         """
-        statements = self.interpret(pattern, pattern_is_file)
+        header, statements = self.interpret(pattern, pattern_is_file)
+        for header_line in header:
+            header_line.execute(self._knit_pass_context)
         for statement in statements:
             statement.execute(self._knit_pass_context)
         self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.yarn_manager.cut_all_yarns())
@@ -64,16 +75,17 @@ class Knit_Script_Interpreter:
         knitgraph = self._knit_pass_context.machine_state.knit_graph
         knitout = self._knit_pass_context.knitout
         if reset_context:
-            self.reset_context()
+            self._reset_context()
         return knitout, knitgraph
 
 
-def knitpass_to_knitout_to_dat(pattern: str, out_file_name: str, pattern_is_filename: bool = False) -> Knit_Graph:
+def knitscript_to_knitout_to_dat(pattern: str, out_file_name: str, pattern_is_filename: bool = False) -> Knit_Graph:
     """
     Processes a knit script pattern into knitout and a dat file for shimi seiki machines and returns the resulting knit graph from the operations
     :param: pattern: the knitpass pattern or a file containing it
     :param: out_file_name: the output location for knitout and dat files
     :param: pattern_is_filename: if true, pattern is a filename
+    :return: the KnitGraph constructed during parsing on virtual machine
     """
     parser = Knit_Script_Interpreter()
     _, knit_graph = parser.write_knitout(pattern, out_file_name, pattern_is_filename)
