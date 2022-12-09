@@ -9,6 +9,8 @@ class Machine_Position(Enum):
     Center = "Center"
     Keep = "Keep"
 
+    def __str__(self):
+        return self.value
 
 class Machine_Bed_Position(Enum):
     """

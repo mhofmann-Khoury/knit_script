@@ -23,6 +23,9 @@ class Machine_Type(Enum):
     """
     SWG091N2 = 'SWG091N2'
 
+    def __str__(self):
+        return self.value
+
 
 class Header:
     """A class structure for generating knitout header files"""
@@ -72,7 +75,8 @@ class Header:
         :return: Lines of the knitout header
         """
         carriers = [i for i in range(1, self._carrier_count + 1)]
-        carrier_str = str(carriers).replace(",", "")
+        carrier_str = str(carriers).replace(",", "") # swap commas for spacing
+        carrier_str = carrier_str[1:-1] # cut brackets
         return [
             ";!knitout-2\n",
             f";;Machine: {self._machine_type}\n",

@@ -126,7 +126,9 @@ dict_comp: "{" key=expression ":" value=expression
  				comp_cond=if_comp?
  				"}";
 
-sliced_list: iter_exp=expression "[" start=expression? ":" end=expression? (":" spacer=expression)? "]" {4,left};
+sliced_list: iter_exp=expression "[" start=expression? ":" end=expression? spacer=slice_spacer? "]" {4,left};
+@pass_second
+slice_spacer: ":" expression;
 
 needle_instruction: inst=("knit" | "tuck" | "miss" | "split");
 

@@ -245,3 +245,16 @@ class TestKnit_Pass_Interpreter(TestCase):
         _, results = self.parser.interpret(program)
         print(results)
 
+    def test_slices(self):
+        program = "slice[0:1:-1];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[:-1:-2];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[10::-1];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[0:1];"
+        _, results = self.parser.interpret(program)
+        print(results)
