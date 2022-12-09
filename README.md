@@ -18,3 +18,7 @@ operations reference the [knitout specification](https://textiles-lab.github.io/
 ### interpreter
 The knit script interpreter which manages parsing and interpreting knitscript patterns. Parsing is managed through 
 the [Parglare parsing toolkit](http://www.igordejanovic.net/parglare/0.16.0/).
+
+### tests
+Test classes for evaluating the interpreter and parsing knitscript samples. Calibration samples are used for 
+calibrating allowable gauge on a machine. Paper samples demonstrate different basic techniques of sheet knittting. 
