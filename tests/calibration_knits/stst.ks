@@ -1,4 +1,4 @@
-
+// Build a standard Stockinette Swatch with an alternating tuck cast on
 width = 20;
 height = 20;
 

@@ -51,13 +51,19 @@ class Function_Call(Expression):
         else:
             try:
                 args_str = ""
+                args = []
                 for arg_exp in self.args:
                     arg = arg_exp.evaluate(context)
                     args_str += f"{arg}, "
+                    args.append(arg)
+                kwargs = {}
                 for kwarg_assign in self.kwargs:
-                    args_str += f"{kwarg_assign.variable_name} = {kwarg_assign.value(context)}, "
+                    kwarg_value = kwarg_assign.value(context)
+                    args_str += f"{kwarg_assign.variable_name} = {kwarg_value}, "
+                    kwargs[kwarg_assign.variable_name] = kwarg_value
                 args_str = args_str[:-2]  # remove last ", "
                 func_str = f"{self.func_name.variable_name}({args_str})"
+                func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
                 return eval(func_str)
             except NameError as error:
                 raise RuntimeError(f"KnitPass: Could not find function by name {self.func_name.variable_name}") from error

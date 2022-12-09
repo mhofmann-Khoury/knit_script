@@ -174,7 +174,7 @@ class List_Comp(Expression):
                 context.variable_scope[self._var_name] = var  # update iterator variable in scope
             else:  # multiple vars to unpack
                 iterated_var = [*var]
-                assert len(iterated_var) == self._vars, "Unpacked values do not match variables provided"
+                assert len(iterated_var) == len(self._vars), "Unpacked values do not match variables provided"
                 for var_name, var_val in zip(self._vars, iterated_var):
                     context.variable_scope[var_name.variable_name] = var_val
             if self._comp_cond is None:

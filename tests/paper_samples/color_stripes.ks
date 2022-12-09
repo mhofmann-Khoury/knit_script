@@ -1,3 +1,5 @@
+//make stripes of different sheets of color. Alternate layers to change colors
+
 stripe_width = 8;
 height = 20;
 colors = 3;
@@ -6,10 +8,10 @@ width = colors * stripe_width;
 def cast_on_knit(w, knit_rows=2):{
 	print f"caston {width} loops";
 	in Leftward direction:{
-		tuck [n for n in Front_Needles[1:width:2]];
+		tuck Front_Needles[1:width:2];
 	}
 	in reverse direction:{
-		tuck [n for n in Front_Needles[0:width:2]];
+		tuck Front_Needles[0:width:2];
 	}
 	for r in range(0,knit_rows):{
 		in reverse direction:{

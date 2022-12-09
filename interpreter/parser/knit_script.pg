@@ -132,7 +132,10 @@ slice_spacer: ":" expression;
 
 needle_instruction: inst=("knit" | "tuck" | "miss" | "split");
 
-instruction_assignment: inst=expression needles=expression+[comma] eol;
+instruction_assignment: inst=expression needles=needle_list eol;
+
+@collect_sep
+needle_list: needle_list comma expression | expression;
 
 accessor: exp=expression dot attribute=expression;
 method_call: exp=expression dot method=function_call;

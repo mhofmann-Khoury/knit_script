@@ -258,3 +258,13 @@ class TestKnit_Pass_Interpreter(TestCase):
         program = "slice[0:1];"
         _, results = self.parser.interpret(program)
         print(results)
+
+    def test_needle_list(self):
+        program = r"""
+            in reverse direction:{
+                tuck n[0:w:2];
+            }
+        """
+        _, results = self.parser.interpret(program)
+        print(results)
+

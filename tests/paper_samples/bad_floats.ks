@@ -1,3 +1,4 @@
+// Make a single sheet sample that demonstrates how floats fall between beds
 
 stripe_count = 9;
 stripe_width = 3;
@@ -7,10 +8,10 @@ height = 20;
 def cast_on_stst(w, h=4):{
 	print f"Cast on {w} loops";
 	in Leftward direction:{
-		tuck [n for n in Front_Needles[1:w:2]];
+		tuck Front_Needles[1:w:2];
 	}
 	in reverse direction:{
-		tuck [n for n in Front_Needles[0:w:2]];
+		tuck Front_Needles[0:w:2];
 	}
 	for r in range(0, h):{
 		in reverse direction:{

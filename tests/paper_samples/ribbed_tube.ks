@@ -1,4 +1,4 @@
-
+// Make a tube of kp ribbing. Front of the round is on sheet 0. Back is on Sheet 2
 width = 10;
 height = 20;
 
