@@ -1,16 +1,19 @@
+"""Tests associated with the parsing of the language. Does not interpret the code"""
 from unittest import TestCase
 
-from interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from interpreter.expressions.needle_set_expression import Needle_Sets
-from interpreter.parser.header_structure import Machine_Type, Header_ID
-from interpreter.statements.Statement import Expression_Statement
-from knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
+from KnitScript.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
+from KnitScript.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets
+from KnitScript.knit_script_interpreter.header_structure import Machine_Type, Header_ID
+from KnitScript.knit_script_interpreter.statements.Statement import Expression_Statement
+from KnitScript.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 
 
 class TestKnit_Pass_Interpreter(TestCase):
     parser = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
+
     def test_values(self):
         program = "1.2;"
+        n = self.parser.interpret(program)
         header, statements = self.parser.interpret(program)
         print(statements)
         program = "12;"
@@ -68,49 +71,49 @@ class TestKnit_Pass_Interpreter(TestCase):
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert  1 == self.parser.evaluate_expression(statement.expression)
+        assert 1 == self.parser.knit_script_evaluate_expression(statement.expression)
         program = "2 < 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert not self.parser.evaluate_expression(statement.expression)
+        assert not self.parser.knit_script_evaluate_expression(statement.expression)
         program = "2 <= 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert not self.parser.evaluate_expression(statement.expression)
+        assert not self.parser.knit_script_evaluate_expression(statement.expression)
         program = "2 > 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.evaluate_expression(statement.expression)
+        assert self.parser.knit_script_evaluate_expression(statement.expression)
         program = "2 >= 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.evaluate_expression(statement.expression)
+        assert self.parser.knit_script_evaluate_expression(statement.expression)
         program = "2 == 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert not self.parser.evaluate_expression(statement.expression)
+        assert not self.parser.knit_script_evaluate_expression(statement.expression)
         program = "2 != 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.evaluate_expression(statement.expression)
+        assert self.parser.knit_script_evaluate_expression(statement.expression)
         program = "not 2 < 0;"
         header, statements = self.parser.interpret(program)
         print(statements)
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.evaluate_expression(statement.expression)
+        assert self.parser.knit_script_evaluate_expression(statement.expression)
 
     def test_xfer(self):
         program = "xfer n across to Front bed sliders;"
@@ -122,7 +125,6 @@ class TestKnit_Pass_Interpreter(TestCase):
         program = "xfer [f1, f2, b3] 4 to Right;"
         header, statements = self.parser.interpret(program)
         print(statements)
-
 
     def test_iter(self):
         program = "[n for every other n,q in Front_Needles if n==f2];"
@@ -206,6 +208,7 @@ class TestKnit_Pass_Interpreter(TestCase):
         print(results)
 
     def test_with(self):
+        # warning note: seems to be a parsing issue. The statement runs fine
         program = "with Racking as 2, Carrier as a: {assert False;}"
         _, results = self.parser.interpret(program)
         print(results)
@@ -267,4 +270,3 @@ class TestKnit_Pass_Interpreter(TestCase):
         """
         _, results = self.parser.interpret(program)
         print(results)
-

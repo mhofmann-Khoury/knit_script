@@ -1,0 +1,6 @@
+include *.pg
+recursive-include *.pg
+include *.py
+include README.md
+include LICENSE
+include *.ks

@@ -1,5 +1,16 @@
 # KnitScript
 
+## Set Up
+
+### Dat Compiler:
+To work with a Shima Seiki Knitting machine you will need code to convert your knitout (.k) files into DAT (.dat) 
+files. The DAT compiler we use for testing our samples is closed-source and not included in this project. You will 
+need to bring your own to work with these machines
+
+### Kniterate Compiler:
+We have not tested these samples on a kniterate machine however the knitout to [kniterate compiler](https://github.com/textiles-lab/knitout-backend-kniterate/) is available and 
+should work with our standardized knitout files. 
+
 ## Packages
 
 ### knit_graphs
