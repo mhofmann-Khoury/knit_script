@@ -4,3 +4,4 @@ include *.py
 include README.md
 include LICENSE
 include *.ks
+include *.js
