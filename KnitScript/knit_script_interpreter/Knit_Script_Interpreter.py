@@ -84,5 +84,3 @@ class Knit_Script_Interpreter:
         :return: evaluation result
         """
         return exp.evaluate(self._knit_pass_context)
-
-

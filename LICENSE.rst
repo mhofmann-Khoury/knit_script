@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2022 Megan Hofmann, Northeaster University Khoury College of Computer Sciences Accessible Creative
+Copyright (c) 2022 Megan Hofmann, Northeastern University Khoury College of Computer Sciences Accessible Creative
 Technologies (ACT) Lab and Contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

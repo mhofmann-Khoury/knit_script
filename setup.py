@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='KnitScript',
-    version='0.1',
+    version='0.1.1',
     packages=find_packages(),
     package_dir={"KnitScript": "KnitScript"},
     package_data={"KnitScript": ["*.pg", "*.js"], "knit_script_interpreter": ["*.pg", "*.js"], "": ["*.pg", "*.js"]},

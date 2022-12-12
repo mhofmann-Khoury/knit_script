@@ -1,11 +1,67 @@
 # KnitScript
 
 ## Set Up
+### Install Development Version (from local source code)
+```
+$ git clone https://github.khoury.northeastern.edu/mhofmann/KnitScript.git
+$ pip install -e KnitScript   
+```
+This will clone the repository to your machine and then install the system for active development to your python 
+interpreter associated with pip. This will give you access to KnitScript from anywhere on your machine as other 
+standard python libraries.
+
+### Install Stable Version from PyPI
+
+```
+$ pip install KnitScript
+```
+ 
+### Adding DAT compiler for command line interpreting
+Note the location that your pip install creates site packages. Often 
+`C:\Users\<user_name>\AppData\Roaming\Python\Python39\site-packages\KnitScript`. In the knit_script_interpreter 
+folder at this location you will need to put in your own copy of the knitout_to_dat.js file. This is not provide 
+with this distribution because it contains copyrighted material.
+
+### Using knitscript from command line (Unix) # todo, untested
+```
+$knitscript -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knitscript file>
+```
+For example, when in the directory of tests\calibration samples we can generate a stockinette dat file by running
+```
+$ knitscript -k stst_knitout.k -d stst_dat.dat stst.ks
+```
+
+### Using knitscript from command line (windows)
+Index into the KnitScript directory to access knitscript.bat or add knitscript.bat to your system PATH
+```
+$knitscript.bat -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knitscript file>
+```
+For example, when in the directory of tests\calibration samples we can generate a stockinette dat file by running
+```
+$ knitscript.bat -k stst_knitout.k -d stst_dat.dat stst.ks
+```
+
+### Using KnitScript Interpreter from Python
+To just generate a knitout file from KnitScript, use the following
+```python
+from KnitScript.interpret import knit_script_to_knitout
+knit_graph = knit_script_to_knitout('<pattern file>', '<knitout file name>')
+```
+
+To also generate a data file use:
+```python
+from KnitScript.interpret import knitscript_to_knitout_to_dat
+knit_graph = knitscript_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
+```
+
+Additional examples of accessing the interpreter can be seen in the Test Cases
 
 ### Dat Compiler:
 To work with a Shima Seiki Knitting machine you will need code to convert your knitout (.k) files into DAT (.dat) 
 files. The DAT compiler we use for testing our samples is closed-source and not included in this project. You will 
-need to bring your own to work with these machines
+need to bring your own to work with these machines. Install the compiler as a single javascript file called 
+"knitout_to_dat.js" in the knit_script_interpreter package. The Setup.py file will load this into your python 
+distribution. 
 
 ### Kniterate Compiler:
 We have not tested these samples on a kniterate machine however the knitout to [kniterate compiler](https://github.com/textiles-lab/knitout-backend-kniterate/) is available and 
