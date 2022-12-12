@@ -6,7 +6,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     package_dir={"KnitScript": "KnitScript"},
-    package_data={"KnitScript": ["*.pg"], "knit_script_interpreter": ["*.pg", "*.js"]},
+    package_data={"KnitScript": ["*.pg", "*.js"], "knit_script_interpreter": ["*.pg", "*.js"]},
     include_package_data=True,
     url='https://github.khoury.northeastern.edu/mhofmann/KnitScript',
     license='MIT',
