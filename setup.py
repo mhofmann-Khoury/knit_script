@@ -19,7 +19,7 @@ setup(
         'parglare==0.16.0',
         'Naked==0.1.32',
     ],
-    # entry_points={
-    #     'console_scripts': ['knitscript=KnitScript.interpret:main']
-    # }
+    entry_points={
+        'console_scripts': ['knitscript=KnitScript.interpret:main']
+    }
 )
