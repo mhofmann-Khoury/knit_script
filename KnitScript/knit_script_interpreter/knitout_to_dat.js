@@ -4,7 +4,7 @@
 
 //parse command line
 if (process.argv.length != 4) {
-	console.error("Usage:\nknitout-to-dat.js <in.knitout> <out.dat>");
+	console.error("Usage:\nknitout_to_dat.js <in.knitout> <out.dat>");
 	process.exitCode = 1;
 	return;
 }

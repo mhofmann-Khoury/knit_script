@@ -19,7 +19,7 @@ def knitout_to_dat(knitout_file_name: str, dat_file_name: Optional[str] = None, 
     directory = os.path.dirname(__file__)
     # directory = 'C:\\Users\\Megan\\bin'
     if js_compiler_file is None:
-        js_compiler_file = f"{directory}{os.path.sep}knitout-to-dat.js"
+        js_compiler_file = f"{directory}{os.path.sep}knitout_to_dat.js"
 
     arguments = f"{knitout_file_name} {dat_file_name}"
     print(f"################  Converting {knitout_file_name} to DAT FILE ########")
