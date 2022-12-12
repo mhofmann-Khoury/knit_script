@@ -6,7 +6,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     package_dir={"KnitScript": "KnitScript"},
-    package_data={"KnitScript": ["*.pg"], "knit_script_interpreter": ["*.pg"]},
+    package_data={"KnitScript": ["*.pg"], "knit_script_interpreter": ["*.pg", "*.js"]},
     include_package_data=True,
     url='https://github.khoury.northeastern.edu/mhofmann/KnitScript',
     license='MIT',
@@ -18,5 +18,8 @@ setup(
         'networkx==2.8.8',
         'parglare==0.16.0',
         'Naked==0.1.32',
-    ]
+    ],
+    # entry_points={
+    #     'console_scripts': ['knitscript=KnitScript.interpret:main']
+    # }
 )

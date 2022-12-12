@@ -3,7 +3,7 @@ import os
 from unittest import TestCase
 
 from KnitScript.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from KnitScript.knit_script_interpreter.dat_compiler.run_dat_compiler import knitout_to_dat
+from KnitScript.knit_script_interpreter.run_dat_compiler import knitout_to_dat
 
 
 class Test_Paper_Samples(TestCase):

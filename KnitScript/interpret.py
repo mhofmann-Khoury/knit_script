@@ -5,7 +5,7 @@ from typing import Optional
 
 from KnitScript.knit_graphs.Knit_Graph import Knit_Graph
 from KnitScript.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from KnitScript.knit_script_interpreter.dat_compiler.run_dat_compiler import knitout_to_dat
+from KnitScript.knit_script_interpreter.run_dat_compiler import knitout_to_dat
 
 
 def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True) -> Knit_Graph:

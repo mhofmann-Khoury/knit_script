@@ -4,18 +4,18 @@ from typing import List, Tuple, Any
 
 from parglare import Grammar, Parser
 
+from KnitScript.knit_graphs.Knit_Graph import Knit_Graph
 from KnitScript.knit_script_interpreter.knit_script_actions import action
 from KnitScript.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from KnitScript.knit_script_interpreter.knitscript_pg_str import knitscript_pg
 from KnitScript.knit_script_interpreter.statements.Statement import Statement
 from KnitScript.knit_script_interpreter.statements.header_statement import Header_Statement
-from KnitScript.knit_graphs.Knit_Graph import Knit_Graph
+
 
 class Knit_Script_Interpreter:
     """
         A class to manage parsing a knit script file with parglare
     """
-    def __init__(self, debug_grammar: bool = True, debug_parser: bool = True, debug_parser_layout: bool = True):
+    def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):
         """
         Instantiate
         :param debug_grammar: Will provide full parglare output for grammar states

@@ -17,6 +17,7 @@ def knitout_to_dat(knitout_file_name: str, dat_file_name: Optional[str] = None) 
     cur_directory = os.path.dirname(__file__)
     script_directory = f"{cur_directory}{os.path.sep}dat-compiler{os.path.sep}knitout-backend-swg-master"
     script = f"{script_directory}{os.path.sep}knitout-to-dat.js"
+    script = f"{cur_directory}{os.path.sep}knitout-to-dat.js"
     if dat_file_name is None:
         knitout_name = knitout_file_name[:knitout_file_name.rindex(".")]
         dat_file_name = f"{knitout_name}.dat"

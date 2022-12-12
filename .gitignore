@@ -189,5 +189,5 @@ fabric.properties
 
 #Knit Script
 *.pgt
-!/KnitScript/knit_script_interpreter/dat_compiler/dat-compiler/
+!/dat-compiler/
 !/tests/python_sample.py
