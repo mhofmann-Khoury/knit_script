@@ -13,7 +13,6 @@ class TestKnit_Pass_Interpreter(TestCase):
 
     def test_values(self):
         program = "1.2;"
-        n = self.parser.interpret(program)
         header, statements = self.parser.interpret(program)
         print(statements)
         program = "12;"
