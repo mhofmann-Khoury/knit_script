@@ -3,7 +3,7 @@
 ## Set Up
 ### Install Development Version (from local source code)
 ```
-$ git clone https://github.khoury.northeastern.edu/mhofmann/KnitScript.git
+$ git clone https://github.com/mhofmann-Khoury/knit_script.git
 $ pip install -e KnitScript   
 ```
 This will clone the repository to your machine and then install the system for active development to your python 

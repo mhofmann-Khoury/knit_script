@@ -8,7 +8,7 @@ setup(
     package_dir={"knit_script": "knit_script"},
     package_data={"knit_script": ["*.pg", "*.js"], "knit_script_interpreter": ["*.pg", "*.js"], "": ["*.pg", "*.js"]},
     include_package_data=True,
-    url='https://github.khoury.northeastern.edu/mhofmann/KnitScript',
+    url='https://github.com/mhofmann-Khoury/knit_script.git',
     license='MIT',
     author='Megan Hofmann',
     author_email='m.hofmann@northeastern.edu',
