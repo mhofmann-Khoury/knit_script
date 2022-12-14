@@ -22,6 +22,9 @@ Note the location that your pip install creates site packages. Often
 folder at this location you will need to put in your own copy of the knitout_to_dat.js file. This is not provide 
 with this distribution because it contains copyrighted material.
 
+### Instructions for updating PyPi Distribution:
+ See [reference](https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3)
+
 ### Using knitscript from command line (Unix) # todo, untested
 ```
 $knitscript -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knitscript file>
@@ -43,14 +46,18 @@ $ knitscript.bat -k stst_knitout.k -d stst_dat.dat stst.ks
 
 ### Using KnitScript Interpreter from Python
 To just generate a knitout file from KnitScript, use the following
+
 ```python
-from KnitScript.interpret import knit_script_to_knitout
+from knit_script.interpret import knit_script_to_knitout
+
 knit_graph = knit_script_to_knitout('<pattern file>', '<knitout file name>')
 ```
 
 To also generate a data file use:
+
 ```python
-from KnitScript.interpret import knitscript_to_knitout_to_dat
+from knit_script.interpret import knitscript_to_knitout_to_dat
+
 knit_graph = knitscript_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
 ```
 

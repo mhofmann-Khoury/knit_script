@@ -1,11 +1,11 @@
 """Tests associated with the parsing of the language. Does not interpret the code"""
 from unittest import TestCase
 
-from KnitScript.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from KnitScript.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets
-from KnitScript.knit_script_interpreter.header_structure import Machine_Type, Header_ID
-from KnitScript.knit_script_interpreter.statements.Statement import Expression_Statement
-from KnitScript.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
+from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
+from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets
+from knit_script.knit_script_interpreter.header_structure import Machine_Type, Header_ID
+from knit_script.knit_script_interpreter.statements.Statement import Expression_Statement
+from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 
 
 class TestKnit_Pass_Interpreter(TestCase):
