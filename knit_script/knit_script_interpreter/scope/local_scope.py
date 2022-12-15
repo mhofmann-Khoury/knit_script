@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple, Any, List, Union
 
-from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals, Machine_Variables
+from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier

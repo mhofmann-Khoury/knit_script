@@ -1,4 +1,5 @@
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
+from knit_script.knit_script_interpreter.run_dat_compiler import knitout_to_dat
 
 
 class Test_Imports:
@@ -23,3 +24,47 @@ class Test_Imports:
                     print cat;
                 """
         knitout, knit_graph = self.parser.write_knitout(program, f"import_test.k", pattern_is_file=False)
+
+    def test_ks_import_library(self):
+        program = r"""
+                    import cast_ons;
+                    with Carrier as 1:{
+                        cast_ons.cast_on(10);
+                    }
+                """
+        knitout, knit_graph = self.parser.write_knitout(program, f"import_test.k", pattern_is_file=False)
+        name = 'import_test'
+        knitout_to_dat(f"{name}.k", f"{name}.dat")
+
+    def test_ks_import_library_alias(self):
+        program = r"""
+                    import cast_ons as c;
+                    with Carrier as 1:{
+                        c.cast_on(10);
+                    }
+                """
+        knitout, knit_graph = self.parser.write_knitout(program, f"import_test.k", pattern_is_file=False)
+        name = 'import_test'
+        knitout_to_dat(f"{name}.k", f"{name}.dat")
+
+    def test_ks_import_local(self):
+        program = r"""
+                    import import_tests.cast_ons;
+                    with Carrier as 1:{
+                        import_tests.cast_ons.cast_on(10);
+                    }
+                """
+        knitout, knit_graph = self.parser.write_knitout(program, f"import_test.k", pattern_is_file=False)
+        name = 'import_test'
+        knitout_to_dat(f"{name}.k", f"{name}.dat")
+
+    def test_ks_import_local_alias(self):
+        program = r"""
+                    import import_tests.cast_ons as c;
+                    with Carrier as 1:{
+                        c.cast_on(10);
+                    }
+                """
+        knitout, knit_graph = self.parser.write_knitout(program, f"import_test.k", pattern_is_file=False)
+        name = 'import_test'
+        knitout_to_dat(f"{name}.k", f"{name}.dat")

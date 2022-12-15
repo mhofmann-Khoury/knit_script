@@ -15,11 +15,14 @@ from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Ca
 class Knit_Script_Context:
     """Manages state of the Knitting machine during program execution"""
     def __init__(self, parent_scope: Optional[Knit_Script_Scope] = None,
-                 bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center):
+                 bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
+                 ks_file=None, parser=None):
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(parent_scope)
         self._header: Header = Header(bed_width, machine_position)
         self.machine_state: Machine_State = self._header.machine_state()
         self.knitout: List[str] = self._header.header_lines()
+        self.ks_file: Optional[str] = ks_file
+        self.parser = parser
 
     @property
     def header(self) -> Header:
@@ -33,9 +36,10 @@ class Knit_Script_Context:
         self._header = value
         self.machine_state = self._header.machine_state()
 
-    def enter_sub_scope(self, function_name: Optional[str] = None, module_name: Optional[str] = None):
+    def enter_sub_scope(self, function_name: Optional[str] = None, module_name: Optional[str] = None) -> Knit_Script_Scope:
         """
             Creates a child scope and sets it as the current variable scope
+            :return: Return the scope that was entered
         """
         if function_name is not None:
             self.variable_scope = self.variable_scope.enter_new_scope(function_name, is_function=True)
@@ -43,6 +47,7 @@ class Knit_Script_Context:
             self.variable_scope = self.variable_scope.enter_new_scope(module_name, is_module=True)
         else:
             self.variable_scope = self.variable_scope.enter_new_scope()
+        return self.variable_scope
 
     def exit_current_scope(self):
         """
@@ -176,3 +181,18 @@ class Knit_Script_Context:
         """
         return self.machine_state[self.get_needle(is_front, pos, is_slider, global_needle, sheet, gauge)]
 
+    def execute_header(self, header: list):
+        """
+        Executes the header operations
+        :param header: the list of header statements to execute
+        """
+        for header_line in header:
+            header_line.execute(self)
+
+    def execute_statements(self, statements: list):
+        """
+        Execute the list of statements on current context
+        :param statements: statements to execute
+        """
+        for statement in statements:
+            statement.execute(self)
