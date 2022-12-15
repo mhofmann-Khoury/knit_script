@@ -11,8 +11,8 @@ def cast_on():{
 	}
 }
 
-def knit_front(dir):{
-	in dir direction:{
+def knit_front(pass_dir):{
+	in pass_dir direction:{
 		knit Front_Loops;
 	}
 }

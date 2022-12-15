@@ -47,7 +47,7 @@ class Machine_State:
         self.racking: float = 0.0
         self.front_bed: Machine_Bed = Machine_Bed(is_front=True, needle_count=needle_count)
         self.back_bed: Machine_Bed = Machine_Bed(is_front=False, needle_count=needle_count)
-        self.last_carriage_direction: Pass_Direction = Pass_Direction.Left_to_Right_Increasing
+        self.last_carriage_direction: Pass_Direction = Pass_Direction.Rightward
         # Presumes carriage is left on Right side before knitting
         self.yarn_manager: Carrier_Insertion_System = Carrier_Insertion_System(carrier_count, hook_size)
         self._loop_id_counter: int = 0

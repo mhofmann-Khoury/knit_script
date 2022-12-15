@@ -4,7 +4,7 @@ from typing import List, Tuple, Union, Optional
 from parglare import get_collector
 
 from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
-from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression, Method_Call, Indexing_Expression
+from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.carrier import Carrier_Expression
 from knit_script.knit_script_interpreter.expressions.direction import Pass_Direction_Expression
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -333,24 +333,50 @@ def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression],
 def started_slice(_, __, start:Expression,
                   end: Optional[Expression],
                   spacer:Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    """
+    :param _:
+    :param __:
+    :param start: first value in slide
+    :param end: end of slice value
+    :param spacer: spacing value
+    :return: slice values
+    """
     return start, end, spacer
 
 @action
 def ended_slice(_, __, end: Expression,
                 spacer: Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    """
+    :param _:
+    :param __:
+    :param end: end of slice value
+    :param spacer: spacing value
+    :return: slice values
+    """
     return None, end, spacer
 
 @action
 def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    """
+    :param _:
+    :param __:
+    :param spacer: spacing value
+    :return: slice values
+    """
     return None, None, spacer
 
 @action
 def slice_data(_, nodes: list) -> Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]]:
-    slice = nodes[0]
-    if isinstance(slice, Expression): # index passed
-        return slice, False, None, False, None
+    """
+    :param _:
+    :param nodes: data from different slicing configurations
+    :return: slice values
+    """
+    slice_values = nodes[0]
+    if isinstance(slice_values, Expression): # index passed
+        return slice_values, False, None, False, None
     else:
-        return slice[0], slice[1] is not None, slice[1], slice[2] is not None, slice[2]
+        return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[2]
 
 @action
 def sliced_list(_, __, iter_exp: Expression, slices:Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]] ) -> Sliced_List:
@@ -717,17 +743,6 @@ def accessor(_, __, exp: Expression, attribute: Expression) -> Attribute_Accesso
     return Attribute_Accessor_Expression(exp, attribute)
 
 
-@action
-def method_call(_, __, exp: Expression, method: Function_Call) -> Method_Call:
-    """
-    :param _:
-    :param __:
-    :param exp: expression to call from
-    :param method: method to call
-    :return: method call
-    """
-    return Method_Call(exp, method)
-
 
 @action
 def exp_statement(_, __, exp: Expression) -> Expression_Statement:
@@ -762,16 +777,7 @@ def remove_statement(_, __, exps: List[Expression]) -> Remove_Statement:
     return Remove_Statement(exps)
 
 
-@action
-def indexing(_, __, exp: Expression, index: Expression) -> Indexing_Expression:
-    """
-    :param _:
-    :param __:
-    :param exp: expression to index
-    :param index: index value
-    :return: indexing expression
-    """
-    return Indexing_Expression(exp, index)
+
 
 
 @action

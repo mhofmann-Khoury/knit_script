@@ -76,7 +76,7 @@ class Carrier_Insertion_System:
         :return: True if inserting hook is conflicting with needle
         """
         if self.hook_position is not None:  # reserve positions to right of needle
-            if direction is Pass_Direction.Right_to_Left_Decreasing:
+            if direction is Pass_Direction.Leftward:
                 inserting_hook_range = range(self.hook_position + 1, self.hook_position + self.hook_size)
             else:
                 inserting_hook_range = range(self.hook_position - 1, self.hook_position - self.hook_size)

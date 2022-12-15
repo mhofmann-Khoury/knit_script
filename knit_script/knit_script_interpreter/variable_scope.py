@@ -18,7 +18,7 @@ class Variable_Scope:
         :param parent_scope: scope for entering sub-scope, defaults to none at top
         :param function_name: the name of the function that this scope belongs to, may be none
         """
-        self._function_name: Optional[str] = function_name
+        self._parent_name: Optional[str] = function_name
         self._parent_scope: Optional[Variable_Scope] = parent_scope
         self._child_scope: Optional[Variable_Scope] = None
         self._variable_values: Dict[str, Any] = {}
@@ -38,7 +38,7 @@ class Variable_Scope:
                                           "True", "False", self._direction_id, self._carrier_id, self._rack_id, self._gauge_id
                                           }
         if self._parent_scope is None:
-            self.current_direction = Pass_Direction.Right_to_Left_Decreasing
+            self.current_direction = Pass_Direction.Leftward
             self.current_carrier = None
             self.current_racking = 0
             self.current_gauge = 1
@@ -46,7 +46,7 @@ class Variable_Scope:
 
     @property
     def _is_function_scope(self):
-        return self._function_name is not None
+        return self._parent_name is not None
 
     def return_scope(self, set_value: bool = False, value: Any = None):
         """
@@ -278,7 +278,7 @@ class Variable_Scope:
     def __str__(self):
         scope_str = f"{self.var_depth()}"
         if self._is_function_scope:
-            scope_str = f"{self._function_name}({scope_str})"
+            scope_str = f"{self._parent_name}({scope_str})"
         if self.has_return:
             scope_str = f"{scope_str}=={self.return_value}"
         if self._parent_scope is None:

@@ -22,18 +22,25 @@ class Import_Statement(Statement):
         Add the module with a given alias to the variable scope
         :param context: the current context to execute at
         """
-        assert  isinstance(self.src, Attribute_Accessor_Expression) or isinstance(self.src, Variable_Expression), f"Cannot Import {self.src}, expected a module name"
+        assert  isinstance(self.src, Attribute_Accessor_Expression) or isinstance(self.src, Variable_Expression),\
+            f"Cannot Import {self.src}, expected a module name or path"
         src_string = str(self.src)
-        if self.alias is None:
-            alias = src_string
-        else:
-            assert isinstance(self.alias, Variable_Expression), f"Cannot import {src_string} as {str(self.alias)}"
-            alias = self.alias.variable_name
         try:
             module = importlib.import_module(src_string)
-            context.variable_scope[alias] = module
+            if self.alias is not None:
+                assert isinstance(self.alias, Variable_Expression), f"Cannot import {src_string} as {self.alias}"
+                alias = self.alias.variable_name
+                context.variable_scope[alias] = module
+            elif isinstance(self.src, Variable_Expression):
+                alias = self.src.variable_name
+                context.variable_scope[alias] = module
+            else: # attribute accessor path
+                assert isinstance(self.src, Attribute_Accessor_Expression)
+                path = [str(p) for p in self.src.parent]
+                path.append(str(self.src.attribute))
+                context.variable_scope.add_local_by_path(path, module)
         except ImportError as e:
-            assert False, f"KnitScript imports are not yet supported.\n{e}"
+            assert False, f"KnitScript imports are not yet supported.\n{e}" # todo
 
     def __str__(self):
 

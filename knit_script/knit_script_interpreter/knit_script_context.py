@@ -2,7 +2,7 @@
 from typing import Optional, List, Union
 
 from knit_script.knit_script_interpreter.header_structure import Header
-from knit_script.knit_script_interpreter.variable_scope import Variable_Scope
+from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.knitout_instructions import inhook, bring_in, rack, releasehook
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle, Sheet_Identifier
@@ -14,9 +14,9 @@ from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Ca
 
 class Knit_Script_Context:
     """Manages state of the Knitting machine during program execution"""
-    def __init__(self, parent_scope: Optional[Variable_Scope] = None,
+    def __init__(self, parent_scope: Optional[Knit_Script_Scope] = None,
                  bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center):
-        self.variable_scope = Variable_Scope(parent_scope)
+        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(parent_scope)
         self._header: Header = Header(bed_width, machine_position)
         self.machine_state: Machine_State = self._header.machine_state()
         self.knitout: List[str] = self._header.header_lines()
@@ -33,11 +33,16 @@ class Knit_Script_Context:
         self._header = value
         self.machine_state = self._header.machine_state()
 
-    def enter_sub_scope(self, function_name: Optional[str] = None):
+    def enter_sub_scope(self, function_name: Optional[str] = None, module_name: Optional[str] = None):
         """
             Creates a child scope and sets it as the current variable scope
         """
-        self.variable_scope = self.variable_scope.enter_new_scope(function_name=function_name)
+        if function_name is not None:
+            self.variable_scope = self.variable_scope.enter_new_scope(function_name, is_function=True)
+        elif module_name is not None:
+            self.variable_scope = self.variable_scope.enter_new_scope(module_name, is_module=True)
+        else:
+            self.variable_scope = self.variable_scope.enter_new_scope()
 
     def exit_current_scope(self):
         """
@@ -53,83 +58,83 @@ class Knit_Script_Context:
         return self.machine_state.sheet_needle_count(gauge)
 
     @property
-    def current_direction(self) -> Pass_Direction:
+    def direction(self) -> Pass_Direction:
         """
         :return: Carriage Pass direction at scope
         """
-        return self.variable_scope.current_direction
+        return self.variable_scope.direction
 
-    @current_direction.setter
-    def current_direction(self, value: Pass_Direction):
-        self.variable_scope.current_direction = value
+    @direction.setter
+    def direction(self, value: Pass_Direction):
+        self.variable_scope.direction = value
 
     @property
-    def current_carrier(self) -> Optional[Yarn_Carrier]:
+    def carrier(self) -> Optional[Yarn_Carrier]:
         """
         :return: Carrier in use at scope
         """
-        return self.variable_scope.current_carrier
+        return self.variable_scope.carrier
 
-    @current_carrier.setter
-    def current_carrier(self, carrier: Optional[Yarn_Carrier]):
-        if self.current_carrier != carrier:
-            self.variable_scope.current_carrier = carrier
-            if self.current_carrier is not None \
-                    and not self.machine_state.yarn_manager.is_active(self.current_carrier):  # if yarn is not active, bring it in by inhook operation
-                if self.machine_state.yarn_manager.yarn_is_loose(self.current_carrier):  # inhook loose yarns
+    @carrier.setter
+    def carrier(self, carrier: Optional[Yarn_Carrier]):
+        if self.carrier != carrier:
+            self.variable_scope.carrier = carrier
+            if self.carrier is not None \
+                    and not self.machine_state.yarn_manager.is_active(self.carrier):  # if yarn is not active, bring it in by inhook operation
+                if self.machine_state.yarn_manager.yarn_is_loose(self.carrier):  # inhook loose yarns
                     if not self.machine_state.yarn_manager.inserting_hook_available:
-                        releasehook_op = releasehook(self.machine_state, f"Releasehook to activate carrier {self.current_carrier}")
+                        releasehook_op = releasehook(self.machine_state, f"Releasehook to activate carrier {self.carrier}")
                         self.knitout.append(releasehook_op)
-                    inhook_op = inhook(self.machine_state, self.current_carrier, f"Activating carrier {self.current_carrier}")
+                    inhook_op = inhook(self.machine_state, self.carrier, f"Activating carrier {self.carrier}")
                     self.knitout.append(inhook_op)
                 else:  # bring connected yarns out from grippers
-                    in_op = bring_in(self.machine_state, self.current_carrier, f"Bring in {self.current_carrier} that is not loose")
+                    in_op = bring_in(self.machine_state, self.carrier, f"Bring in {self.carrier} that is not loose")
                     self.knitout.append(in_op)
 
     @property
-    def current_racking(self) -> int:
+    def racking(self) -> float:
         """
         :return: Racking at current scope
         """
-        return self.variable_scope.current_racking
+        return self.variable_scope.racking
 
-    @current_racking.setter
-    def current_racking(self, value: int):
-        update = value != self.current_racking
+    @racking.setter
+    def racking(self, value: float):
+        update = value != self.racking
         if update:
-            self.variable_scope.current_racking = value
-            gauge_adjusted_racking = self.current_gauge * self.current_racking
-            rack_instruction = rack(self.machine_state, gauge_adjusted_racking, comment=f"Rack to {self.current_racking} at {self.current_gauge} gauge")
+            self.variable_scope.racking = value
+            gauge_adjusted_racking = self.gauge * self.racking
+            rack_instruction = rack(self.machine_state, gauge_adjusted_racking, comment=f"Rack to {self.racking} at {self.gauge} gauge")
             self.knitout.append(rack_instruction)
 
     @property
-    def current_sheet(self) -> Sheet_Identifier:
+    def sheet(self) -> Sheet_Identifier:
         """
         :return: Racking at current scope
         """
-        return self.variable_scope.current_sheet
+        return Sheet_Identifier(self.variable_scope.sheet, self.variable_scope.gauge)
 
-    @current_sheet.setter
-    def current_sheet(self, value: Optional[Union[Sheet_Identifier, int]]):
-        self.variable_scope.current_sheet = value
-        sheet = self.current_sheet
+    @sheet.setter
+    def sheet(self, value: Optional[Union[Sheet_Identifier, int]]):
+        self.variable_scope.sheet = value
+        sheet = self.sheet
         self.machine_state.sheet = sheet.sheet
-        self.knitout.append(f";Resetting to sheet {sheet} of {self.current_gauge}\n")
+        self.knitout.append(f";Resetting to sheet {sheet} of {self.gauge}\n")
         self.knitout.extend(self.machine_state.reset_sheet(sheet.sheet))
         # Resets machine to the needed sheet, peeling other layers out of the way
 
     @property
-    def current_gauge(self) -> int:
+    def gauge(self) -> int:
         """
         Resetting gauge will cause the machine state to forget all current layer records
         :return: The gauge (number of layers) that is being worked
         """
-        return self.variable_scope.current_gauge
+        return self.variable_scope.gauge
 
-    @current_gauge.setter
-    def current_gauge(self, value: Optional[int]):
-        self.variable_scope.current_gauge = value
-        gauge = self.current_gauge
+    @gauge.setter
+    def gauge(self, value: Optional[int]):
+        self.variable_scope.gauge = value
+        gauge = self.gauge # makes sure to manage any side effects of setters
         self.machine_state.gauge = gauge
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False,
@@ -144,9 +149,9 @@ class Knit_Script_Context:
         :return: Needle based on current gauging
         """
         if sheet is None:
-            sheet = self.current_sheet
+            sheet = self.sheet
         if gauge is None:
-            gauge = self.current_gauge
+            gauge = self.gauge
         if global_needle or gauge == 1:
             if is_slider:
                 return Slider_Needle(is_front, pos)

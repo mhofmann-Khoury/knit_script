@@ -31,7 +31,7 @@ class In_Direction_Statement(Statement):
         """
 
         context.enter_sub_scope()  # make sub scope with direction variable change
-        assert context.current_carrier is not None, f"Cannot execute directed pass without active carrier"
+        assert context.carrier is not None, f"Cannot execute directed pass without active carrier"
         direction = self._direction.evaluate(context)
         needles_to_instruction: Dict[Needle, Needle_Instruction] = {}
 

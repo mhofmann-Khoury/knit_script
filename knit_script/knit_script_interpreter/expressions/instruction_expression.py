@@ -112,7 +112,7 @@ class Needle_Instruction(Enum):
         elif self is Needle_Instruction.miss:
             return miss(machine_state, direction, first_needle, carrier)
         elif self is Needle_Instruction.drop:
-            assert direction is Pass_Direction.Left_to_Right_Increasing, "Cannot drop in decreasing pass"
+            assert direction is Pass_Direction.Rightward, "Cannot drop in decreasing pass"
             return drop(machine_state, first_needle)
         else:
             return ""
@@ -157,7 +157,7 @@ class Needle_Instruction_Exp(Expression):
             assert isinstance(needle, Needle), f"Expected List of needles, but got {needle} in {needles}"
 
         # Sort needles in current direction, warning if not correctly sorted
-        # sorted_needles = context.current_direction.sort_needles(needles)
+        # sorted_needles = context.direction.sort_needles(needles)
         return instruction, needles
 
     def __str__(self):

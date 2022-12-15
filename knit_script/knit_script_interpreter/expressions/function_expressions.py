@@ -1,5 +1,5 @@
 """Expressions associated with functions"""
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Callable
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
@@ -44,29 +44,20 @@ class Function_Call(Expression):
         """
         if self.func_name.variable_name in context.variable_scope:
             function_signature = context.variable_scope[self.func_name.variable_name]
-            assert isinstance(function_signature, Function_Signature), \
-                f"{self.func_name.variable_name} is non-callable value {function_signature}"
-            return_value = function_signature.execute(context, self.args, self.kwargs)
-            return return_value
-        else:
-            try:
-                args_str = ""
-                args = []
-                for arg_exp in self.args:
-                    arg = arg_exp.evaluate(context)
-                    args_str += f"{arg}, "
-                    args.append(arg)
-                kwargs = {}
-                for kwarg_assign in self.kwargs:
-                    kwarg_value = kwarg_assign.value(context)
-                    args_str += f"{kwarg_assign.variable_name} = {kwarg_value}, "
-                    kwargs[kwarg_assign.variable_name] = kwarg_value
-                args_str = args_str[:-2]  # remove last ", "
-                func_str = f"{self.func_name.variable_name}({args_str})"
-                func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
-                return eval(func_str)
-            except NameError as error:
-                raise RuntimeError(f"KnitPass: Could not find function by name {self.func_name.variable_name}") from error
+            if isinstance(function_signature, Function_Signature):
+                return_value = function_signature.execute(context, self.args, self.kwargs)
+                return return_value
+            else:
+                args = [arg.evaluate(context) for arg in self.args]
+                kwargs = {kwarg.variable_name: kwarg.value(context) for kwarg in self.kwargs}
+                if isinstance(function_signature, Callable):
+                    return function_signature(*args, **kwargs)
+                else:
+                    try:
+                        func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
+                        return eval(func_str)
+                    except NameError as error:
+                        raise RuntimeError(f"KnitPass: Could not find function by name {self.func_name.variable_name}") from error
 
     def __str__(self):
         values = ""

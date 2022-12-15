@@ -3,6 +3,7 @@ from typing import Any
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.scope.global_scope import Machine_Variables
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 
 
@@ -34,23 +35,9 @@ class Assignment:
         :return: result of assignment expression
         """
         value = self.value(context)
-        if self.variable_name == "Carrier":
-            context.current_carrier = value  # manages in and inhook operations
-        elif self.variable_name == "Racking":
-            context.current_racking = value  # writes appropriate knitout in setter
-        elif self.variable_name == "Sheet":
-            if isinstance(value, Sheet_Identifier):
-                context.current_gauge = value.gauge
-                context.current_sheet = value.sheet
-            elif value is None:
-                context.current_sheet = value
-            else:
-                context.current_sheet = int(value)
-        elif self.variable_name == "Gauge":
-            context.current_gauge = value
-            if context.current_sheet.sheet >= context.current_gauge:
-                context.current_sheet = context.current_gauge - 1  # set to back sheet if gauge was past sheet
-        else:  # Non-built in variables
+        if Machine_Variables.in_machine_variables(self.variable_name):  # short cut for always global variables
+            Machine_Variables[self.variable_name].set_value(context, value)
+        else:
             context.variable_scope[self.variable_name] = value
         return value
 

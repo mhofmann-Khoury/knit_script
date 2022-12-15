@@ -43,16 +43,16 @@ class Carriage_Pass:
                 if first.requires_second_needle:
                     self._require_second = True
                 if first is Needle_Instruction.drop:
-                    assert self._direction is None or self._direction is Pass_Direction.Left_to_Right_Increasing, \
+                    assert self._direction is None or self._direction is Pass_Direction.Rightward, \
                         f"Cannot drop in {self._direction} direction"
-                    self._direction = Pass_Direction.Left_to_Right_Increasing
+                    self._direction = Pass_Direction.Rightward
             else:
                 assert first.compatible_pass(ni), f" Cannot {first} and {ni} in same machine pass"
             if ni.directed_pass:
                 assert self._direction is not None, f"Cannot {ni} without a direction"
 
     def _needs_released_hook(self, context: Knit_Script_Context) -> bool:
-        requires_rack = self._rack is not None and self._rack != context.current_racking
+        requires_rack = self._rack is not None and self._rack != context.racking
         return requires_rack or self._require_second
 
     def write_knitout(self, context: Knit_Script_Context):
@@ -68,24 +68,24 @@ class Carriage_Pass:
                 context.knitout.append(cmd)
 
         if self._direction is None:  # assume next pass is reversed
-            self._direction = context.current_direction.opposite()  # used as implied direction but not set unless explicit
-        elif self._direction is not None:
-            context.current_direction = self._direction
-        cur_rack = context.current_racking
+            self._direction = context.direction.opposite()  # used as implied direction but not set unless explicit
+        else:
+            context.direction = self._direction
+        cur_rack = context.racking
         if self._rack is not None:
-            context.current_racking = self._rack
+            context.racking = self._rack
 
         needles = [*self._needle_to_instruction.keys()]
 
         needles = self._keep_target_bed_needles(needles)  # ignore needles that are already on target bed
 
-        needles_in_order = self._direction.sort_needles(needles, racking=context.current_racking)
+        needles_in_order = self._direction.sort_needles(needles, racking=context.racking)
         # sort into direction of machine pass
 
         # calculate all-needle racking condition
         needs_all_needle_rack = False
         for n, m in zip(needles_in_order[0:-1], needles_in_order[1:]):
-            if n.racked_position_on_front(context.current_racking) == m.racked_position_on_front(context.current_racking):
+            if n.racked_position_on_front(context.racking) == m.racked_position_on_front(context.racking):
                 assert n.is_front != m.is_front, \
                     f"Cannot repeat {self._needle_to_instruction[n]} on {n} in same carriage pass"
                 n_instruction = self._needle_to_instruction[n]
@@ -96,10 +96,10 @@ class Carriage_Pass:
                 needs_all_needle_rack = True
 
         if needs_all_needle_rack:
-            if context.current_racking >= 0:
-                context.knitout.extend(f"rack {context.current_racking + .25}; All Needle racking {context.current_racking} to right\n")
+            if context.racking >= 0:
+                context.knitout.extend(f"rack {context.racking + .25}; All Needle racking {context.racking} to right\n")
             else:
-                context.knitout.extend(f"rack {context.current_racking - .25}; All needle racking {context.current_racking} to left\n")
+                context.knitout.extend(f"rack {context.racking - .25}; All needle racking {context.racking} to left\n")
 
         for needle in needles_in_order:
             instruction = self._needle_to_instruction[needle]
@@ -108,13 +108,13 @@ class Carriage_Pass:
             else:
                 second_needle = None
             executed_instruction = instruction.execute(context.machine_state, needle,
-                                                       context.current_direction, context.current_carrier,
+                                                       context.direction, context.carrier,
                                                        second_needle)
             context.knitout.append(executed_instruction)
         # todo why the double reset racking?
         # if needs_all_needle_rack:
-        #     context.knitout.extend(f"rack {context.current_racking}; Single-Needle racking\n")
-        context.current_racking = cur_rack
+        #     context.knitout.extend(f"rack {context.racking}; Single-Needle racking\n")
+        context.racking = cur_rack
 
         if self._knitting_pass:  # only counts towards release hook if new loops are created
             context.machine_state.yarn_manager.count_machine_pass()

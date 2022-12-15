@@ -52,4 +52,4 @@ class Push_Statement(Statement):
                     context.machine_state.push_layer_forward(needle_pos, dist)
                 else:
                     context.machine_state.push_layer_backward(needle_pos, dist)
-        context.knitout.extend(context.machine_state.reset_sheet(context.current_sheet.sheet))
+        context.knitout.extend(context.machine_state.reset_sheet(context.sheet.sheet))

@@ -34,7 +34,7 @@ class With_Statement(Statement):
         context.exit_current_scope()  # exit scope with variable changes including prior racking and carrier
         # Note: resetting scope should revert carrier rack values which can be used for reset operations
         if reset_rack:
-            rack_instruction = rack(context.machine_state, context.current_racking)
+            rack_instruction = rack(context.machine_state, context.racking)
             context.knitout.append(rack_instruction)
 
     def __str__(self):
