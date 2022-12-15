@@ -1,6 +1,6 @@
 """Used for container structures (tuples, lists, dicts, comprehensions)"""
 
-from typing import List, Optional, Union, Tuple, Iterable
+from typing import List, Optional, Union, Tuple, Iterable, Any
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
@@ -77,26 +77,32 @@ class Sliced_List(Expression):
     """
         Slices a list using standard python syntax
     """
-    def __init__(self, iter_exp: Expression, start: Optional[Expression],
-                 end: Optional[Expression], spacer: Optional[Expression]):
+    def __init__(self, iter_exp: Expression, start: Optional[Expression], start_to_end: bool, end: Optional[Expression], end_to_spacer: bool, spacer: Optional[Expression]):
         """
         Instantiate
         :param iter_exp: iterable to slice
         :param start: start of slice, inclusive, defaults to 0
         :param end: end of slice, exclusive, defaults to last element
         :param spacer: spacer of slice, defaults to 1
+
+        Parameters
+        ----------
+        end_to_spacer
+        start_to_end
         """
         super().__init__()
+        self._end_to_spacer = end_to_spacer
+        self._start_to_end = start_to_end
         self._spacer = spacer
         self._end = end
         self._start = start
         self._iter_exp = iter_exp
 
-    def evaluate(self, context: Knit_Script_Context) -> list:
+    def evaluate(self, context: Knit_Script_Context) -> Any:
         """
         Evaluate the expression
         :param context: The current context of the knit_script_interpreter
-        :return: The list of values in the given slice
+        :return: The list of values in the given slice or (if no colons given in slice) return the indexed value
         """
         iterable = self._iter_exp.evaluate(context)
         assert isinstance(iterable, Iterable)
@@ -113,10 +119,19 @@ class Sliced_List(Expression):
             spacer = 1
         else:
             spacer = int(self._spacer.evaluate(context))
-        return iterable[start:end:spacer]
+        if self._is_slice(): # colon signifies slicing
+            return iterable[start:end:spacer]
+        else:
+            return iterable[start]
+
+    def _is_slice(self):
+        return self._start_to_end or self._end_to_spacer
 
     def __str__(self):
-        return f"{self._iter_exp}[{self._start}:{self._end}:{self._spacer}]"
+        if self._is_slice():
+            return f"{self._iter_exp}[{self._start}:{self._end}:{self._spacer}]"
+        else:
+            return f"{self._iter_exp}[{self._start}]"
 
     def __repr__(self):
         return str(self)

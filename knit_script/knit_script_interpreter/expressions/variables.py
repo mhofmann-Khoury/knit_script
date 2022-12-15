@@ -34,7 +34,7 @@ class Variable_Expression(Expression):
         return context.variable_scope[self.variable_name]
 
     def __str__(self):
-        return f"Var({self.variable_name})"
+        return self._variable_name
 
     def __repr__(self):
         return str(self)

@@ -197,7 +197,8 @@ class Variable_Scope:
             if var_name in current_scope._variable_values:
                 return current_scope._variable_values[var_name]
             current_scope = current_scope._parent_scope
-        assert current_scope is not None, f"Variable {var_name} is not in scope"
+        if current_scope is None:
+            raise KeyError(f"Variable {var_name} is not in scope")
         return None
 
     def __getitem__(self, var_name: str) -> Any:

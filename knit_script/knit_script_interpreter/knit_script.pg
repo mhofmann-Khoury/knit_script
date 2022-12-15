@@ -62,6 +62,11 @@ push_statement: "push" needles=expression+[comma]  push_val=(push_to | push_dir)
 push_to: "to" push_val=("Front"|"Back"| "layer" expression);
 push_dir: amount=expression? direction=("Forward"|"Backward");
 
+
+import_statement: "import" src=expression alias=as_import? eol;
+@pass_second
+as_import: "as" identifier;
+
 statement: assertion {10}
             | print_statement {10}
             | try_catch {10}
@@ -79,6 +84,7 @@ statement: assertion {10}
             | return_statement {10}
             | cut_statement {10}
             | remove_statement {10}
+            | import_statement {10}
             | declare_variable {2}
             | exp_statement {1};
 
@@ -126,9 +132,17 @@ dict_comp: "{" key=expression ":" value=expression
  				comp_cond=if_comp?
  				"}";
 
-sliced_list: iter_exp=expression "[" start=expression? ":" end=expression? spacer=slice_spacer? "]" {4,left};
+sliced_list: iter_exp=expression "[" slices= slice_data "]";
+slice_data: expression {1}
+ 			| started_slice {2}
+ 			| ended_slice {2}
+ 			| spacer_slice {2};
+started_slice: start=expression ":" end=expression? spacer=colon_data?;
+ended_slice: end=colon_data  spacer=colon_data?;
+spacer_slice: ":" spacer=colon_data;
+
 @pass_second
-slice_spacer: ":" expression;
+colon_data: ":" expression;
 
 needle_instruction: inst=("knit" | "tuck" | "miss" | "split");
 
@@ -138,8 +152,6 @@ instruction_assignment: inst=expression needles=needle_list eol;
 needle_list: needle_list comma expression | expression;
 
 accessor: exp=expression dot attribute=expression;
-method_call: exp=expression dot method=function_call;
-indexing: exp=expression "[" index=expression "]"{4,right};
 unpack: "*" exp=expression;
 
 gauge_exp: sheet_exp=expression "of" gauge=expression "sheets";
@@ -178,9 +190,7 @@ expression: expression "^" expression {right, 16}
             | carrier {9}
             | sheet {9}
             | function_call {8}
-            | method_call {7}
             | accessor {6}
-            | indexing {5}
             | sliced_list {5}
             | identifier {4};
 

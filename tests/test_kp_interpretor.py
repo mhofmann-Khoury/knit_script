@@ -248,16 +248,28 @@ class TestKnit_Pass_Interpreter(TestCase):
         print(results)
 
     def test_slices(self):
-        program = "slice[0:1:-1];"
+        program = "slice[0];"
         _, results = self.parser.interpret(program)
         print(results)
-        program = "slice[:-1:-2];"
+        program = "slice[0:];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[0:1];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[0:1:-1];"
         _, results = self.parser.interpret(program)
         print(results)
         program = "slice[10::-1];"
         _, results = self.parser.interpret(program)
         print(results)
-        program = "slice[0:1];"
+        program = "slice[:-1];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[:-1:-2];"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "slice[::-2];"
         _, results = self.parser.interpret(program)
         print(results)
 
@@ -267,5 +279,27 @@ class TestKnit_Pass_Interpreter(TestCase):
                 tuck n[0:w:2];
             }
         """
+        _, results = self.parser.interpret(program)
+        print(results)
+
+    def test_import(self):
+        program = r"""
+            import knit_script.knitting_machine.machine_components.needles as needles;
+            cat = needles.Needle(True, 1);
+        """
+        _, results = self.parser.interpret(program)
+        print(results)
+
+    def test_accessor(self):
+        program = "cat.dog;"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "cat.dog.bird;"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "cat.dog.bird();"
+        _, results = self.parser.interpret(program)
+        print(results)
+        program = "cat.dog.bird[1];"
         _, results = self.parser.interpret(program)
         print(results)

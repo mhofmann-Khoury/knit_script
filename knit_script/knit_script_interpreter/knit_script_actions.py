@@ -24,6 +24,7 @@ from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xf
 from knit_script.knit_script_interpreter.header_structure import Header_ID, Machine_Type
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
+from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
 from knit_script.knit_script_interpreter.statements.Print import Print
 from knit_script.knit_script_interpreter.statements.Push_Statement import Push_Statement
 from knit_script.knit_script_interpreter.statements.Statement import Statement, Expression_Statement
@@ -328,20 +329,39 @@ def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression],
     """
     return List_Comp(fill_exp, spacer, variables, iter_exp, comp_cond)
 
+@action
+def started_slice(_, __, start:Expression,
+                  end: Optional[Expression],
+                  spacer:Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    return start, end, spacer
 
 @action
-def sliced_list(_, __, iter_exp: Expression, start: Optional[Expression],
-                end: Optional[Expression], spacer: Optional[Expression]) -> Sliced_List:
+def ended_slice(_, __, end: Expression,
+                spacer: Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    return None, end, spacer
+
+@action
+def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    return None, None, spacer
+
+@action
+def slice_data(_, nodes: list) -> Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]]:
+    slice = nodes[0]
+    if isinstance(slice, Expression): # index passed
+        return slice, False, None, False, None
+    else:
+        return slice[0], slice[1] is not None, slice[1], slice[2] is not None, slice[2]
+
+@action
+def sliced_list(_, __, iter_exp: Expression, slices:Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]] ) -> Sliced_List:
     """
-    :param _:
-    :param __:
-    :param iter_exp: iterable to slice
-    :param start: start of slice, inclusive, defaults to 0
-    :param end: end of slice, exclusive, defaults to last element
-    :param spacer: spacer of slice, defaults to 1
-    :return: The sliced list
+    :param _: ignored parser context
+    :param __: ignored nodes
+    :param iter_exp: The iterator to gather the slice from
+    :param slices: data about how to form an index or slice
+    :return: the slicer statement
     """
-    return Sliced_List(iter_exp, start, end, spacer)
+    return Sliced_List(iter_exp, slices[0], slices[1], slices[2], slices[3], slices[4])
 
 
 @action
@@ -824,3 +844,21 @@ def pass_second(_, nodes: list):
     :return: the second node in the list
     """
     return nodes[1]
+
+
+@action
+def import_statement(_, __, src: Expression, alias: Optional[Expression]) -> Import_Statement:
+    """
+
+    Parameters
+    ----------
+    _
+    __
+    src: source module
+    alias: alias to assign in variable scope
+
+    Returns
+    -------
+    The import statement holder
+    """
+    return Import_Statement(src, alias)
