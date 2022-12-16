@@ -22,7 +22,7 @@ class Print(Statement):
         Prints out given statement to console
         :param context: The current context of the knit_script_interpreter
         """
-        print_str = f"KP Printout: {self._string.evaluate(context)}"
+        print_str = f"KS Printout: {self._string.evaluate(context)}"
         print(print_str)
         context.knitout.append(f";{print_str}\n")
 
