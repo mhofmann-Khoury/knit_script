@@ -1,6 +1,5 @@
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from knit_script.knit_script_interpreter.run_dat_compiler import knitout_to_dat
 
 
 class Test_Globals:

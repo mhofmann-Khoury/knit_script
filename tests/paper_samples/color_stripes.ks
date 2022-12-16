@@ -1,4 +1,6 @@
 //make stripes of different sheets of color. Alternate layers to change colors
+import cast_ons;
+import stockinette;
 
 stripe_width = 8;
 height = 20;
@@ -20,13 +22,12 @@ def cast_on_knit(w, knit_rows=2):{
 	}
 }
 
-
-
 with Gauge as colors:{
 
 	for s in range(0, Gauge):{
 		with Sheet as s, Carrier as s+1:{
-			cast_on_knit(width);
+			cast_ons.alt_tuck_cast_on(width);
+			stockinette.stst(2);
 		}
 	}
 	for s in range(0, Gauge):{

@@ -1,15 +1,8 @@
+import cast_ons;
 width = 24;
 height = 20;
 max_gauge = 3;
 
-def cast_on():{
-	in reverse direction:{
-		tuck [f for f in Front_Needles[1:width:2]];
-	}
-	in reverse direction:{
-		tuck [f for f in Front_Needles[0: width: 2]];
-	}
-}
 
 def knit_front(pass_dir):{
 	in pass_dir direction:{
@@ -19,7 +12,7 @@ def knit_front(pass_dir):{
 
 with Carrier as 1:{
 	with Gauge as 1:{
-		cast_on();
+		cast_ons.alt_tuck_cast_on(width);
 	}
 }
 

@@ -1,5 +1,5 @@
 // Make a single sheet sample that demonstrates how floats fall between beds
-
+import stockinette;
 stripe_count = 9;
 stripe_width = 3;
 width = stripe_count * stripe_width;
@@ -13,11 +13,7 @@ def cast_on_stst(w, h=4):{
 	in reverse direction:{
 		tuck Front_Needles[0:w:2];
 	}
-	for r in range(0, h):{
-		in reverse direction:{
-			knit Front_Loops;
-		}
-	}
+	stockinette.stst(h);
 }
 
 def add_splits(stripes = [0, 4, 8]):{

@@ -2,19 +2,11 @@
 // Front sheet: Stockinette layer
 // Middle sheet: k2p2 rib
 // Back sheet: Reverse stockinette
+import cast_ons;
+import stockinette;
 
 width = 10;
 height = 20;
-
-def cast_on(w):{
-	print f"caston {width} loops";
-	in Leftward direction:{
-		tuck Front_Needles[1:w:2];
-	}
-	in reverse direction:{
-		tuck Front_Needles[0:w:2];
-	}
-}
 
 def prepare_rib_row(w):{
 	// collect 2nd and 3rd loops to make purls on back bed
@@ -26,7 +18,7 @@ def prepare_rib_row(w):{
 with Gauge as 3, Carrier as 1:{
 	for s in range(0, Gauge):{
 		with Sheet as s:{
-			cast_on(width);
+			cast_ons.alt_tuck_cast_on(width);
 		}
 	}
 	front_sheet = 0;
