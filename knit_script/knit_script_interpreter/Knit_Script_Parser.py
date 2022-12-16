@@ -1,10 +1,10 @@
 import os
 from typing import Tuple
 
-from parglare import Parser, Grammar
+from parglare import Parser, Grammar, ParseError
 
 from knit_script.knit_script_interpreter.knit_script_actions import action
-
+from knit_script.knit_script_interpreter.knit_script_errors.parse_errors import Knit_Script_Parse_Error
 
 
 class Knit_Script_Parser:
@@ -23,7 +23,10 @@ class Knit_Script_Parser:
         :param pattern_is_file: if true, assumes that the pattern is parsed from a file
         :return:
         """
-        if pattern_is_file:
-            return self._parser.parse_file(pattern)
-        else:
-            return self._parser.parse(pattern)
+        try:
+            if pattern_is_file:
+                return self._parser.parse_file(pattern)
+            else:
+                return self._parser.parse(pattern)
+        except ParseError as e:
+            raise Knit_Script_Parse_Error(e)
