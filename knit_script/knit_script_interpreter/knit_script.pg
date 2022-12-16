@@ -5,12 +5,16 @@ program: head=header* statements=statement+;
 header: eol eol type_id=identifier ":" value=expression eol;
 
 declare_variable: assign=assignment eol;
+declare_global: "global" assign=assignment eol;
 
 assertion: "assert" exp=expression error=assert_error? eol;
 @pass_second
 assert_error: comma expression;
 
-try_catch: "try" try_block=statement "catch" catch_block=statement;
+try_catch: "try" ":" try_block=code_block "catch" errors=exception*[comma] ":" catch_block=code_block;
+@pass_single
+exception: exception_assignment {2} | expression {1};
+exception_assignment: except_val=expression "as" var_name=identifier;
 
 print_statement: "print" exp=expression eol;
 
@@ -86,6 +90,7 @@ statement: assertion {10}
             | remove_statement {10}
             | import_statement {10}
             | declare_variable {2}
+            | declare_global {2}
             | exp_statement {1};
 
 

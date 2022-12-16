@@ -9,12 +9,13 @@ class Variable_Declaration(Statement):
         Used to set a variable value at current scope
     """
 
-    def __init__(self, assignment: Assignment):
+    def __init__(self, assignment: Assignment, is_global: bool = False):
         """
         Instantiate
         :param assignment: assignment to make on execution
         """
         super().__init__()
+        self._is_global = is_global
         self._assignment:Assignment = assignment
 
     def execute(self, context: Knit_Script_Context):
@@ -22,7 +23,7 @@ class Variable_Declaration(Statement):
         Evaluates the expression at current context and puts result into variable scope
         :param context: The current context of the knit_script_interpreter
         """
-        self._assignment.assign_value(context)
+        self._assignment.assign_value(context, is_global=self._is_global)
 
     def __str__(self):
         return f"{self._assignment};"

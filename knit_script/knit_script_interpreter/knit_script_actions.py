@@ -126,6 +126,16 @@ def declare_variable(_, __, assign: Assignment) -> Variable_Declaration:
 
 
 @action
+def declare_global(_, __, assign: Assignment) -> Variable_Declaration:
+    """
+    :param assign: assignment before eol punctuation
+    :param _: ignored parglare context
+    :param __: ignored nodes
+    :return: Variable Declaration Statement that assigns the global variable on execution
+    """
+    return Variable_Declaration(assign, is_global=True)
+
+@action
 def assertion(_, __, exp: Expression, error: Optional[Expression] = None) -> Assertion:
     """
     :param __: ignored nodes
@@ -149,17 +159,28 @@ def print_statement(_, __, exp: Expression) -> Print:
 
 
 @action
-def try_catch(_, __, try_block: Statement, catch_block: Statement) -> Try_Catch_Statement:
+def try_catch(_, __, try_block: Statement, catch_block: Statement, errors: List[Expression]) -> Try_Catch_Statement:
     """
+    :param errors: errors to accept
     :param _: ignored parglare context
     :param __: ignored nodes
     :param try_block: statements to execute in try branch
     :param catch_block: statements to execute in catch branch
     :return: Try Catch
     """
-    # todo: better exception management
-    return Try_Catch_Statement(try_block, catch_block)
+    return Try_Catch_Statement(try_block, catch_block, errors=errors)
 
+@action
+def exception_assignment(_, __, except_val: Expression,var_name: Variable_Expression) -> Assignment:
+    """
+    Reversed assignment syntax for catch statements
+    :param _:
+    :param __:
+    :param except_val: the exception to allow
+    :param var_name: the name of the variable for the error
+    :return: an assignment operation for this error
+    """
+    return Assignment(var_name.variable_name, except_val)
 
 @action
 def pause_statement(_, __) -> Pause_Statement:
@@ -547,7 +568,7 @@ def as_assignment(_, __, variable: Variable_Expression, exp: Expression) -> Assi
     :param exp: expression to assign
     :return: Assignment value
     """
-    return Assignment(var_name=variable.variable_name, var_expression=exp)
+    return Assignment(var_name=variable.variable_name, value_expression=exp)
 
 
 @action

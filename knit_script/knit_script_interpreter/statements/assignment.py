@@ -12,14 +12,14 @@ class Assignment:
         Class for managing assignment expressions
     """
 
-    def __init__(self, var_name: str, var_expression: Expression):
+    def __init__(self, var_name: str, value_expression: Expression):
         """
         Instantiate
         :param var_name: name of variable
-        :param var_expression: value to assign
+        :param value_expression: value to assign
         """
         super().__init__()
-        self._var_expression: Expression = var_expression
+        self._value_expression: Expression = value_expression
         self._variable_name: str = var_name
 
     @property
@@ -28,15 +28,18 @@ class Assignment:
         :return: Name of variable being assigned
         """
         return self._variable_name
-    def assign_value(self, context: Knit_Script_Context) -> Any:
+    def assign_value(self, context: Knit_Script_Context, is_global:bool = False) -> Any:
         """
         Assign the value to the variable
+        :param is_global: If true, assigns variable to global space
         :param context:  The current context of the knit_script_interpreter
         :return: result of assignment expression
         """
         value = self.value(context)
-        if Machine_Variables.in_machine_variables(self.variable_name):  # short cut for always global variables
+        if Machine_Variables.in_machine_variables(self.variable_name):  # shortcut for always global variables
             Machine_Variables[self.variable_name].set_value(context, value)
+        elif is_global:
+            context.variable_scope.set_global(self.variable_name, value)
         else:
             context.variable_scope[self.variable_name] = value
         return value
@@ -47,11 +50,11 @@ class Assignment:
         :param context: the current context to evaluate value at
         :return: Value that is being assigned to variable
         """
-        expression_result = self._var_expression.evaluate(context)
+        expression_result = self._value_expression.evaluate(context)
         return expression_result
 
     def __str__(self):
-        return f"Assign({self.variable_name} <- {self._var_expression})"
+        return f"Assign({self.variable_name} <- {self._value_expression})"
 
     def __repr__(self):
         return str(self)

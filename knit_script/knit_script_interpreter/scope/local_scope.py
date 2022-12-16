@@ -20,8 +20,10 @@ class Knit_Script_Scope:
         self.parent: Optional[Knit_Script_Scope] = parent
         if self.parent is None:
             self.globals = Knit_Script_Globals()
+            self._sub_scope_globals = set()
         else:
             self.globals = self.parent.globals
+            self._sub_scope_globals = {*self.parent._sub_scope_globals}
         self.child_scope = None
         self._return_value = None
 
@@ -146,6 +148,7 @@ class Knit_Script_Scope:
         :param key: variable name
         :param value: value to add to globals
         """
+        self._sub_scope_globals.add(key)
         self.globals[key] = value
 
     def get_local(self, key: str) -> Any:
@@ -156,17 +159,20 @@ class Knit_Script_Scope:
         :return: The value in the local hierarchy by that key. Checks against globals last
         """
         is_global = self.has_global(key)
-        scope = self
-        while scope is not None:
-            if hasattr(scope, key):
-                if is_global:
-                    print(f"KnitScript Warning: {key} shadows global variable")
-                return getattr(scope, key)
-            scope = scope.parent
-        if is_global:
-            return self.get_global(key)
-        else:
-            raise KeyError(f"Variable {key} is not in scope")
+        if is_global and key in self._sub_scope_globals: # Set as global in current subscope
+            return self.globals[key]
+        else: # check lowest scope then globals
+            scope = self
+            while scope is not None:
+                if hasattr(scope, key):
+                    if is_global:
+                        print(f"KnitScript Warning: {key} shadows global variable")
+                    return getattr(scope, key)
+                scope = scope.parent
+            if is_global:
+                return self.get_global(key)
+            else:
+                raise KeyError(f"Variable {key} is not in scope")
     def add_local_by_path(self, path: List[str], value:Any):
         """
         Adds module sub scopes to variable space following the given path.

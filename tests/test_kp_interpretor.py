@@ -161,11 +161,19 @@ class TestKnit_Pass_Interpreter(TestCase):
         print(results)
 
     def test_try(self):
+        program = """try: {assert True;} catch: {a="False";}"""
+        _, results = self.parser.parse(program)
+        print(results)
+        program = """try: {assert False;} catch: {a="False";}"""
+        _, results = self.parser.parse(program)
+        print(results)
+        program = """try: {assert False;} catch KeyError as e: {a="False";}"""
+        _, results = self.parser.parse(program)
+        print(results)
+
         program = r"""
-        try {assert True;} catch {a="False";}
-        try {assert False;} catch {a="False";}
-        try assert True; catch a="no brackets";
-        """
+        try: {print c;}
+        catch Exception as e: { print "no c yet :)";}"""
         _, results = self.parser.parse(program)
         print(results)
 
@@ -301,5 +309,10 @@ class TestKnit_Pass_Interpreter(TestCase):
         _, results = self.parser.parse(program)
         print(results)
         program = "cat.dog.bird[1];"
+        _, results = self.parser.parse(program)
+        print(results)
+
+    def test_global(self):
+        program = "global cat=dog;"
         _, results = self.parser.parse(program)
         print(results)
