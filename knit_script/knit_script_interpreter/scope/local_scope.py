@@ -172,7 +172,7 @@ class Knit_Script_Scope:
             if is_global:
                 return self.get_global(key)
             else:
-                raise KeyError(f"Variable {key} is not in scope")
+                raise NameError(f"Variable {key} is not in scope")
     def add_local_by_path(self, path: List[str], value:Any):
         """
         Adds module sub scopes to variable space following the given path.

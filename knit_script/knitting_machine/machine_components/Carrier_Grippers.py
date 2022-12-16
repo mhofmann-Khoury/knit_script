@@ -39,7 +39,7 @@ class Carrier_Insertion_System:
             Todo, figure hook_size default empirically
         """
         self.carriers_on_grippers: Dict[int, bool] = {i: True for i in range(1, carrier_count + 1)}
-        self.loose_yarns: Dict[int, bool] = {i: True for i in range(1, carrier_count + 1)}
+        self.loose_yarns: Dict[int, bool] = {i: False for i in range(1, carrier_count + 1)}
         self.yarns_last_needle: Dict[int, Optional[Needle]] = {i: None for i in range(1, carrier_count + 1)}
         self.yarns_to_loop_count: Dict[int, int] = {i: 0 for i in range(1, carrier_count + 1)}
         self.hook_position: Optional[int] = None
@@ -119,7 +119,7 @@ class Carrier_Insertion_System:
         """
         for yid in carrier.carrier_ids:
             if self.loose_yarns[yid]:
-                print(f"KnitPass Warning: yarn {yid} is loose and may not knit correctly. Suggestion: Use inhook {yid}")
+                print(f"Knit Script Warning: yarn {yid} is loose and may not knit correctly. Suggestion: Use inhook {yid}")
             self.carriers_on_grippers[yid] = False
 
     def inhook(self, carrier: Yarn_Carrier):

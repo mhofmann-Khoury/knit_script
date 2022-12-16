@@ -83,6 +83,10 @@ class Knit_Script_Interpreter:
 
     def _interpret_knit_script(self, pattern, pattern_is_file):
         header, statements = self.parse(pattern, pattern_is_file)
+        on_file = ""
+        if pattern_is_file:
+            on_file = f"on {pattern}"
+        print(f"\n###################Start Knit Script Interpreter{on_file}###################\n")
         self._knit_pass_context.execute_header(header)
         self._knit_pass_context.execute_statements(statements)
     def knit_script_evaluate_expression(self, exp) -> Any:

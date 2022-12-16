@@ -50,6 +50,8 @@ class Function_Signature:
                 filled_params.add(param)
         for assignment in kwargs:
             key = assignment.variable_name
+            if key not in self._parameter_names:
+                raise NameError(key)
             assert key in self._parameter_names, f"Unexpected key {key} given to function {self._name}"
             assignment.assign_value(context)
             filled_params.add(key)
