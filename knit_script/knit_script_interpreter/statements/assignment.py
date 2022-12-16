@@ -3,6 +3,7 @@ from typing import Any
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.scope.global_scope import Machine_Variables
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 
 
@@ -11,14 +12,14 @@ class Assignment:
         Class for managing assignment expressions
     """
 
-    def __init__(self, var_name: str, var_expression: Expression):
+    def __init__(self, var_name: str, value_expression: Expression):
         """
         Instantiate
         :param var_name: name of variable
-        :param var_expression: value to assign
+        :param value_expression: value to assign
         """
         super().__init__()
-        self._var_expression: Expression = var_expression
+        self._value_expression: Expression = value_expression
         self._variable_name: str = var_name
 
     @property
@@ -27,30 +28,19 @@ class Assignment:
         :return: Name of variable being assigned
         """
         return self._variable_name
-    def assign_value(self, context: Knit_Script_Context) -> Any:
+    def assign_value(self, context: Knit_Script_Context, is_global:bool = False) -> Any:
         """
         Assign the value to the variable
+        :param is_global: If true, assigns variable to global space
         :param context:  The current context of the knit_script_interpreter
         :return: result of assignment expression
         """
         value = self.value(context)
-        if self.variable_name == "Carrier":
-            context.current_carrier = value  # manages in and inhook operations
-        elif self.variable_name == "Racking":
-            context.current_racking = value  # writes appropriate knitout in setter
-        elif self.variable_name == "Sheet":
-            if isinstance(value, Sheet_Identifier):
-                context.current_gauge = value.gauge
-                context.current_sheet = value.sheet
-            elif value is None:
-                context.current_sheet = value
-            else:
-                context.current_sheet = int(value)
-        elif self.variable_name == "Gauge":
-            context.current_gauge = value
-            if context.current_sheet.sheet >= context.current_gauge:
-                context.current_sheet = context.current_gauge - 1  # set to back sheet if gauge was past sheet
-        else:  # Non-built in variables
+        if Machine_Variables.in_machine_variables(self.variable_name):  # shortcut for always global variables
+            Machine_Variables[self.variable_name].set_value(context, value)
+        elif is_global:
+            context.variable_scope.set_global(self.variable_name, value)
+        else:
             context.variable_scope[self.variable_name] = value
         return value
 
@@ -60,11 +50,11 @@ class Assignment:
         :param context: the current context to evaluate value at
         :return: Value that is being assigned to variable
         """
-        expression_result = self._var_expression.evaluate(context)
+        expression_result = self._value_expression.evaluate(context)
         return expression_result
 
     def __str__(self):
-        return f"Assign({self.variable_name} <- {self._var_expression})"
+        return f"Assign({self.variable_name} <- {self._value_expression})"
 
     def __repr__(self):
         return str(self)

@@ -12,17 +12,17 @@ class Pass_Direction(Enum):
     Needles are oriented on the machine left to right in ascending order:
     Left -> 0 1 2 ... N <- Right
     """
-    Right_to_Left_Decreasing = "-"
-    Left_to_Right_Increasing = "+"
+    Leftward = "-"
+    Rightward = "+"
 
     def opposite(self):
         """
         :return: the opposite pass direction of this
         """
-        if self is Pass_Direction.Right_to_Left_Decreasing:
-            return Pass_Direction.Left_to_Right_Increasing
+        if self is Pass_Direction.Leftward:
+            return Pass_Direction.Rightward
         else:
-            return Pass_Direction.Right_to_Left_Decreasing
+            return Pass_Direction.Leftward
 
     def __neg__(self):
         return self.opposite()
@@ -33,7 +33,7 @@ class Pass_Direction(Enum):
         :param needle_pos: the needle that we are looking for the next neighbor of
         :return: the next needle position in the pass direction
         """
-        if self is Pass_Direction.Right_to_Left_Decreasing:
+        if self is Pass_Direction.Leftward:
             return needle_pos - 1
         else:
             return needle_pos + 1
@@ -44,7 +44,7 @@ class Pass_Direction(Enum):
         :param needle_pos: the needle that we are looking for the prior neighbor of
         :return: the prior needle position in the pass direction
         """
-        if self is Pass_Direction.Right_to_Left_Decreasing:
+        if self is Pass_Direction.Leftward:
             return needle_pos + 1
         else:
             return needle_pos - 1
@@ -57,9 +57,9 @@ class Pass_Direction(Enum):
         :return: Pass direction by string
         """
         if dir_str == "-":
-            return Pass_Direction.Right_to_Left_Decreasing
+            return Pass_Direction.Leftward
         else:
-            return Pass_Direction.Left_to_Right_Increasing
+            return Pass_Direction.Rightward
 
     def sort_needles(self, needles: List[Needle], racking: float = 0.0) -> List[Needle]:
         """
@@ -70,7 +70,7 @@ class Pass_Direction(Enum):
         """
         if len(needles) == 0:
             return needles
-        ascending = self is Pass_Direction.Left_to_Right_Increasing
+        ascending = self is Pass_Direction.Rightward
         position_sorted = sorted(needles,
                                  key=functools.cmp_to_key(lambda x, y: Needle.needle_at_racking_cmp(x, y, racking)),
                                  reverse=not ascending)

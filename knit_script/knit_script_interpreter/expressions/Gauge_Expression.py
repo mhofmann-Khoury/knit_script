@@ -28,9 +28,9 @@ class Gauge_Expression(Expression):
         sheet = self._sheet.evaluate(context)
         gauge = self._gauge.evaluate(context)
         if sheet is None:
-            sheet = context.current_sheet
+            sheet = context.sheet
         if gauge is None:
-            gauge = context.current_gauge
+            gauge = context.gauge
         if sheet >= gauge:
             sheet = gauge-1
         return Sheet_Identifier(int(sheet), int(gauge))

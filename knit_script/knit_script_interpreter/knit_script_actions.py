@@ -4,7 +4,7 @@ from typing import List, Tuple, Union, Optional
 from parglare import get_collector
 
 from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
-from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression, Method_Call, Indexing_Expression
+from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.carrier import Carrier_Expression
 from knit_script.knit_script_interpreter.expressions.direction import Pass_Direction_Expression
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -24,6 +24,7 @@ from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xf
 from knit_script.knit_script_interpreter.header_structure import Header_ID, Machine_Type
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
+from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
 from knit_script.knit_script_interpreter.statements.Print import Print
 from knit_script.knit_script_interpreter.statements.Push_Statement import Push_Statement
 from knit_script.knit_script_interpreter.statements.Statement import Statement, Expression_Statement
@@ -125,6 +126,16 @@ def declare_variable(_, __, assign: Assignment) -> Variable_Declaration:
 
 
 @action
+def declare_global(_, __, assign: Assignment) -> Variable_Declaration:
+    """
+    :param assign: assignment before eol punctuation
+    :param _: ignored parglare context
+    :param __: ignored nodes
+    :return: Variable Declaration Statement that assigns the global variable on execution
+    """
+    return Variable_Declaration(assign, is_global=True)
+
+@action
 def assertion(_, __, exp: Expression, error: Optional[Expression] = None) -> Assertion:
     """
     :param __: ignored nodes
@@ -148,17 +159,28 @@ def print_statement(_, __, exp: Expression) -> Print:
 
 
 @action
-def try_catch(_, __, try_block: Statement, catch_block: Statement) -> Try_Catch_Statement:
+def try_catch(_, __, try_block: Statement, catch_block: Statement, errors: List[Expression]) -> Try_Catch_Statement:
     """
+    :param errors: errors to accept
     :param _: ignored parglare context
     :param __: ignored nodes
     :param try_block: statements to execute in try branch
     :param catch_block: statements to execute in catch branch
     :return: Try Catch
     """
-    # todo: better exception management
-    return Try_Catch_Statement(try_block, catch_block)
+    return Try_Catch_Statement(try_block, catch_block, errors=errors)
 
+@action
+def exception_assignment(_, __, except_val: Expression,var_name: Variable_Expression) -> Assignment:
+    """
+    Reversed assignment syntax for catch statements
+    :param _:
+    :param __:
+    :param except_val: the exception to allow
+    :param var_name: the name of the variable for the error
+    :return: an assignment operation for this error
+    """
+    return Assignment(var_name.variable_name, except_val)
 
 @action
 def pause_statement(_, __) -> Pause_Statement:
@@ -328,20 +350,65 @@ def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression],
     """
     return List_Comp(fill_exp, spacer, variables, iter_exp, comp_cond)
 
-
 @action
-def sliced_list(_, __, iter_exp: Expression, start: Optional[Expression],
-                end: Optional[Expression], spacer: Optional[Expression]) -> Sliced_List:
+def started_slice(_, __, start:Expression,
+                  end: Optional[Expression],
+                  spacer:Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
     """
     :param _:
     :param __:
-    :param iter_exp: iterable to slice
-    :param start: start of slice, inclusive, defaults to 0
-    :param end: end of slice, exclusive, defaults to last element
-    :param spacer: spacer of slice, defaults to 1
-    :return: The sliced list
+    :param start: first value in slide
+    :param end: end of slice value
+    :param spacer: spacing value
+    :return: slice values
     """
-    return Sliced_List(iter_exp, start, end, spacer)
+    return start, end, spacer
+
+@action
+def ended_slice(_, __, end: Expression,
+                spacer: Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    """
+    :param _:
+    :param __:
+    :param end: end of slice value
+    :param spacer: spacing value
+    :return: slice values
+    """
+    return None, end, spacer
+
+@action
+def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+    """
+    :param _:
+    :param __:
+    :param spacer: spacing value
+    :return: slice values
+    """
+    return None, None, spacer
+
+@action
+def slice_data(_, nodes: list) -> Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]]:
+    """
+    :param _:
+    :param nodes: data from different slicing configurations
+    :return: slice values
+    """
+    slice_values = nodes[0]
+    if isinstance(slice_values, Expression): # index passed
+        return slice_values, False, None, False, None
+    else:
+        return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[2]
+
+@action
+def sliced_list(_, __, iter_exp: Expression, slices:Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]] ) -> Sliced_List:
+    """
+    :param _: ignored parser context
+    :param __: ignored nodes
+    :param iter_exp: The iterator to gather the slice from
+    :param slices: data about how to form an index or slice
+    :return: the slicer statement
+    """
+    return Sliced_List(iter_exp, slices[0], slices[1], slices[2], slices[3], slices[4])
 
 
 @action
@@ -501,7 +568,7 @@ def as_assignment(_, __, variable: Variable_Expression, exp: Expression) -> Assi
     :param exp: expression to assign
     :return: Assignment value
     """
-    return Assignment(var_name=variable.variable_name, var_expression=exp)
+    return Assignment(var_name=variable.variable_name, value_expression=exp)
 
 
 @action
@@ -697,17 +764,6 @@ def accessor(_, __, exp: Expression, attribute: Expression) -> Attribute_Accesso
     return Attribute_Accessor_Expression(exp, attribute)
 
 
-@action
-def method_call(_, __, exp: Expression, method: Function_Call) -> Method_Call:
-    """
-    :param _:
-    :param __:
-    :param exp: expression to call from
-    :param method: method to call
-    :return: method call
-    """
-    return Method_Call(exp, method)
-
 
 @action
 def exp_statement(_, __, exp: Expression) -> Expression_Statement:
@@ -742,16 +798,7 @@ def remove_statement(_, __, exps: List[Expression]) -> Remove_Statement:
     return Remove_Statement(exps)
 
 
-@action
-def indexing(_, __, exp: Expression, index: Expression) -> Indexing_Expression:
-    """
-    :param _:
-    :param __:
-    :param exp: expression to index
-    :param index: index value
-    :return: indexing expression
-    """
-    return Indexing_Expression(exp, index)
+
 
 
 @action
@@ -824,3 +871,21 @@ def pass_second(_, nodes: list):
     :return: the second node in the list
     """
     return nodes[1]
+
+
+@action
+def import_statement(_, __, src: Expression, alias: Optional[Expression]) -> Import_Statement:
+    """
+
+    Parameters
+    ----------
+    _
+    __
+    src: source module
+    alias: alias to assign in variable scope
+
+    Returns
+    -------
+    The import statement holder
+    """
+    return Import_Statement(src, alias)

@@ -40,6 +40,6 @@ class Drop_Pass(Statement):
 
         needles_to_instruction = {n: Needle_Instruction.drop for n in needles}
 
-        machine_pass = Carriage_Pass(needles_to_instruction, Pass_Direction.Left_to_Right_Increasing)
+        machine_pass = Carriage_Pass(needles_to_instruction, Pass_Direction.Rightward)
 
         machine_pass.write_knitout(context)

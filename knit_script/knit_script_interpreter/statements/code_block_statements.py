@@ -27,13 +27,13 @@ class Code_Block(Statement):
         return_value = None
         for statement in self._statements:
             statement.execute(context)
-            if context.variable_scope.has_return:  # executed statement updated scope with return value
+            if context.variable_scope.returned:  # executed statement updated scope with return value
                 had_return = True
                 return_value = context.variable_scope.return_value
                 break  # don't continue to execute block statements
         context.exit_current_scope()
         if had_return:
-            context.variable_scope.has_return = True
+            context.variable_scope.returned = True
             context.variable_scope.return_value = return_value
 
     def __str__(self):

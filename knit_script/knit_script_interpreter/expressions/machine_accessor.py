@@ -47,7 +47,7 @@ class Sheet_Expression(Expression):
         :return: Identifier for sheet at gauge
         """
         if self._gauge_id is None:
-            gauge = context.current_gauge
+            gauge = context.gauge
         else:
             gauge = int(self._gauge_id.evaluate(context))
         if isinstance(self._sheet_id, str):
