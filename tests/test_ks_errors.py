@@ -2,6 +2,7 @@
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knit_script_interpreter.knit_script_errors.parse_errors import Knit_Script_Parse_Error
+from knit_script.knit_script_interpreter.knit_script_errors.yarn_management_errors import Duplicate_Carrier_Error, Non_Existent_Carrier_Error
 
 
 class Test_Errors:
@@ -39,4 +40,68 @@ class Test_Errors:
         try:
             self.parser.write_knitout(program, f"error_test.k", pattern_is_file=False)
         except Knit_Script_Parse_Error as e:
+            print(e)
+
+    def test_dup_carrier(self):
+        program = r"""
+            with Carrier as [c1, c2, c1]:{
+                in reverse direction:{
+                    knit Loops;
+                }
+            }
+        """
+        try:
+            self.parser.write_knitout(program, f"error_test.k", pattern_is_file=False)
+            assert  False, "Should show duplicate error"
+        except Duplicate_Carrier_Error as e:
+            print(e)
+        program = r"""
+                    with Carrier as [c1, 1]:{
+                        in reverse direction:{
+                            knit Loops;
+                        }
+                    }
+                """
+        try:
+            self.parser.write_knitout(program, f"error_test.k", pattern_is_file=False)
+            assert False, "Should show duplicate error"
+        except Duplicate_Carrier_Error as e:
+            print(e)
+
+    def test_bad_carrier(self):
+        program = r"""
+                    with Carrier as c0:{
+                        in reverse direction:{
+                            knit Loops;
+                        }
+                    }
+                """
+        try:
+            self.parser.write_knitout(program, f"error_test.k", pattern_is_file=False)
+            assert False, "Should show duplicate error"
+        except Non_Existent_Carrier_Error as e:
+            print(e)
+        program = r"""
+                            with Carrier as c12:{
+                                in reverse direction:{
+                                    knit Loops;
+                                }
+                            }
+                        """
+        try:
+            self.parser.write_knitout(program, f"error_test.k", pattern_is_file=False)
+            assert False, "Should show duplicate error"
+        except Non_Existent_Carrier_Error as e:
+            print(e)
+        program = r"""
+                            with Carrier as -1:{
+                                in reverse direction:{
+                                    knit Loops;
+                                }
+                            }
+                        """
+        try:
+            self.parser.write_knitout(program, f"error_test.k", pattern_is_file=False)
+            assert False, "Should show duplicate error"
+        except Non_Existent_Carrier_Error as e:
             print(e)

@@ -3,7 +3,7 @@ from typing import Any
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.scope.global_scope import Machine_Variables
+from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Variables
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 
 

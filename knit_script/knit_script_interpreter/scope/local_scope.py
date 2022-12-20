@@ -3,6 +3,7 @@
 from typing import Optional, Tuple, Any, List, Union
 
 from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
+from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope, Machine_Variables
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
@@ -19,10 +20,12 @@ class Knit_Script_Scope:
         self.name = name
         self.parent: Optional[Knit_Script_Scope] = parent
         if self.parent is None:
-            self.globals = Knit_Script_Globals()
+            self.globals: Knit_Script_Globals = Knit_Script_Globals()
+            self.machine_scope: Machine_Scope = Machine_Scope()
             self._sub_scope_globals = set()
         else:
-            self.globals = self.parent.globals
+            self.globals: Knit_Script_Globals = self.parent.globals
+            self.machine_scope: Machine_Scope = Machine_Scope(self.parent.machine_scope)
             self._sub_scope_globals = {*self.parent._sub_scope_globals}
         self.child_scope = None
         self._return_value = None
@@ -32,55 +35,55 @@ class Knit_Script_Scope:
         """
         :return: The current direction the carriage will take
         """
-        return self.globals.direction
+        return self.machine_scope.direction
 
     @direction.setter
     def direction(self, value: Pass_Direction):
-        self.globals.direction = value
+        self.machine_scope.direction = value
 
     @property
     def carrier(self) -> Optional[Yarn_Carrier]:
         """
         :return: the current carrier being used by the machine
         """
-        return self.globals.carrier
+        return self.machine_scope.carrier
 
     @carrier.setter
     def carrier(self, carrier: Optional[Yarn_Carrier]):
-        self.globals.carrier = carrier
+        self.machine_scope.carrier = carrier
 
     @property
     def racking(self) -> float:
         """
         :return: current racking of the machine
         """
-        return self.globals.racking
+        return self.machine_scope.racking
 
     @racking.setter
     def racking(self, value: float):
-        self.globals.racking = value
+        self.machine_scope.racking = value
 
     @property
     def gauge(self) -> int:
         """
         :return: The current number of sheets on the machine
         """
-        return self.globals.gauge
+        return self.machine_scope.gauge
 
     @gauge.setter
     def gauge(self, value: Optional[int]):
-        self.globals.gauge = value
+        self.machine_scope.gauge = value
 
     @property
     def sheet(self) -> int:
         """
         :return: The current sheet being worked on the machine
         """
-        return self.globals.sheet
+        return self.machine_scope.sheet
 
     @sheet.setter
     def sheet(self, value: Optional[Union[int, Sheet_Identifier]]):
-        self.globals.sheet = value
+        self.machine_scope.sheet = value
 
     @staticmethod
     def get_value_from_python_scope(key: str) -> Tuple[Any, bool]:
@@ -158,6 +161,8 @@ class Knit_Script_Scope:
         :param key: the variable name
         :return: The value in the local hierarchy by that key. Checks against globals last
         """
+        if Machine_Variables.in_machine_variables(key):
+            return self.machine_scope[key]
         is_global = self.has_global(key)
         if is_global and key in self._sub_scope_globals: # Set as global in current subscope
             return self.globals[key]
@@ -170,7 +175,7 @@ class Knit_Script_Scope:
                     return getattr(scope, key)
                 scope = scope.parent
             if is_global:
-                return self.get_global(key)
+                 return self.get_global(key)
             else:
                 raise NameError(f"Variable {key} is not in scope")
     def add_local_by_path(self, path: List[str], value:Any):
@@ -186,20 +191,6 @@ class Knit_Script_Scope:
                 scope[key] = Knit_Script_Scope(scope, key, is_module=True)
             scope = scope[key]
         scope[path[-1]] = value
-
-    # def get_local_from_path(self, path: List[str]):
-    #     """
-    #     Descends sub scope by value names
-    #     :param path: list of variable names to check in scope order
-    #     :return: value at end of the path
-    #     """
-    #     scope = self
-    #     accessed_path = ""
-    #     for key in path:
-    #         assert  key in scope, f"Could not find {key} in {accessed_path}"
-    #         scope = scope[key]
-    #         accessed_path += f"{key}."
-    #     return scope
 
     def get_global(self, key: str) -> Any:
         """

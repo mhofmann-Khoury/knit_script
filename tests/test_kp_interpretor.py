@@ -61,6 +61,20 @@ class TestKnit_Pass_Interpreter(TestCase):
         header, statements = self.parser.parse(program)
         print(statements)
 
+    def test_carrier(self):
+        program = r'''Carrier = 1;'''
+        header, statements = self.parser.parse(program)
+        print(statements)
+        program = r'''Carrier = c1;'''
+        header, statements = self.parser.parse(program)
+        print(statements)
+        program = r'''Carrier = [1, 2];'''
+        header, statements = self.parser.parse(program)
+        print(statements)
+        program = r'''Carrier = [c2, c1];'''
+        header, statements = self.parser.parse(program)
+        print(statements)
+
     def test_order_of_operations(self):
         program = f" (p - p)^e * m / d + a - s;"
         header, statements = self.parser.parse(program)

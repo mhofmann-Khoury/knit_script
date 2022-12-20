@@ -212,8 +212,102 @@ Reverse switches back and forth between Leftward and Rightward with each pass ev
 This might introduce some necessary no-operation carriage passes, knit script handles those for you. 
 
 ### Carriers and Yarn Management
+Of course, you can't knit with air and our examples so far say nothing about the yarn being knit with.
 
-[//]: # (TODO)
+Knitting machines control the yarn by pulling yarn-carriers across the needle bed in sync with the carriage pass. 
+Each carrier has one yarn and multiple carriers can be used at the same time. In order to use a carrier it must be 
+active or `inhooked` on the machine. In knitout, this is managed manually with the `inhook` and `in` commands. When 
+a yarn is no longer needed, and likely getting in your way, you deactivate carriers with `outhook` and `out` commands. 
+
+#### The Yarn-Inserting-Hook
+
+The main challenge of using carriers is managing the yarn-inserting-hook. When a yarn is first brought onto the 
+machine it is loose and will slip out of the carrier. To prevent this, a yarn-inserting-hook grabs the tail of yarn 
+and holds it in place while the yarn is knit. This hook hovers above needles on the bed and will block those needles 
+from being used. The yarn-inserting-hook will be positioned just before the first needle that knits with the carrier.
+When you no longer need the hook to hold the yarn-tail because the yarn has knit enough loops you call `releasehook` 
+in knitout. Choosing when to release the hook in knitout is a tension between multiple trade-offs. First, the longer 
+you hold it, the longer you cannot use the needles below and after that hook. Second, as long as it is holding one 
+yarn, you can't bring in a new yarn. Third, if you release it too early, the loops knit with that yarn are likely to 
+come loose. One of the benefits of knitout is that you don't have to factor these considerations into your knitting 
+program. Knit script does it for you.
+
+#### Declaring Active Carriers in Knit Script
+
+Knit Script has a global variable named `Carrier`. Setting the value of `Carrier` to a yarn carrier will declare 
+that all subsequent directed passes will use that carrier. The interpreter will also add an `inhook` operation when a 
+new carrier is declared and a `in` operation if the carrier is already active. All of our prior examples were using 
+`Carrier` by default. Run on their own, they will error because `Carrier` is not declared and no carriers will be 
+activated in the knitout.
+
+You can declare carrier the same way you declare any other variable. A simple variable declaration will work and 
+will insert any needed `inhook` and `in` operations into your knitout before you use the carrier in a directed pass. 
+
+```KnitScript
+Carrier = 1; // carrier will be set to first carrier on machine. Integer 1 casts to c1
+Carrier = c2; // positive integers prefixed with c declare a carrier
+Carrier = [c1, 2]; // lists of carriers are used for platted knitting with multiple carriers at once.
+// The order of carriers will be the order of yarns in the plate. Carriers and integers can be mixed
+Carrier += 1; // integer operations on carriers will act like integers
+```
+
+Knit Script is designed to treat carriers like output streams in other languages. If you bring  a carrier in, it 
+must eventually go out, and when switching between different scopes you don't want to lose track of what carriers 
+have already been activated. Like managing file-streams in Python, we recommend that you use with-statements to 
+control which carrier is actives. 
+
+Consider the basic example where we want to knit stockinette with Carrier 1. Inside the with statement, the carrier 
+will be c1 unless otherwise set. Outside the with statement, no carrier is available. 
+
+```KnitScript
+import cast_ons;
+width = 20;
+height = 10;
+
+def knit_stripe():{
+    for r in range(0, height):{
+        in reverse direction: { // Looks for carrier from outer scope. 
+            knit Loops;
+        }
+    }
+}
+
+with Carrier as c1:{
+    // All operations in this with statement will use carrier 1 unless another carrier is declared
+    cast_ons.alt_tuck_cast_on(width); // function call from standard knit script library
+    knit_stripe();
+}
+// Any knitting operations out here will cause an error since no carrier is active.
+```
+
+But what if you want to use a different carrier inside some sub-scope, like a function call? Declaring the carrier 
+value either with a variable declaration or a with statement will only set that value for the current scope. So when 
+you leave a that scope, carrier will default back to the outer scopes value.
+
+Let's say you want to knit some stripes of stockinette with a different carrier, but otherwise knit with c1:
+```knit_script
+import cast_ons;
+width = 20;
+height = 10;
+
+def knit_colored_stripe(new_carrier):{
+    with Carrier as new_carrier:{
+        knit_stripe();
+    }
+}
+
+with Carrier as c1:{
+    cast_ons.alt_tuck_cast_on(width);
+    knit_stripe(); // uses c1
+    knit_colored_stripe(c2); // will use c2
+    knit_stripe(); // starts using c1 again
+}
+```
+
+#### Cutting Yarns
+
+[//]: # (TODO: fill this section in)
+
 
 ## Packages
 
@@ -236,4 +330,4 @@ the [Parglare parsing toolkit](http://www.igordejanovic.net/parglare/0.16.0/).
 
 ### tests
 Test classes for evaluating the interpreter and parsing knit_script samples. Calibration samples are used for 
-calibrating allowable gauge on a machine. Paper samples demonstrate different basic techniques of sheet knittting. 
+calibrating allowable gauge on a machine. Paper samples demonstrate different basic techniques of sheet knitting. 

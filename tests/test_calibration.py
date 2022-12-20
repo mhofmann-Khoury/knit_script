@@ -19,3 +19,14 @@ class Test_Calibration(TestCase):
         name = f"{self.sample_directory}stst"
         knitout, knit_graph = self.parser.write_knitout(f"{name}.ks", f"{name}.k", pattern_is_file=True)
         knitout_to_dat(f"{name}.k", f"{name}.dat")
+
+    def test_platting(self):
+        name = f"{self.sample_directory}plating"
+        knitout, knit_graph = self.parser.write_knitout(f"{name}.ks", f"{name}.k", pattern_is_file=True)
+        knitout_to_dat(f"{name}.k", f"{name}.dat")
+
+    def test_carrier_swap(self):
+        name = f"{self.sample_directory}carrier_play"
+        knitout, knit_graph = self.parser.write_knitout(f"{name}.ks", f"{name}.k", pattern_is_file=True)
+        knitout_to_dat(f"{name}.k", f"{name}.dat")
+

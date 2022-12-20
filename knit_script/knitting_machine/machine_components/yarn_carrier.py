@@ -7,6 +7,7 @@ from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Loop import Loop
 
 from knit_script.knit_graphs.Yarn import Yarn
+from knit_script.knit_script_interpreter.knit_script_errors.yarn_management_errors import Duplicate_Carrier_Error, Non_Existent_Carrier_Error
 
 
 class Yarn_Carrier:
@@ -21,7 +22,7 @@ class Yarn_Carrier:
         Stays 0 when not on the yarn inserting hook
     """
 
-    def __init__(self, carrier_ids: Union[int, List[int]] = 3, carrier_name: Optional[str] = None):
+    def __init__(self, carrier_ids: Union[int, List[Union[int]]] = 3, carrier_name: Optional[str] = None):
         """
         Represents the state of the yarn_carriage
         :param carrier_name:
@@ -29,15 +30,30 @@ class Yarn_Carrier:
         """
         if carrier_name is None:
             carrier_name = f"C{carrier_ids}"
-        self._carrier_ids: List[int] = carrier_ids
-        if isinstance(self._carrier_ids, int):
+        if isinstance(carrier_ids, int):
             self._carrier_ids = [carrier_ids]
-        if self._many_yarns:
-            for carrier in self.carrier_ids:
-                assert 1 <= carrier <= 10, f"Carriers must between 1 and 10, but got {carrier}"
-        else:
-            assert 1 <= carrier_ids <= 10, f"Carriers must between 1 and 10, but got {carrier_ids}"
-        # self._position: int = position
+        elif isinstance(carrier_ids, Yarn_Carrier):
+            self._carrier_ids = [*carrier_ids._carrier_ids]
+        else: # list or carriers or integers
+            duplicates = set()
+            self._carrier_ids = []
+            for c in carrier_ids:
+                if isinstance(c, int):
+                    if c in duplicates:
+                        raise Duplicate_Carrier_Error(c)
+                    duplicates.add(c)
+                    self._carrier_ids.append(c)
+                else:
+                    assert isinstance(c, Yarn_Carrier)
+                    for c_id in c._carrier_ids:
+                        if c_id in duplicates:
+                            raise Duplicate_Carrier_Error(c_id)
+                        duplicates.add(c_id)
+                        self._carrier_ids.append(c_id)
+        for carrier in self.carrier_ids:
+            if not (1 <= carrier <= 10):
+                raise Non_Existent_Carrier_Error(carrier)
+            assert 1 <= carrier <= 10, f"Carriers must between 1 and 10, but got {carrier}"
         self._yarns: List[Yarn] = [Yarn(f"{carrier_name}.{cid}") for cid in self.carrier_ids]
         self.loops_since_release: int = 0
 
@@ -56,13 +72,6 @@ class Yarn_Carrier:
         """
         self.loops_since_release = 0
 
-    # @property
-    # def position(self):
-    #     """
-    #     :return: The current needle position the carrier is sitting at
-    #     """
-    #     return self._position
-
     @property
     def carrier_ids(self) -> List[int]:
         """
@@ -70,40 +79,30 @@ class Yarn_Carrier:
         """
         return self._carrier_ids
 
-    # def move_to_position(self, new_position: int):
-    #     """
-    #     Updates the structure as though the yarn carrier took a pass at the needle location
-    #     :param new_position: the needle to move to
-    #     """
-    #     self._position = new_position
-
     @property
-    def _many_yarns(self) -> bool:
+    def many_yarns(self) -> bool:
         """
         :return: True if this carrier involves multiple carriers
         """
-        return type(self.carrier_ids) == list
+        return len(self.carrier_ids) > 1
 
     def __str__(self):
-        if not self._many_yarns:
-            return " " + str(self.carrier_ids)
-        else:
-            carriers = ""
-            for carrier in self.carrier_ids:
-                carriers += f" {carrier}"
-            return carriers
+        carriers = ""
+        for carrier in self.carrier_ids:
+            carriers += f" {carrier}"
+        return carriers
 
     def __repr__(self):
         return str(self)
 
     def __hash__(self):
-        if self._many_yarns:
+        if self.many_yarns:
             hash_val = 0
             for i, carrier in enumerate(self.carrier_ids):
                 hash_val += (10 ** i) * carrier  # gives unique hash for list of different orders
             return hash_val
         else:
-            return self.carrier_ids
+            return self.carrier_ids[0]
 
     def __eq__(self, other):
         if isinstance(other, Yarn_Carrier):
@@ -111,7 +110,4 @@ class Yarn_Carrier:
         return False
 
     def __iter__(self):
-        if self._many_yarns:
-            return iter(self.carrier_ids)
-        else:
-            return iter([self.carrier_ids])
+        return iter(self.carrier_ids)

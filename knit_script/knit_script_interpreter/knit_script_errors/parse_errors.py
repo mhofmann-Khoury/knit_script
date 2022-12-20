@@ -3,8 +3,10 @@ from typing import List, Tuple
 
 from parglare import ParseError, Terminal
 
+from knit_script.knit_script_interpreter.knit_script_errors.Knit_Script_Error import Knit_Script_Error
 
-class Knit_Script_Parse_Error(Exception):
+
+class Knit_Script_Parse_Error(Knit_Script_Error):
     """
         General error reporting for knit script parser errors
     """
