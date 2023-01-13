@@ -53,11 +53,8 @@ class Function_Call(Expression):
                 if isinstance(function_signature, Callable):
                     return function_signature(*args, **kwargs)
                 else:
-                    try:
-                        func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
-                        return eval(func_str)
-                    except NameError as error:
-                        raise RuntimeError(f"KnitPass: Could not find function by name {self.func_name.variable_name}") from error
+                    func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
+                    return eval(func_str)
 
     def __str__(self):
         values = ""
