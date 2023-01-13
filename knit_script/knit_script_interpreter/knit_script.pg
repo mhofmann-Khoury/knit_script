@@ -66,6 +66,8 @@ push_statement: "push" needles=expression+[comma]  push_val=(push_to | push_dir)
 push_to: "to" push_val=("Front"|"Back"| "layer" expression);
 push_dir: amount=expression? direction=("Forward"|"Backward");
 
+swap_statement: "swap" needles=expression+[comma] "with" swap_type=("layer"|"sheet") value=expression eol;
+
 
 import_statement: "import" src=expression alias=as_import? eol;
 @pass_second
@@ -84,6 +86,7 @@ statement: assertion {10}
             | xfer_pass {10}
             | drop_pass {10}
             | push_statement {10}
+            | swap_statement {10}
             | function_declaration {10}
             | return_statement {10}
             | cut_statement {10}
@@ -191,9 +194,9 @@ expression: expression "^" expression {right, 16}
             | dict_expression {10}
             | dict_comp {10}
             | needle_instruction {10}
-            | needle {9}
+            | needle_id {9}
             | carrier {9}
-            | sheet {9}
+            | sheet_id {9}
             | function_call {8}
             | accessor {6}
             | sliced_list {5}
@@ -215,9 +218,9 @@ comma: ",";
 dot: /\./;
 eol: ";";
 left_right: /(Left)|(Right)/{10};
-needle: /[fb]s?[0-9]+/{10};
+needle_id: /[fb]s?[0-9]+/{10};
 carrier: /c[0-9]+/{10};
-sheet: /s[0-9]+(:g[0-9]+)?/{10};
+sheet_id: /s[0-9]+(:g[0-9]+)?/{10};
 identifier: /[a-zA-Z_]+[0-9a-zA-Z_]*/{9};
 KEYWORD: /\w+/;
 string: /"[^"]*"/;

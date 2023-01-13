@@ -155,7 +155,7 @@ class Knit_Script_Context:
         :return: Needle based on current gauging
         """
         if sheet is None:
-            sheet = self.sheet
+            sheet = self.sheet.sheet
         if gauge is None:
             gauge = self.gauge
         if global_needle or gauge == 1:

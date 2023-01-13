@@ -23,10 +23,10 @@ class Knit_Script_Parser:
         :param pattern_is_file: if true, assumes that the pattern is parsed from a file
         :return:
         """
-        try:
-            if pattern_is_file:
-                return self._parser.parse_file(pattern)
-            else:
-                return self._parser.parse(pattern)
-        except ParseError as e:
-            raise Knit_Script_Parse_Error(e)
+        # try:
+        if pattern_is_file:
+            return self._parser.parse_file(pattern)
+        else:
+            return self._parser.parse(pattern)
+        # except ParseError as e:
+        #     raise Knit_Script_Parse_Error(e)

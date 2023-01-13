@@ -42,25 +42,26 @@ class Machine_Variables(Enum):
         """
         setattr(context, self.value, value)
 
+
 class Machine_Scope:
     """
         Keeps track of the machine state within different scopes
     """
+
     def __init__(self, parent_scope=None):
         if parent_scope is None:
             self._direction: Pass_Direction = Pass_Direction.Leftward
             self._carrier: Optional[Yarn_Carrier] = None
             self._racking: float = 0.0
             self._gauge: int = 1
-            self._sheet: int = 0
+            self._sheet: Sheet_Identifier = Sheet_Identifier(0, self._gauge)
         else:
             assert isinstance(parent_scope, Machine_Scope)
-            self._direction:Pass_Direction = parent_scope.direction
+            self._direction: Pass_Direction = parent_scope.direction
             self._carrier: Optional[Yarn_Carrier] = parent_scope.carrier
-            self._racking:float = parent_scope.racking
+            self._racking: float = parent_scope.racking
             self._gauge: int = parent_scope.gauge
-            self._sheet: int = parent_scope.sheet
-
+            self._sheet: Sheet_Identifier = parent_scope.sheet
 
     @property
     def direction(self) -> Pass_Direction:
@@ -114,7 +115,7 @@ class Machine_Scope:
     def gauge(self, value: Optional[int]):
         if value is None:
             value = 1
-        if not( 0 < value < Machine_State.MAX_GAUGE):
+        if not (0 < value < Machine_State.MAX_GAUGE):
             raise Gauge_Value_Error(value)
         self._gauge = int(value)
         if self.sheet >= self.gauge:
@@ -122,7 +123,7 @@ class Machine_Scope:
             self.sheet = self.gauge - 1
 
     @property
-    def sheet(self) -> int:
+    def sheet(self) -> Sheet_Identifier:
         """
         :return: The current sheet being worked on the machine
         """
@@ -133,22 +134,22 @@ class Machine_Scope:
         if value is None:
             value = Sheet_Identifier(0, self.gauge)
         elif isinstance(value, int):
-            if not( 0 <= value < self.gauge):
+            if not (0 <= value < self.gauge):
                 raise Sheet_Value_Error(value, self.gauge)
             value = Sheet_Identifier(value, self.gauge)
         self.gauge = value.gauge
-        self._sheet = value.sheet
+        self._sheet = value
 
-    def __getitem__(self, key:str) -> Any:
+    def __getitem__(self, key: str) -> Any:
         if Machine_Variables.in_machine_variables(key):
             return Machine_Variables[key].get_value(self)
         return getattr(self, key)
 
-    def __setitem__(self, key: str, value:Any):
+    def __setitem__(self, key: str, value: Any):
         setattr(self, key, value)
 
-    def __delitem__(self, key:str):
+    def __delitem__(self, key: str):
         delattr(self, key)
 
-    def __contains__(self, key:str):
+    def __contains__(self, key: str):
         return Machine_Variables.in_machine_variables(key)

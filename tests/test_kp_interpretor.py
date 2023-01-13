@@ -336,7 +336,32 @@ class TestKnit_Pass_Interpreter(TestCase):
         _, results = self.parser.parse(program)
         print(results)
 
+    def test_sheet_accessor(self):
+        program = "s1.f1;"
+        _, results = self.parser.parse(program)
+        print(results)
+        program = "machine.f0;"
+        _, results = self.parser.parse(program)
+        print(results)
+
     def test_global(self):
         program = "global cat=dog;"
+        _, results = self.parser.parse(program)
+        print(results)
+
+    def test_layers(self):
+        program = "push f1 to layer 2;"
+        _, results = self.parser.parse(program)
+        print(results)
+        program = "push f1 to Front;"
+        _, results = self.parser.parse(program)
+        print(results)
+        program = "push f1 2 backward;"
+        _, results = self.parser.parse(program)
+        print(results)
+        program = "swap f1 with layer 1;"
+        _, results = self.parser.parse(program)
+        print(results)
+        program = "swap f1 with sheet 3;"
         _, results = self.parser.parse(program)
         print(results)
