@@ -13,7 +13,8 @@ class Knit_Script_Scope:
     """
         Keeps track of values in a confined scope. Also accesses globals and checks python scope
     """
-    def __init__(self, parent =None, name: Optional[str] =None, is_function: bool = False, is_module: bool = False):
+
+    def __init__(self, parent=None, name: Optional[str] = None, is_function: bool = False, is_module: bool = False):
         self._is_module = is_module
         self._is_function = is_function
         self.returned: bool = False
@@ -25,7 +26,7 @@ class Knit_Script_Scope:
             self._sub_scope_globals = set()
         else:
             self.globals: Knit_Script_Globals = self.parent.globals
-            self.machine_scope: Machine_Scope = self.parent.machine_scope #Machine_Scope(self.parent.machine_scope)
+            self.machine_scope: Machine_Scope = self.parent.machine_scope  # Machine_Scope(self.parent.machine_scope)
             self._sub_scope_globals = {*self.parent._sub_scope_globals}
         self.child_scope = None
         self._return_value = None
@@ -98,7 +99,6 @@ class Knit_Script_Scope:
         except NameError:
             return None, False
 
-
     @property
     def is_module(self) -> bool:
         """
@@ -126,7 +126,7 @@ class Knit_Script_Scope:
         scope = self
         while scope is not None and not scope.is_function:
             scope = self.parent
-        if scope is None: # set the exit value since no function can return
+        if scope is None:  # set the exit value since no function can return
             self.globals.exit_value = value
         else:
             scope._return_value = value
@@ -138,12 +138,12 @@ class Knit_Script_Scope:
         :param key: variable name
         :param value: value to set key to
         """
-        if self.has_local(key): # value comes from higher up scope, but not including global
+        if self.has_local(key):  # value comes from higher up scope, but not including global
             scope = self
             while not hasattr(scope, key):
                 scope = scope.parent
             setattr(scope, key, value)
-        else: # set at lowest scope level
+        else:  # set at lowest scope level
             setattr(self, key, value)
 
     def set_global(self, key: str, value: Any):
@@ -164,9 +164,9 @@ class Knit_Script_Scope:
         if Machine_Variables.in_machine_variables(key):
             return self.machine_scope[key]
         is_global = self.has_global(key)
-        if is_global and key in self._sub_scope_globals: # Set as global in current subscope
+        if is_global and key in self._sub_scope_globals:  # Set as global in current subscope
             return self.globals[key]
-        else: # check lowest scope then globals
+        else:  # check lowest scope then globals
             scope = self
             while scope is not None:
                 if hasattr(scope, key):
@@ -175,10 +175,11 @@ class Knit_Script_Scope:
                     return getattr(scope, key)
                 scope = scope.parent
             if is_global:
-                 return self.get_global(key)
+                return self.get_global(key)
             else:
                 raise NameError(f"Variable {key} is not in scope")
-    def add_local_by_path(self, path: List[str], value:Any):
+
+    def add_local_by_path(self, path: List[str], value: Any):
         """
         Adds module sub scopes to variable space following the given path.
         Sets final value in the lowest module subscope
@@ -213,6 +214,7 @@ class Knit_Script_Scope:
                 return True
             scope = scope.parent
         return False
+
     def has_global(self, key: str) -> bool:
         """
         check for global value
@@ -235,7 +237,7 @@ class Knit_Script_Scope:
             scope = scope.parent
         return False
 
-    def delete_global(self, key:str) -> bool:
+    def delete_global(self, key: str) -> bool:
         """
         Delete global variable. If not found, no-op
         :param key: variable name
@@ -246,10 +248,9 @@ class Knit_Script_Scope:
             return True
         return False
 
-
-    def enter_new_scope(self, name: Optional[str]=None,
-                        is_function:bool = False,
-                        is_module:bool = False):
+    def enter_new_scope(self, name: Optional[str] = None,
+                        is_function: bool = False,
+                        is_module: bool = False):
         """
         Enters a new sub scope and puts it into the hierarchy
         :param name: name of the sub_scope if a function or module
@@ -274,16 +275,17 @@ class Knit_Script_Scope:
         if self.parent is not None:
             self.parent.child_scope = None
         return self.parent
-    def __contains__(self, key:str) -> bool:
+
+    def __contains__(self, key: str) -> bool:
         value, exists = self.get_value_from_python_scope(key)
         if exists:
             return exists
         return self.has_global(key) or self.has_local(key)
 
-    def __setitem__(self, key:str, value:Any):
+    def __setitem__(self, key: str, value: Any):
         self.set_local(key, value)
 
-    def __getitem__(self, key:str) -> Any:
+    def __getitem__(self, key: str) -> Any:
         value, exists = self.get_value_from_python_scope(key)
         if exists:
             return value

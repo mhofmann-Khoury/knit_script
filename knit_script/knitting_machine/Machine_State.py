@@ -1,6 +1,6 @@
 """The class structures used to maintain the machine state"""
 import math
-from typing import Optional, List, Tuple, Iterable, Dict
+from typing import Optional, List, Tuple, Iterable, Dict, Union
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph, Pull_Direction
 from knit_script.knit_graphs.Loop import Loop
@@ -341,6 +341,20 @@ class Machine_State:
             return self.front_bed[item]
         else:
             return self.back_bed[item]
+
+    def sheet_of(self, needle: Needle) -> int:
+        """
+        :param needle: needle to get sheet from
+        :return: the sheet the needle is assigned to
+        """
+        return needle.position % self.gauge
+
+    def layer_of(self, needle: Union[Needle, int]) -> int:
+        """
+        :param needle: needle or needle position to check layer of
+        :return: the layer of the given needle
+        """
+        return self._needle_pos_to_layer_pos[int(needle)]
 
     def needle(self, is_front: bool, position: int, sheet: Optional[int] = None, gauge: Optional[int] = None) -> Needle:
         """
@@ -695,6 +709,9 @@ class Machine_State:
                         knitout.append(xfer(self, f, b, f"return loops {f.held_loops} on {f} to {b}"))
         return knitout
 
+    def get_layer_at_position(self, needle_pos: int) -> int:
+        return self._needle_pos_to_layer_pos[needle_pos]
+
     def set_layer_position(self, needle_pos: int, layer_value: int, set_other_positions=True):
         """
         Moves the layer_index's position to new_position and pushes all subsequent layers forward, circling back
@@ -712,6 +729,11 @@ class Machine_State:
                 for other_pos in positions:
                     other_layer = (layer_dif + self._needle_pos_to_layer_pos[other_pos]) % self.gauge
                     self.set_layer_position(other_pos, other_layer, set_other_positions=False)
+
+    def swap_layer_at_positions(self, first_pos: int, second_pos: int):
+        first_layer = self._needle_pos_to_layer_pos[first_pos]
+        self._needle_pos_to_layer_pos[first_pos] = self._needle_pos_to_layer_pos[second_pos]
+        self._needle_pos_to_layer_pos[second_pos] = first_layer
 
     def push_layer_backward(self, needle_position: int, backward_layers: int = 1):
         """

@@ -30,13 +30,11 @@ with Gauge as colors:{
 			stockinette.stst(2);
 		}
 	}
-    with Sheet as 0:{
-        for c in range(0, colors):{
-            start = c * stripe_width;
-            end = (c+1) * stripe_width;
-            stripe = [n for n in Front_Needles[start:end]];
-            push stripe c Backward;
-        }
+    for c in range(0, colors):{
+        start = c * stripe_width;
+        end = (c+1) * stripe_width;
+        stripe = [n for n in Front_Needles[start:end]];
+        push stripe c Backward;
     }
 
 	for r in range(0, height):{

@@ -385,10 +385,19 @@ with Gauge as 2, Carrier as 1, width as 12, height as 20:{
 }
 ```
 
-### Layering Sheets
-In the prior example there is an implicit layering of sheets used to form a tube. The first (front) layer of the tube is knit on sheet 0 and the second (back) layer of the tube is knit on sheet 1. But what if we don't want to keep this layering consistent across the whole set of needles on a sheet? For example, we could split our tube into two pieces with the first sheet in front for half the needles and in the back for the second half of needles. 
+### Machine vs Sheet Needles
+KnitScript uses the same notation as knitout to specify a needle (e.g., `f1`, `b2`). In this gauging schema using those values will assume you are indexing into the sheet, not the whole machine bed. So at `Gauge = 2`, when `Sheet == 0` `f1` will actually produce the needle `f2` on the machine bed. Set `Sheet==1` and `f1` will produce `f3` on the machine bed. But what if you want to access a needle on a different Sheet or you actually mean a specific needle on the machine bed?
 
-You can explictly set the layer of a given needle using `push` statements, the last knit script control structure we will go over.
+You can access a needle from a specific sheet by accessing them with dot notation. Similar to needles, sheets can be specified as `s#` (e.g., `s2` is the sheet at index 2). So, regardless of the value of `Sheet`, we can access the front needle at index 1 of sheet 2 by writing `s2.f1`.
+
+You can access a needle on the machine bed, regardless of the sheet and gauging schema with the keyword `machine`. So to get the real `f1` we write `machine.f1`. Side note: the keyword `machine` access the machine state of the interpreter directly, so if you can take full control of that state as though you are writing python code. 
+
+If you want to know the sheet of a given needle you can also get this from `machine` as follows: `machine.sheet_of(n)`
+
+### Layering Sheets
+In the prior example there is an implicit layering of sheets used to form a tube. The first (front) layer of the tube is knit on sheet 0 and the second (back) layer of the tube is knit on sheet 1. But what if we don't want to keep this layering consistent across the whole set of needles on a sheet? For example, we could split our tube into two pieces with the first sheet in front of half the needles and in the back for the second half of needles. 
+
+You can explicitly set the layer of a given needle using `push` statements, the last knit script control structure we will go over.
 
 By default, each needle will be on the same layer as the sheet it is on. For example, at `Gauge=2` the needles on sheet 0 (even needles) will be on layer 0 (the front layer) and the needles on sheet 1 (odd needles) will be on layer 1 (the back layer). 
 
@@ -405,6 +414,48 @@ push first_needles 1 forward;
 push second_needles 1 backward;
 ```
 
+Finally, we can push a layer all the way to the `front` or `back` of the pattern:
+```knits_script
+push first_needles to front;
+push second_needles to back;
+```
+
+Note that when we set a needle layer we effect the needles at the same position in all other sheets. So for example, if we have 2 sheets (i.e., `Gauge=2`) and we set the layer of f1 in sheet 0 to be 1 then we will also be setting the layer of f1 in sheet 1 to be 1. Two needles at equivalent positions in different sheets cannot have the same layer position because this will create xfer conflicts. Knit Script handles this for you. In practice, the difference between the current layer of your needle and the layer you are setting it to will be applied to all other needles in the same position in each sheet. Note that because all the sheets will cycle layers by the same amount it usually doesn't matter what the value of `Sheet` is when you are using push statements though you may want to set it specifically if you are 
+
+Let's consider the following example where we are making our stockinette tube but switching the order of the layers half way across the tube. This will make two connect tubes, the first with stockinette facing out and the second with reverse stockinette facing out:
+
+```knit_script
+import cast_ons;
+with Gauge as 2, Carrier as 1, width as 10, height as 20:{
+    // cycle layers for first half of working needles
+    push Front_Needles[0:width/2] to back;
+    // cast on front and back of the tube
+	for s in range(0, Gauge):{
+		with Sheet as s:{
+			cast_ons.alt_tuck_cast_on(width, is_front=s%2==0);
+		}
+	}
+	for r in range(0, height):{
+	    for s in range(0, Gauge):{
+	        with Sheet as s:{
+	            in reverse direction:{
+	                knit Loops;
+	            }
+	        }
+	    }
+	}
+}
+```
+
+You may not always want to cycle layer positions with a push. Your other option is to swap layer values between two needles at the same position in a sheet or with a specific layer. 
+
+Let's say that you have 3 sheets (0, 1, 2) and 3 needles at the same position on those sheets: needle a on sheet 0, needle b on sheet 1, needle c on sheet 2. Their starting layers are the same as the sheet order (e.g., a on sheet 0 at layer 0). We can swap the layers of a and b in two ways:
+```knit_script
+swap a with sheet 1; // note that b is on sheet 1
+swap a with layer 1; // note that b is set to layer 1
+```
+
+If you want to know what the layer of a specific needle is you can access that from the `machine` similar to checking the sheets of needles: `machine.layer_of(n)`.
 
 # Packages
 

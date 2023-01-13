@@ -160,6 +160,9 @@ class Needle:
         else:
             raise AttributeError
 
+    def __int__(self):
+        return self.position
+
     def at_racking_comparison(self, other, rack: float = 0.0) -> int:
         """
         a comparison value between self and another needle at a given racking

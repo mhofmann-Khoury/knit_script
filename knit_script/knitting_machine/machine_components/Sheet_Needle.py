@@ -180,3 +180,36 @@ class Sheet_Identifier:
 
     def __int__(self):
         return self.sheet
+
+    def __le__(self, other):
+        return self.sheet <= int(other)
+
+    def __lt__(self, other):
+        return self.sheet < int(other)
+
+    def __eq__(self, other):
+        return self.sheet == int(other)
+
+    def __gt__(self, other):
+        return self.sheet > int(other)
+
+    def __ge__(self, other):
+        return self.sheet >= int(other)
+
+    def __add__(self, other):
+        return self.sheet + int(other)
+
+    def __sub__(self, other):
+        return  self.sheet - int(other)
+
+    def __neg__(self):
+        return self.sheet * -1
+
+    def __divmod__(self, other):
+        return self.sheet % int(other)
+
+    def __mul__(self, other):
+        return self.sheet * int(other)
+
+    def __pow__(self, power, modulo=None):
+        return self.sheet ^ int(power)

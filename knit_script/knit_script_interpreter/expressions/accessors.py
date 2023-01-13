@@ -8,7 +8,7 @@ from knit_script.knit_script_interpreter.expressions.needle_set_expression impor
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Signature
 from knit_script.knitting_machine.Machine_State import Machine_State
-from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
+from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier, Sheet_Needle
 from knit_script.knitting_machine.machine_components.needles import Needle
 
 
@@ -27,14 +27,14 @@ class Attribute_Accessor_Expression(Expression):
         super().__init__()
         self.is_method_call = False
         if isinstance(parent_path, list):
-            self.parent:List[Expression] = parent_path
+            self.parent: List[Expression] = parent_path
         else:
-            self.parent:List[Expression] = [parent_path]
+            self.parent: List[Expression] = [parent_path]
         if isinstance(attribute, Attribute_Accessor_Expression):
-            self.attribute:Expression = attribute.attribute
+            self.attribute: Expression = attribute.attribute
             self.parent.extend(attribute.parent)
         else:
-            self.attribute:Expression = attribute
+            self.attribute: Expression = attribute
         if isinstance(self.attribute, Function_Call):
             self.is_method_call = True
 
@@ -50,11 +50,12 @@ class Attribute_Accessor_Expression(Expression):
             parent_source_str += f"{p}."
         parent_source_str = parent_source_str[0:-1]  # drop extra "."
         return parent_source_str
+
     def _evaluate_parent(self, context: Knit_Script_Context) -> Any:
         if len(self.parent) == 1:  # one parent expression
             parent_source: Expression = self.parent[0]
             parent = parent_source.evaluate(context)
-        else: # recursively process parent path
+        else:  # recursively process parent path
             parent_accessor = Attribute_Accessor_Expression(self.parent[:-1], self.parent[-1])
             parent = parent_accessor.evaluate(context)
         return parent
@@ -148,13 +149,12 @@ class Attribute_Accessor_Expression(Expression):
             attribute = self.attribute.evaluate(context)
             if isinstance(attribute, Needle):
                 if isinstance(parent, Machine_State):
+                    if isinstance(attribute, Sheet_Needle): # assume actual position instead of sheet conversion
+                        return parent[Needle(attribute.is_front, attribute.sheet_pos)]
+                    else:
                         return parent[attribute]
                 elif isinstance(parent, Sheet_Identifier):
                     sheet_needle = parent.get_needle(attribute)
                     return context.machine_state[sheet_needle]
             else:
                 return getattr(parent, attribute)
-
-
-
-

@@ -5,14 +5,16 @@ from typing import List, Tuple, Any, Optional
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.knit_script_errors.Knit_Script_Error import Knit_Script_Error
 
 
 class Knit_Script_Interpreter:
     """
         A class to manage parsing a knit script file with parglare
     """
+
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False,
-                 context: Optional[Knit_Script_Context]=None):
+                 context: Optional[Knit_Script_Context] = None):
         """
         Instantiate
         :param context:
@@ -37,7 +39,7 @@ class Knit_Script_Interpreter:
         """
         header = self._knit_pass_context.header
         self._knit_pass_context = Knit_Script_Context(parser=self._parser)
-        self._knit_pass_context.header = header # resets machine state as well
+        self._knit_pass_context.header = header  # resets machine state as well
 
     def parse(self, pattern: str, pattern_is_file: bool = False) -> Tuple[list, list]:
         """
@@ -47,11 +49,6 @@ class Knit_Script_Interpreter:
         :return:
         """
         return self._parser.parse(pattern, pattern_is_file)
-        # self._parser = Parser(self._grammar, debug=self._debug_parser, debug_layout=self._debug_parser_layout)
-        # if pattern_is_file:
-        #     return self._parser.parse_file(pattern, extra=self._knit_pass_context)
-        # else:
-        #     return self._parser.parse(pattern, extra=self._knit_pass_context)
 
     def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True) -> Tuple[List[str], Knit_Graph]:
         """
@@ -87,8 +84,12 @@ class Knit_Script_Interpreter:
         if pattern_is_file:
             on_file = f"on {pattern}"
         print(f"\n###################Start Knit Script Interpreter{on_file}###################\n")
-        self._knit_pass_context.execute_header(header)
-        self._knit_pass_context.execute_statements(statements)
+        try:
+            self._knit_pass_context.execute_header(header)
+            self._knit_pass_context.execute_statements(statements)
+        except AssertionError as e:
+            raise Knit_Script_Error(str(e))
+
     def knit_script_evaluate_expression(self, exp) -> Any:
         """
         :param exp: expression to evaluate

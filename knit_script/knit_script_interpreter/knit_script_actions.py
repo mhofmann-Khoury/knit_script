@@ -28,6 +28,7 @@ from knit_script.knit_script_interpreter.statements.Import_Statement import Impo
 from knit_script.knit_script_interpreter.statements.Print import Print
 from knit_script.knit_script_interpreter.statements.Push_Statement import Push_Statement
 from knit_script.knit_script_interpreter.statements.Statement import Statement, Expression_Statement
+from knit_script.knit_script_interpreter.statements.Swap_Statement import Swap_Statement
 from knit_script.knit_script_interpreter.statements.Variable_Declaration import Variable_Declaration
 from knit_script.knit_script_interpreter.statements.With_Statement import With_Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
@@ -627,7 +628,7 @@ def carriage_pass(_, __, pass_dir: Expression, instructions: List[Needle_Instruc
 
 
 @action
-def needle(_, needle_node: str) -> Needle_Expression:
+def needle_id(_, needle_node: str) -> Needle_Expression:
     """
     :param _:
     :param needle_node: node representing needle
@@ -637,7 +638,7 @@ def needle(_, needle_node: str) -> Needle_Expression:
 
 
 @action
-def sheet(_, sheet_node: str) -> Sheet_Expression:
+def sheet_id(_, sheet_node: str) -> Sheet_Expression:
     """
     :param _:
     :param sheet_node: string representing sheet
@@ -855,7 +856,7 @@ def push_dir(_, __, amount: Expression, direction: str) -> Tuple[Expression, str
 
 
 @action
-def push_statement(_, __, needles: List[Expression], push_val: Union[str, Expression, Tuple[Expression, str]]):
+def push_statement(_, __, needles: List[Expression], push_val: Union[str, Expression, Tuple[Expression, str]]) -> Push_Statement:
     """
 
     :param _:
@@ -865,6 +866,19 @@ def push_statement(_, __, needles: List[Expression], push_val: Union[str, Expres
     :return: Push statement
     """
     return Push_Statement(needles, push_val)
+
+
+@action
+def swap_statement(_, __, needles: List[Expression], swap_type: str, value: Expression) -> Swap_Statement:
+    """
+    :param _:
+    :param __:
+    :param needles: the needles to do this swap with
+    :param swap_type: type of value to swap with
+    :param value: the value to swap with
+    :return: swap statement
+    """
+    return Swap_Statement(needles, swap_type, value)
 
 
 @action
