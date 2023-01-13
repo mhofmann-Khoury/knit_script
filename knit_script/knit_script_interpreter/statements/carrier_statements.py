@@ -11,6 +11,7 @@ from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Ca
 
 class Cut_Statement(Statement):
     """Cuts a set of carriers. Creates outhook operations"""
+
     def __init__(self, carriers: List[Expression]):
         """
         Instantiate
@@ -30,10 +31,30 @@ class Cut_Statement(Statement):
         Cuts with outhook operation carrier
         :param context: The current context of the knit_script_interpreter
         """
-        for c in self._carriers:
-            carrier = c.evaluate(context)
-            assert isinstance(carrier, Yarn_Carrier), f'Expected to cut a yarn, but got {carrier}'
-            cmd = outhook(context.machine_state, carrier)
+        if len(self._carriers) is None:
+            carriers = context.machine_state.yarn_manager.active_carriers
+            print(f"No carrier to cut specified. Cutting all active carriers: {carriers}")
+            for c in carriers:
+                cmd = outhook(context.machine_state, Yarn_Carrier([c]))
+                context.knitout.append(cmd)
+        else:
+            carriers = set()
+
+            def _add_carrier(cr):
+                if isinstance(cr, list):
+                    for sub_cr in cr:
+                        _add_carrier(sub_cr)
+                elif isinstance(cr, int):
+                    carriers.add(cr)
+                else:
+                    assert isinstance(cr, Yarn_Carrier), f'Expected to cut a carrier, integer representing a carrier, or list of carriers, but got {cr}'
+                    carriers.update(cr.carrier_ids)
+
+            for c in self._carriers:
+                carrier = c.evaluate(context)
+                _add_carrier(carrier)
+        for c in carriers:
+            cmd = outhook(context.machine_state, Yarn_Carrier([c]))
             context.knitout.append(cmd)
 
 
@@ -41,6 +62,7 @@ class Remove_Statement(Statement):
     """
     Statement removing carriers from bed without cuts. Equivalent to out operations
     """
+
     def __init__(self, carriers: List[Expression]):
         """
         Instantiate

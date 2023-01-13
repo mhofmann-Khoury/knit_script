@@ -27,9 +27,9 @@ class Pass_Direction_Expression(Expression):
             return Pass_Direction.Leftward
         elif self._dir_word in ["Rightward", "Increasing", "-->"]:
             return Pass_Direction.Rightward
-        elif self._dir_word.lower() == "current" or self._dir_word.lower() == "repeat":
+        elif self._dir_word.lower() == "current":
             return context.direction
-        elif self._dir_word.lower() == "opposite" or self._dir_word.lower() == "reverse":
+        elif self._dir_word.lower() == "reverse":
             return context.direction.opposite()
 
     def __str__(self):

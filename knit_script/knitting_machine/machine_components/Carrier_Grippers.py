@@ -45,8 +45,8 @@ class Carrier_Insertion_System:
         self.hook_position: Optional[int] = None
         self._searching_for_position: bool = False
         self.hooked_carrier: Optional[Yarn_Carrier] = None
-        self._hook_size:int = hook_size
-        self.passes_since_releasehook:int = 0
+        self._hook_size: int = hook_size
+        self.passes_since_releasehook: int = 0
 
     @property
     def hook_size(self) -> int:
@@ -68,6 +68,10 @@ class Carrier_Insertion_System:
         :return: True if the yarn inserting hook can be used
         """
         return self.hooked_carrier is None
+
+    @property
+    def active_carriers(self) -> List[int]:
+        return [c for c, is_active in self.carriers_on_grippers if is_active]
 
     def conflicts_with_inserting_hook(self, needle: Needle, direction: Pass_Direction) -> bool:
         """
@@ -108,7 +112,8 @@ class Carrier_Insertion_System:
         """
         for yid in carrier.carrier_ids:
             if self.yarns_last_needle[yid] is None:
-                if self.hooked_carrier is None or yid not in self.hooked_carrier.carrier_ids:  # yarn isn't loose if it's on the hooked carrier
+                if self.hooked_carrier is None or yid not in self.hooked_carrier.carrier_ids:
+                    # yarn isn't loose if it's on the hooked carrier
                     return True
         return False
 
@@ -127,7 +132,8 @@ class Carrier_Insertion_System:
         Brings a yarn in with insertion hook. Yarn is not loose
         :param carrier:
         """
-        assert self.inserting_hook_available, f"Cannot inhook {carrier} while {self.hooked_carrier} is on yarn inserting hook"
+        assert self.inserting_hook_available, \
+            f"Cannot inhook {carrier} while {self.hooked_carrier} is on yarn inserting hook"
         self.hooked_carrier = carrier
         self._searching_for_position = True
         self.hook_position = None
@@ -144,7 +150,8 @@ class Carrier_Insertion_System:
         self.hook_position = None
         self.passes_since_releasehook = 0
 
-    def try_releasehook(self, recommended_passes_since_inhook: int = 2, recommended_loops_since_release: int = 10) -> bool:
+    def try_releasehook(self, recommended_passes_since_inhook: int = 2,
+                        recommended_loops_since_release: int = 10) -> bool:
         """
         Checks if held yarns are ready to be released to bed needles, then releases insertion hook if criteria is met
         :param recommended_loops_since_release:

@@ -6,10 +6,10 @@ def alt_tuck_cast_on(w, is_front=True):{
 		side = Front_Needles;
 	}
 	in Leftward direction:{
-		tuck [n for n in side[1:w:2]];
+		tuck side[1:w:2];
 	}
 	in reverse direction:{
-		tuck [n for n in side[0:w:2]];
+		tuck side[0:w:2];
 	}
 }
 

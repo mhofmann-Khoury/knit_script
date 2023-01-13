@@ -14,6 +14,7 @@ from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Ca
 
 class Knit_Script_Context:
     """Manages state of the Knitting machine during program execution"""
+
     def __init__(self, parent_scope: Optional[Knit_Script_Scope] = None,
                  bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
                  ks_file=None, parser=None):
@@ -139,7 +140,7 @@ class Knit_Script_Context:
     @gauge.setter
     def gauge(self, value: Optional[int]):
         self.variable_scope.gauge = value
-        gauge = self.gauge # makes sure to manage any side effects of setters
+        gauge = self.gauge  # makes sure to manage any side effects of setters
         self.machine_state.gauge = gauge
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False,

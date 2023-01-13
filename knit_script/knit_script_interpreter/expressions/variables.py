@@ -16,10 +16,10 @@ class Variable_Expression(Expression):
         :param variable_name: name of variable
         """
         super().__init__()
-        self._variable_name:str = variable_name
+        self._variable_name: str = variable_name
 
     @property
-    def variable_name(self)->str:
+    def variable_name(self) -> str:
         """
         :return: name of variable
         """

@@ -135,6 +135,7 @@ def declare_global(_, __, assign: Assignment) -> Variable_Declaration:
     """
     return Variable_Declaration(assign, is_global=True)
 
+
 @action
 def assertion(_, __, exp: Expression, error: Optional[Expression] = None) -> Assertion:
     """
@@ -170,8 +171,9 @@ def try_catch(_, __, try_block: Statement, catch_block: Statement, errors: List[
     """
     return Try_Catch_Statement(try_block, catch_block, errors=errors)
 
+
 @action
-def exception_assignment(_, __, except_val: Expression,var_name: Variable_Expression) -> Assignment:
+def exception_assignment(_, __, except_val: Expression, var_name: Variable_Expression) -> Assignment:
     """
     Reversed assignment syntax for catch statements
     :param _:
@@ -181,6 +183,7 @@ def exception_assignment(_, __, except_val: Expression,var_name: Variable_Expres
     :return: an assignment operation for this error
     """
     return Assignment(var_name.variable_name, except_val)
+
 
 @action
 def pause_statement(_, __) -> Pause_Statement:
@@ -350,10 +353,11 @@ def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression],
     """
     return List_Comp(fill_exp, spacer, variables, iter_exp, comp_cond)
 
+
 @action
-def started_slice(_, __, start:Expression,
+def started_slice(_, __, start: Expression,
                   end: Optional[Expression],
-                  spacer:Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+                  spacer: Optional[Expression]) -> Tuple[Optional[Expression], Optional[Expression], Optional[Expression]]:
     """
     :param _:
     :param __:
@@ -364,9 +368,10 @@ def started_slice(_, __, start:Expression,
     """
     return start, end, spacer
 
+
 @action
 def ended_slice(_, __, end: Expression,
-                spacer: Optional[Expression]) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+                spacer: Optional[Expression]) -> Tuple[Optional[Expression], Optional[Expression], Optional[Expression]]:
     """
     :param _:
     :param __:
@@ -376,8 +381,9 @@ def ended_slice(_, __, end: Expression,
     """
     return None, end, spacer
 
+
 @action
-def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression],Optional[Expression],Optional[Expression]]:
+def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression], Optional[Expression], Optional[Expression]]:
     """
     :param _:
     :param __:
@@ -386,21 +392,23 @@ def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression],Option
     """
     return None, None, spacer
 
+
 @action
-def slice_data(_, nodes: list) -> Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]]:
+def slice_data(_, nodes: list) -> Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]:
     """
     :param _:
     :param nodes: data from different slicing configurations
     :return: slice values
     """
     slice_values = nodes[0]
-    if isinstance(slice_values, Expression): # index passed
+    if isinstance(slice_values, Expression):  # index passed
         return slice_values, False, None, False, None
     else:
         return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[2]
 
+
 @action
-def sliced_list(_, __, iter_exp: Expression, slices:Tuple[Optional[Expression],bool, Optional[Expression],bool, Optional[Expression]] ) -> Sliced_List:
+def sliced_list(_, __, iter_exp: Expression, slices: Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]) -> Sliced_List:
     """
     :param _: ignored parser context
     :param __: ignored nodes
@@ -764,7 +772,6 @@ def accessor(_, __, exp: Expression, attribute: Expression) -> Attribute_Accesso
     return Attribute_Accessor_Expression(exp, attribute)
 
 
-
 @action
 def exp_statement(_, __, exp: Expression) -> Expression_Statement:
     """
@@ -796,9 +803,6 @@ def remove_statement(_, __, exps: List[Expression]) -> Remove_Statement:
     :return: remove statement
     """
     return Remove_Statement(exps)
-
-
-
 
 
 @action
@@ -835,7 +839,7 @@ def push_to(_, __, push_val: Union[str, list]) -> Union[str, Expression]:
     """
     if isinstance(push_val, list):
         return push_val[1]
-    return push_val[0]
+    return push_val
 
 
 @action

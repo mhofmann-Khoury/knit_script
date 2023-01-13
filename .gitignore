@@ -195,3 +195,6 @@ fabric.properties
 !/KnitScript/knit_script_interpreter/knitout_to_dat.js
 !/tests/sample_python.py
 !/tests/import_test.k
+/knit_script/knit_script_interpreter/knitout-to-dat.js
+*.k
+*.dat

@@ -148,6 +148,10 @@ class TestKnit_Pass_Interpreter(TestCase):
         header, statements = self.parser.parse(program)
         print(statements)
 
+        program = "vals = [n.opposite() for n in other_vals];"
+        header, statements = self.parser.parse(program)
+        print(statements)
+
     def test_assert(self):
         program = """assert True, "test true";"""
         header, statements = self.parser.parse(program)
@@ -204,6 +208,12 @@ class TestKnit_Pass_Interpreter(TestCase):
         print(results)
 
     def test_method_call(self):
+        program = "opposite();"
+        _, results = self.parser.parse(program)
+        print(results)
+        program = "n.x();"
+        _, results = self.parser.parse(program)
+        print(results)
         program = "b.a(f[1],v.f[1]);"
         _, results = self.parser.parse(program)
         print(results)

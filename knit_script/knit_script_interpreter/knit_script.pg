@@ -102,8 +102,8 @@ negation: "not" exp=expression;
 direction_exp: "Leftward" | "Rightward"
                 | "Increasing" | "Decreasing"
                 | "-->" | "<--"
-                | "current" | "opposite"
-                | "repeat" | "reverse";
+                | "current"
+                | "reverse";
 
 formatted_string: f_quote sections=f_string_section* quote;
 f_string_section: "{" exp=expression "}" | string_value=f_string_text ;

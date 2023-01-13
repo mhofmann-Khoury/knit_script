@@ -15,17 +15,18 @@ class Import_Statement(Statement):
     """
         A statement that imports a python or knitscript module
     """
+
     def __init__(self, src: Expression, alias: Optional[Expression] = None):
         super().__init__()
-        self.src:Expression = src
-        self.alias:Optional[str] = alias
+        self.src: Expression = src
+        self.alias: Optional[str] = alias
 
     def execute(self, context):
         """
         Add the module with a given alias to the variable scope
         :param context: the current context to execute at
         """
-        assert  isinstance(self.src, Attribute_Accessor_Expression) or isinstance(self.src, Variable_Expression),\
+        assert isinstance(self.src, Attribute_Accessor_Expression) or isinstance(self.src, Variable_Expression), \
             f"Cannot Import {self.src}, expected a module name or path"
         src_string = str(self.src)
         if self.alias is not None:
@@ -46,7 +47,7 @@ class Import_Statement(Statement):
                 local_is_file = os.path.isfile(local_path_to_src)
                 library_path_to_src = os.path.join(library_path, f'{self.src.variable_name}.ks')
                 library_is_file = os.path.isfile(library_path_to_src)
-                module = context.enter_sub_scope(module_name=alias) # enter sub scope for module
+                module = context.enter_sub_scope(module_name=alias)  # enter sub scope for module
             else:
                 assert isinstance(self.src, Attribute_Accessor_Expression)
                 local_path_to_src = local_path
@@ -61,8 +62,8 @@ class Import_Statement(Statement):
                 library_is_file = os.path.isfile(library_path_to_src)
                 assert isinstance(self.src.attribute, Variable_Expression)
                 module = context.enter_sub_scope(module_name="__temp_module__")
-            if local_is_file: # try local files before checking library
-                header, statements = context.parser.parse(local_path_to_src, pattern_is_file= True)
+            if local_is_file:  # try local files before checking library
+                header, statements = context.parser.parse(local_path_to_src, pattern_is_file=True)
                 if len(header) > 0:
                     print(f"KnitScript Warning: Importing {self.src} and ignoring header")
                 context.execute_statements(statements)
@@ -75,7 +76,7 @@ class Import_Statement(Statement):
                 context.exit_current_scope()
             else:
                 raise e
-        assert  module is not None
+        assert module is not None
         if alias is not None:
             context.variable_scope[alias] = module
         else:  # attribute accessor path
@@ -83,7 +84,6 @@ class Import_Statement(Statement):
             path = [str(p) for p in self.src.parent]
             path.append(str(self.src.attribute))
             context.variable_scope.add_local_by_path(path, module)
-
 
     def __str__(self):
 

@@ -25,7 +25,7 @@ class Knit_Script_Scope:
             self._sub_scope_globals = set()
         else:
             self.globals: Knit_Script_Globals = self.parent.globals
-            self.machine_scope: Machine_Scope = Machine_Scope(self.parent.machine_scope)
+            self.machine_scope: Machine_Scope = self.parent.machine_scope #Machine_Scope(self.parent.machine_scope)
             self._sub_scope_globals = {*self.parent._sub_scope_globals}
         self.child_scope = None
         self._return_value = None
