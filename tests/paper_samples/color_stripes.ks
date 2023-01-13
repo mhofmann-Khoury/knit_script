@@ -8,7 +8,7 @@ colors = 3;
 width = colors * stripe_width;
 
 def cast_on_knit(w, knit_rows=2):{
-	print f"caston {width} loops";
+	print f"cast on {width} loops";
 	in Leftward direction:{
 		tuck Front_Needles[1:width:2];
 	}
@@ -30,16 +30,14 @@ with Gauge as colors:{
 			stockinette.stst(2);
 		}
 	}
-	for s in range(0, Gauge):{
-		with Sheet as s:{
-			for c in range(0, colors):{
-				start = c * stripe_width;
-				end = (c+1) * stripe_width;
-				stripe = [n for n in Front_Needles[start:end]];
-				push stripe c Backward;
-			}
-		}
-	}
+    with Sheet as 0:{
+        for c in range(0, colors):{
+            start = c * stripe_width;
+            end = (c+1) * stripe_width;
+            stripe = [n for n in Front_Needles[start:end]];
+            push stripe c Backward;
+        }
+    }
 
 	for r in range(0, height):{
 		for s in range(0, Gauge):{

@@ -35,7 +35,7 @@ class Machine_State:
     """
     MAX_GAUGE = 10
 
-    def __init__(self, needle_count: int = 250, max_rack: float = 4.25, carrier_count:int = 10, hook_size:int = 5):
+    def __init__(self, needle_count: int = 250, max_rack: float = 4.25, carrier_count: int = 10, hook_size: int = 5):
         """
         Maintains the state of the machine
         :param needle_count:the number of needles that are on this bed
@@ -695,27 +695,23 @@ class Machine_State:
                         knitout.append(xfer(self, f, b, f"return loops {f.held_loops} on {f} to {b}"))
         return knitout
 
-    def set_layer_position(self, needle_pos: int, layer_value: int):
+    def set_layer_position(self, needle_pos: int, layer_value: int, set_other_positions=True):
         """
         Moves the layer_index's position to new_position and pushes all subsequent layers forward, circling back
+        :param set_other_positions: If true, will set the values for the other needles at related positions in other sheets
         :param needle_pos:
         :param layer_value: the position to set the layer to. Lower values are brought forward
         """
-        self._needle_pos_to_layer_pos[needle_pos] = layer_value
-        # if self.needle_pos_to_layer_pos[needle_pos] != layer_value:
-        #     l_needle = get_sheet_needle(Needle(True, needle_pos), self.gauge)
-        #     neighbor_positions = [n.position for n in l_needle.gauge_neighbors()]
-        #     layer_to_positions = {self.needle_pos_to_layer_pos[pos]: pos for pos in neighbor_positions}
-        #     layer_to_positions[self.needle_pos_to_layer_pos[needle_pos]] = needle_pos
-        #
-        #     new_layer_positions = {}
-        #     layer_dif = layer_value - self.needle_pos_to_layer_pos[needle_pos]
-        #     for layer, position in layer_to_positions.items():
-        #         new_layer = (layer + layer_dif) % self.gauge
-        #         new_layer_positions[new_layer] = position
-        #
-        #     for layer, n_pos in new_layer_positions.items():
-        #         self.needle_pos_to_layer_pos[n_pos] = layer
+        current_layer = self._needle_pos_to_layer_pos[needle_pos]
+        if current_layer != layer_value:
+            layer_dif = layer_value - current_layer
+            self._needle_pos_to_layer_pos[needle_pos] = layer_value
+            if set_other_positions:
+                sheet = needle_pos % self.gauge
+                positions = [needle_pos + (s - sheet) for s in range(0, self.gauge) if s != sheet]
+                for other_pos in positions:
+                    other_layer = (layer_dif + self._needle_pos_to_layer_pos[other_pos]) % self.gauge
+                    self.set_layer_position(other_pos, other_layer, set_other_positions=False)
 
     def push_layer_backward(self, needle_position: int, backward_layers: int = 1):
         """

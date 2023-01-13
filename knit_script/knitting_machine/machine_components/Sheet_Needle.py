@@ -1,14 +1,16 @@
 """Constructs used to keep track of the position of sheets to needles"""
 from knit_script.knitting_machine.machine_components.needles import Needle, Slider_Needle
+
+
 class Sheet_Needle(Needle):
     """
         Used for managing needles at a layered gauging schema
     """
 
     def __init__(self, is_front: bool, sheet_pos: int, sheet: int, gauge: int):
-        self._gauge:int = gauge
-        self._sheet_pos:int = sheet_pos
-        self._sheet:int = sheet
+        self._gauge: int = gauge
+        self._sheet_pos: int = sheet_pos
+        self._sheet: int = sheet
         super().__init__(is_front, Sheet_Needle.get_actual_pos(self.sheet_pos, self.sheet, self.gauge))
 
     @property
@@ -43,7 +45,7 @@ class Sheet_Needle(Needle):
         return int(actual_pos / gauge)
 
     @staticmethod
-    def get_sheet(actual_pos:int, sheet_pos:int, gauge: int) -> int:
+    def get_sheet(actual_pos: int, sheet_pos: int, gauge: int) -> int:
         """
         The sheet of a needle position, sheet position at a given gauge
         :param actual_pos: The needle position on the bed
@@ -64,9 +66,8 @@ class Sheet_Needle(Needle):
         """
         return sheet + sheet_pos * gauge
 
-    def offset_in_layer(self, offset: int, slider: bool = False):
+    def offset_in_sheet(self, offset: int, slider: bool = False):
         """
-        todo change name to sheet
         a needle offset while staying within the sheet
         :param offset: number of layer positions to move
         :param slider: true, if returning a slider needle
@@ -92,7 +93,6 @@ class Sheet_Needle(Needle):
             if i != self.sheet:
                 neighbors.append(Sheet_Needle(self.is_front, self.sheet_pos, i, self.gauge))
         return neighbors
-
 
 
 class Slider_Sheet_Needle(Sheet_Needle, Slider_Needle):
