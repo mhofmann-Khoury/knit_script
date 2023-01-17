@@ -1,11 +1,12 @@
 include *.pg
-recursive-include knit_script *.pg
+recursive-include knit_script.knit_script_interpreter *.pg
 include *.pgt
-recursive-include knit_script *.pgt
+recursive-include knit_script.knit_script_interpreter *.pgt
 include *.py
 include README.md
 include LICENSE.rst
+include requirements.txt
 include *.ks
 recursive-include knit_script *.ks
 include *.js
-recursive-include dat_compiler *.js
+recursive-include knit_script.knitout_compilers *.js

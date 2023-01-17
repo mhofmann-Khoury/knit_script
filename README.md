@@ -34,6 +34,9 @@ For example, convert installation_test.ks as follows:
 $ knitscript -k stst_10.k -d stst_10.dat installation_test.ks
 ```
 
+The resulting dat file should look like:
+
+![A 10x10 square of stockinette in a dat format](/expected_installation_test_output.PNG)
 ### Using knit_script from command line (windows)
 Index into the knit_script directory to access knit_script.bat or add knit_script.bat to your system PATH
 ```

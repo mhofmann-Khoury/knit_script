@@ -2,11 +2,9 @@
 import os
 from unittest import TestCase
 
-from pkg_resources import resource_stream
-
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
-from knit_script.tests.test_resource_access import get_test_resource
+from test_resource_access import get_test_resource
 
 
 class Test_Calibration(TestCase):
