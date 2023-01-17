@@ -111,9 +111,6 @@ class Carriage_Pass:
                                                        context.direction, context.carrier,
                                                        second_needle)
             context.knitout.append(executed_instruction)
-        # todo why the double reset racking?
-        # if needs_all_needle_rack:
-        #     context.knitout.extend(f"rack {context.racking}; Single-Needle racking\n")
         context.racking = cur_rack
 
         if self._knitting_pass:  # only counts towards release hook if new loops are created

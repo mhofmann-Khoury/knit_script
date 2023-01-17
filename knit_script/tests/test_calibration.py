@@ -2,8 +2,11 @@
 import os
 from unittest import TestCase
 
+from pkg_resources import resource_stream
+
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from knit_script.knit_script_interpreter.run_dat_compiler import knitout_to_dat
+from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
+from knit_script.tests.test_resource_access import get_test_resource
 
 
 class Test_Calibration(TestCase):
@@ -11,8 +14,10 @@ class Test_Calibration(TestCase):
     parser = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
 
     def test_gauge_stst(self):
-        name = f"{self.sample_directory}calibration_stst"
-        knitout, knit_graph = self.parser.write_knitout(f"{name}.ks", f"{name}.k", pattern_is_file=True)
+        name = "calibration_stst"
+        resource = get_test_resource(f"{name}.ks", "calibration_knits")
+        name = resource[:-3]
+        knitout, knit_graph = self.parser.write_knitout(resource, f"{name}.k", pattern_is_file=True)
         knitout_to_dat(f"{name}.k", f"{name}.dat")
 
     def test_stst(self):

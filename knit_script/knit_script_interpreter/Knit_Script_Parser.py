@@ -1,32 +1,30 @@
-import os
+"""Parser code for accessing Parglare language support"""
 from typing import Tuple
 
-from parglare import Parser, Grammar, ParseError
+from parglare import Parser, Grammar
+from pkg_resources import resource_stream
 
 from knit_script.knit_script_interpreter.knit_script_actions import action
-from knit_script.knit_script_interpreter.knit_script_errors.parse_errors import Knit_Script_Parse_Error
 
 
 class Knit_Script_Parser:
     """
-        Parser for reading knitscript using parglare librare
+        Parser for reading knitscript using parglare library
     """
+
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):
-        pg_loc = os.path.join(os.path.dirname(__file__), 'knit_script.pg')
-        self._grammar:Grammar = Grammar.from_file(pg_loc, debug=debug_grammar, ignore_case=True)
+        pg_resource_stream = resource_stream("knit_script", "knit_script_interpreter/knit_script.pg")
+        self._grammar: Grammar = Grammar.from_file(pg_resource_stream.name, debug=debug_grammar, ignore_case=True)
         self._parser: Parser = Parser(self._grammar, debug=debug_parser, debug_layout=debug_parser_layout, actions=action.all)
 
     def parse(self, pattern: str, pattern_is_file: bool = False) -> Tuple[list, list]:
         """
         Executes the parsing code for the parglare parser
-        :param pattern: either a file or the knitspeak string to be parsed
+        :param pattern: either a file or the knit speak string to be parsed
         :param pattern_is_file: if true, assumes that the pattern is parsed from a file
         :return:
         """
-        # try:
         if pattern_is_file:
             return self._parser.parse_file(pattern)
         else:
             return self._parser.parse(pattern)
-        # except ParseError as e:
-        #     raise Knit_Script_Parse_Error(e)

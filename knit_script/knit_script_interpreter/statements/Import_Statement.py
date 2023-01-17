@@ -39,7 +39,7 @@ class Import_Statement(Statement):
         module = None
         try:
             module = importlib.import_module(src_string)
-        except ImportError as e:
+        except (ImportError, ModuleNotFoundError) as e:
             local_path = os.path.dirname(context.ks_file)
             library_path = os.path.dirname(ks_library.__file__)
             if isinstance(self.src, Variable_Expression):

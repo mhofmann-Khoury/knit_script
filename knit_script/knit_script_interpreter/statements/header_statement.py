@@ -10,9 +10,10 @@ class Header_Statement(Statement):
     """
         Header statements update variables of the machine state and knitout
     """
-    def __init__(self, type_id: Header_ID_Value, value: Expression ):
+
+    def __init__(self, type_id: Header_ID_Value, value: Expression):
         super().__init__()
-        self._value:Expression = value
+        self._value: Expression = value
         self._type_id: Header_ID_Value = type_id
 
     def execute(self, context: Knit_Script_Context):

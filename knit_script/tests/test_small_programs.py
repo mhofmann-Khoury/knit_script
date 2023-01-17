@@ -20,6 +20,17 @@ class Test_Small_Code(TestCase):
                 """
         knitout, knit_graph = self.parser.write_knitout(program, f"global_test.k", pattern_is_file=False)
 
+    def test_installation(self):
+        program = r"""
+                    import cast_ons;
+                    import stockinette;
+
+                    with Carrier as 1, width as 10, height as 10:{
+                        cast_ons.alt_tuck_cast_on(width);
+                        stockinette.stst(height);                 
+                    }
+                """
+        knitout, knit_graph = self.parser.write_knitout(program, f"installation_test.k", pattern_is_file=False)
     def test_sheet_accessor(self):
         program = """
         with Gauge as 4:{

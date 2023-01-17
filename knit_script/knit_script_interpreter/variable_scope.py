@@ -212,7 +212,6 @@ class Variable_Scope:
         value: the value to set the variable to
 
         """
-        # TODO: Allow for dynamic scoping with function names?
         # assert var_name not in self._reserved_words, f"Cannot assign to {var_name} is a reserved keyword"
         if var_name in self:  # Move up scope to set the value
             current_scope = self

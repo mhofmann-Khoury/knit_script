@@ -55,6 +55,8 @@ class Function_Call(Expression):
                 else:
                     func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
                     return eval(func_str)
+        else:
+            raise NameError(f"name {self.func_name.variable_name} is not defined.")  # Todo add way of tracking line numbers from statements and expressions
 
     def __str__(self):
         values = ""

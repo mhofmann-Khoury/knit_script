@@ -29,10 +29,11 @@ class Machine_Type(Enum):
 
 class Header:
     """A class structure for generating knitout header files"""
+
     def __init__(self, width: int = 250,
                  position: Machine_Position = Machine_Position.Center,
                  carrier_count: int = 10, machine_type: Machine_Type = Machine_Type.SWG091N2,
-                 max_rack: float =4.25, hook_size:int = 5):
+                 max_rack: float = 4.25, hook_size: int = 5):
         self._max_rack = max_rack
         self._hook_size = hook_size
         self._machine_type = machine_type
@@ -53,30 +54,32 @@ class Header:
             assert isinstance(value, int), f"Expected carrier count but got {value}"
             self._carrier_count = value
         elif header_id is Header_ID.Width:
-            assert  isinstance(value, int), f"Expected width but got {value}"
+            assert isinstance(value, int), f"Expected width but got {value}"
             self._width = value
         elif header_id is Header_ID.Position:
-            assert isinstance(value, Machine_Position),\
+            assert isinstance(value, Machine_Position), \
                 f"Expected machine position [left, right, center, keep] but got {value}"
             self._position = value
         elif header_id is Header_ID.Rack:
             assert isinstance(value, float) or isinstance(value, int), f"Expected racking value but got {value}"
             self._max_rack = float(value)
         elif header_id is Header_ID.Hook:
-            assert  isinstance(value, int), f"Expected hook size but got {value}"
+            assert isinstance(value, int), f"Expected hook size but got {value}"
             self._hook_size = value
+
     def machine_state(self) -> Machine_State:
         """
         :return: A reset machine state with given specifications
         """
         return Machine_State(self._width, self._max_rack, self._carrier_count, self._hook_size)
+
     def header_lines(self):
         """
         :return: Lines of the knitout header
         """
         carriers = [i for i in range(1, self._carrier_count + 1)]
-        carrier_str = str(carriers).replace(",", "") # swap commas for spacing
-        carrier_str = carrier_str[1:-1] # cut brackets
+        carrier_str = str(carriers).replace(",", "")  # swap commas for spacing
+        carrier_str = carrier_str[1:-1]  # cut brackets
         return [
             ";!knitout-2\n",
             f";;Machine: {self._machine_type}\n",
@@ -94,7 +97,7 @@ class Header:
         return Header(540, position)
 
     @staticmethod
-    def UW(position:Machine_Position):
+    def UW(position: Machine_Position):
         """
         :param position: Position of program on bed
         :return: A header for the UW CSE machine

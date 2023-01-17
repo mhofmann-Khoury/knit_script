@@ -5,39 +5,43 @@ Knit Script is a domain specific programming language for writing v-bed knitting
 ## Install Development Version (from local source code)
 ```
 $ git clone https://github.com/mhofmann-Khoury/knit_script.git
-$ pip install -e knit_script   
+$ pip install -e .   
 ```
 This will clone the [repository](https://github.com/mhofmann-Khoury/knit_script) to your machine and then install the system for active development to your python interpreter associated with pip. This will give you access to knit_script from anywhere on your machine as other standard python libraries.
 
-## Install Stable Version from PyPI
+## Install Stable Version from [PyPI](https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3)
 
 ```
 $ pip install knit_script
 ```
- 
-## Adding DAT compiler for command line interpreting
-Note the location that your pip install creates site packages. Often `C:\Users\<user_name>\AppData\Roaming\Python\Python39\site-packages\knit_script`. In the knit_script_interpreter folder at this location you will need to put in your own copy of the knitout_to_dat.js file. This is not provide with this distribution because it contains copyrighted material.
 
-## Instructions for updating PyPi Distribution:
- See [reference](https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3)
+## Add Your Own DAT Compiler
+The Knitout to DAT compiler we use for controlling Shima Seiki machines is copyrighted and not provided with this distribution. You can install your own copy of the DAT compiler under the `dat_compiler` folder in your installation. Name the javascript entry point `knitout-to-dat.js` and have the main method accept two arguments for the knitout file name and the output dat file name. 
 
-## Using knit_script from command line (Unix) # todo, untested
+## Kniterate Compiler:
+We have not tested these samples on a kniterate machine however the knitout to [kniterate compiler](https://github.com/textiles-lab/knitout-backend-kniterate/) is available and should work with our standardized knitout files. 
+
+## Testing your installation
+
+You can check that your installation using the installation_test.ks and installation_test.py files. Running the installation_test.py file should produce two files: `stst_10.k` and `stst_10.dat` ([if you have included a dat-compiler](#Add-Your-Own-Dat-Compiler)). Similarly, you can convert installation_test.ks into the same files using the entry points. 
+
+### Using knit_script from command line (Unix) # todo, untested
 ```
-$knit_script -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knit_script file>
+$knitscript -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knit_script file>
 ```
-For example, when in the directory of tests\calibration samples we can generate a stockinette dat file by running
+For example, convert installation_test.ks as follows:
 ```
-$ knit_script -k stst_knitout.k -d stst_dat.dat stst.ks
+$ knitscript -k stst_10.k -d stst_10.dat installation_test.ks
 ```
 
-## Using knit_script from command line (windows)
+### Using knit_script from command line (windows)
 Index into the knit_script directory to access knit_script.bat or add knit_script.bat to your system PATH
 ```
 $knit_script.bat -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knit_script file>
 ```
-For example, when in the directory of tests\calibration samples we can generate a stockinette dat file by running
+For example, convert installation_test.ks as follows:
 ```
-$ knit_script.bat -k stst_knitout.k -d stst_dat.dat stst.ks
+$ knit_script.bat -k stst_10.k -d stst_10.dat installation_test.ks
 ```
 
 ## Using knit_script Interpreter from Python
@@ -57,13 +61,7 @@ from knit_script.interpret import knitscript_to_knitout_to_dat
 knit_graph = knitscript_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
 ```
 
-Additional examples of accessing the interpreter can be seen in the Test Cases
-
-## Dat Compiler:
-To work with a Shima Seiki Knitting machine you will need code to convert your knitout (.k) files into DAT (.dat) files. The DAT compiler we use for testing our samples is closed-source and not included in this project. You will need to bring your own to work with these machines. Install the compiler as a single javascript file called "knitout_to_dat.js" in the knit_script_interpreter package. The Setup.py file will load this into your python distribution. 
-
-## Kniterate Compiler:
-We have not tested these samples on a kniterate machine however the knitout to [kniterate compiler](https://github.com/textiles-lab/knitout-backend-kniterate/) is available and should work with our standardized knitout files. 
+Additional examples of accessing the interpreter can be seen in the `test` package.
 
 # Knit Script DSL
 Knitscript is a scripting language designed to offer the computing convenience of standard languages (e.g., Python 3) with quality of life features specific to V-Bed Machine knitting. The language is built on a virtual machine model of a v-bed knitting machine similar to those assumed by knitout. Unlike knitout, knit script offers variables, control structures, functions, access to imported python libraries and much more. Knit Script interprets down to knitout operations that have been validated and should run without error on your machine. 
@@ -456,6 +454,52 @@ swap a with layer 1; // note that b is set to layer 1
 ```
 
 If you want to know what the layer of a specific needle is you can access that from the `machine` similar to checking the sheets of needles: `machine.layer_of(n)`.
+
+## Machine Headers
+By default, knit script assumes you are converting to knitout to control a Shima Seiki SWG091N2 knitting machine that is 250 needles wide with 10 carriers. It will position your knitout instructions in the center of the bed and start. However, you can change all of these features for you whole program by starting your knit script program with a header in the same format as [knitout headers](https://textiles-lab.github.io/knitout/knitout.html).
+
+## Set Machine Type:
+We currently support either Shima Seiki Whole garment machines or a Kniterate
+```knit_script
+;;Machine: <machine type being used>; // Options: SWG091N2 or Kniterate
+```
+
+## Knitting Position
+Set where to place the operations on the needle bed; Left, Center, Right, and Keep are standard values.
+
+```knit_script
+;;Position: <position>; //Defaults to Center
+```
+
+## Needle Bed Width:
+Shima Seiki machines may have different needle bed widths. You can set this as:
+
+```knit_script
+;;Width: <Needle Count>; // Defaults to 250 but is machine dependent
+```
+
+## Set Maximum Racking
+Knit script will throw an error if your knitting operations force a racking beyond the maximum allowed. By default, we allow racking operations of |4.25| or less. You can change this value:
+
+```knit_script
+;;Rack: <maximum rack value>;
+```
+
+
+## Carrier Count
+You can change the number of carriers on the machine. Note that this is likely dependent on the machine you are using and you do not need to set this manually.
+
+```knit_script
+;;Carriers: <Carrier Count>;
+```
+
+## Set Inserting Hook Size
+You can set the expected size of the yarn-inserting hook (i.e., how many needles it blocks). This should be dependent on the machine and you likely do not need to set this. Setting this value to 0 will tell the interpreter that there is not yarn-inserting-hook and that other ways of inserting yarns must be used.
+
+```knit_script
+;;Hook: <hook size>;
+```
+
 
 # Packages
 
