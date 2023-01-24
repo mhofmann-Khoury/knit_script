@@ -31,6 +31,7 @@ class Test_Small_Code(TestCase):
                     }
                 """
         knitout, knit_graph = self.parser.write_knitout(program, f"installation_test.k", pattern_is_file=False)
+
     def test_sheet_accessor(self):
         program = """
         with Gauge as 4:{
@@ -54,4 +55,22 @@ class Test_Small_Code(TestCase):
             print machine.layer_of(Sheet.f1);
         }"""
 
+        knitout, knit_graph = self.parser.write_knitout(program, f"global_test.k", pattern_is_file=False)
+
+    def test_needle_modification(self):
+        program = """
+        //print f1+1;
+        //print 1+f1;
+        //print 2-f1;
+        //print f2-1;
+        //print f2*f3;
+        //print f6/3;
+        //print f5/3;
+        //print 5%f3;
+        //print f2^3;
+        with Gauge as 2, sheet as 1:{
+            print f0;
+            print f0 + 1;
+        }
+        """
         knitout, knit_graph = self.parser.write_knitout(program, f"global_test.k", pattern_is_file=False)

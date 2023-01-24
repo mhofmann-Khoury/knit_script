@@ -34,7 +34,7 @@ class Needle:
         :param position: the needle index of this needle
         """
         self._is_front: bool = is_front
-        self._position: int = position
+        self._position: int = int(position)
         assert self.position is not None
         self.held_loops: Set[Loop] = set()
 
@@ -185,6 +185,102 @@ class Needle:
             else:
                 return 1
 
+    def __add__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, self.position + position)
+
+    def __radd__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, position + self.position)
+
+    def __sub__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, self.position - position)
+
+    def __rsub__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, position - self.position)
+
+    def __mul__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, self.position * position)
+
+    def __rmul__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, position * self.position)
+
+    def __truediv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, self.position / position)
+
+    def __rtruediv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, position / self.position)
+
+    def __floordiv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, self.position // position)
+
+    def __rfloordiv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, position // position)
+
+    def __mod__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, self.position % position)
+
+    def __rmod__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Needle(self.is_front, position % self.position)
+
+    def __pow__(self, power, modulo=None):
+        position = power
+        if isinstance(power, Needle):
+            position = power.position
+        return Needle(self.is_front, self.position ** position)
+
+    def __rpow__(self, power, modulo=None):
+        position = power
+        if isinstance(power, Needle):
+            position = power.position
+        return Needle(self.is_front, position ** self.position)
+
+    def __lshift__(self, other):
+        return self - other
+
+    def __rshift__(self, other):
+        return self + other
+
+    def __rlshift__(self, other):
+        return other - self
+
+    def __rrshift__(self, other):
+        return other + self
+
     @staticmethod
     def needle_at_racking_cmp(x, y, racking: float = 0.0) -> int:
         """
@@ -267,4 +363,87 @@ class Slider_Needle(Needle):
         """
         return True
 
+    def __add__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, self.position + position)
+
+    def __radd__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, position + self.position)
+
+    def __sub__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, self.position - position)
+
+    def __rsub__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, position - self.position)
+
+    def __mul__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, self.position * position)
+
+    def __rmul__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, position * self.position)
+
+    def __truediv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, self.position / position)
+
+    def __rtruediv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, position / self.position)
+
+    def __floordiv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, self.position // position)
+
+    def __rfloordiv__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, position // position)
+
+    def __mod__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, self.position % position)
+
+    def __rmod__(self, other):
+        position = other
+        if isinstance(other, Needle):
+            position = other.position
+        return Slider_Needle(self.is_front, position % self.position)
+
+    def __pow__(self, power, modulo=None):
+        position = power
+        if isinstance(power, Needle):
+            position = power.position
+        return Slider_Needle(self.is_front, self.position ** position)
+
+    def __rpow__(self, power, modulo=None):
+        position = power
+        if isinstance(power, Needle):
+            position = power.position
+        return Slider_Needle(self.is_front, position ** self.position)
 

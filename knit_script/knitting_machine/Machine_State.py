@@ -342,6 +342,7 @@ class Machine_State:
         else:
             return self.back_bed[item]
 
+
     def sheet_of(self, needle: Needle) -> int:
         """
         :param needle: needle to get sheet from
@@ -710,6 +711,10 @@ class Machine_State:
         return knitout
 
     def get_layer_at_position(self, needle_pos: int) -> int:
+        """
+        :param needle_pos:
+        :return: the layer order at a given needle position
+        """
         return self._needle_pos_to_layer_pos[needle_pos]
 
     def set_layer_position(self, needle_pos: int, layer_value: int, set_other_positions=True):

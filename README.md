@@ -27,11 +27,11 @@ You can check that your installation using the installation_test.ks and installa
 
 ### Using knit_script from command line (Unix) # todo, untested
 ```
-$knitscript -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knit_script file>
+$knit-script -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knit_script file>
 ```
 For example, convert installation_test.ks as follows:
 ```
-$ knitscript -k stst_10.k -d stst_10.dat installation_test.ks
+$ knit-script -k stst_10.k -d stst_10.dat installation_test.ks
 ```
 
 The resulting dat file should look like:
@@ -219,6 +219,14 @@ Let's say you want to knit some stripes of stockinette with a different carrier,
 import cast_ons;
 width = 20;
 height = 10;
+
+def knit_stripe():{
+    for r in range(0, height):{
+        in reverse direction: { // Looks for carrier from outer scope. 
+            knit Loops;
+        }
+    }
+}
 
 def knit_colored_stripe(new_carrier):{
     with Carrier as new_carrier:{
