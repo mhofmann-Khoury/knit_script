@@ -6,6 +6,7 @@ from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
 
 class Test_Imports(TestCase):
     parser = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
+
     def test_python_import_with_alias(self):
         program = r"""
                     import knit_script.knitting_machine.machine_components.needles as needles;

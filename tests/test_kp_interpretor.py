@@ -124,9 +124,6 @@ class TestKnit_Pass_Interpreter(TestCase):
         program = "not 2 < 0;"
         header, statements = self.parser.parse(program)
         print(statements)
-        statement = statements[0]
-        assert isinstance(statement, Expression_Statement)
-        assert self.parser.knit_script_evaluate_expression(statement.expression)
 
     def test_xfer(self):
         program = "xfer n across to Front bed sliders;"

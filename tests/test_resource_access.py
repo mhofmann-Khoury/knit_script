@@ -14,6 +14,6 @@ def get_test_resource(file_name: str, sub_directory: Optional[str] = None) -> st
         sub_directory = ""
     else:
         sub_directory = f"{sub_directory}{os.sep}"
-    resource = pkg_resources.resource_stream(f"knit_script.tests", f"{sub_directory}{file_name}")
+    resource = pkg_resources.resource_stream(f"tests", f"{sub_directory}{file_name}")
     name = resource.name
     return name

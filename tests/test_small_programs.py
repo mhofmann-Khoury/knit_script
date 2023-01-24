@@ -71,6 +71,8 @@ class Test_Small_Code(TestCase):
         with Gauge as 2, sheet as 1:{
             print f0;
             print f0 + 1;
+            print machine[f1];
+            print f0 + machine.f1;
         }
         """
         knitout, knit_graph = self.parser.write_knitout(program, f"global_test.k", pattern_is_file=False)

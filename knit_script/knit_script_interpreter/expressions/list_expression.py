@@ -5,6 +5,8 @@ from typing import List, Optional, Union, Tuple, Iterable, Any
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.knit_script_errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.knitting_machine.Machine_State import Machine_State
 
 
 class Unpack(Expression):
@@ -105,6 +107,8 @@ class Sliced_List(Expression):
         :return: The list of values in the given slice or (if no colons given in slice) return the indexed value
         """
         iterable = self._iter_exp.evaluate(context)
+        if isinstance(iterable, Machine_State):
+            raise Knit_Script_Error(f"Machine_State is not iterable and cannot be indexed or sliced into: {self}")
         assert isinstance(iterable, Iterable)
         iterable = [i for i in iterable]
         if self._start is None:

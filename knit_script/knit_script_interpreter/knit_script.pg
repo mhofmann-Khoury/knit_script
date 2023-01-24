@@ -164,44 +164,45 @@ unpack: "*" exp=expression;
 
 gauge_exp: sheet_exp=expression "of" gauge=expression "sheets";
 
-expression: expression "^" expression {right, 16}
-            | expression "*" expression {left, 15}
-            | expression "/" expression {left, 14}
-            | expression "%" expression {left, 13}
-            | expression "+" expression {left, 12}
-            | expression "-" expression {left, 11}
-            | expression "<" expression {left, 11}
-            | expression "<=" expression {left, 11}
-            | expression ">" expression {left, 11}
-            | expression ">=" expression {left, 11}
-            | expression "==" expression {left, 11}
-            | expression "!=" expression {left, 11}
-            | expression "is" expression {left, 11}
-            | expression "in" expression {left, 11}
-            | expression "and" expression {left, 11}
-            | expression "or" expression {left, 11}
-            | negation {11}
-            | gauge_exp {11}
-            | "(" expression ")" {17}
-            | unpack {10}
-            | float_exp {10}
-            | int_exp {10}
-            | formatted_string {10}
-            | string {10}
-            | direction_exp {10}
-            | list_expression {10}
-            | list_comp {10}
-            | dict_expression {10}
-            | dict_comp {10}
-            | needle_instruction {10}
-            | needle_id {9}
-            | carrier {9}
-            | sheet_id {9}
-            | function_call {8}
-            | accessor {6}
-            | sliced_list {5}
-            | identifier {4};
 
+
+expression: expression "^" expression {right, 6}
+            | expression "*" expression {left, 5}
+            | expression "/" expression {left, 4}
+            | expression "%" expression {left, 3}
+            | expression "+" expression {left, 2}
+            | expression "-" expression   {left, 1}
+            | expression "<" expression   {left, 1}
+            | expression "<=" expression  {left, 1}
+            | expression ">" expression   {left, 1}
+            | expression ">=" expression  {left, 1}
+            | expression "==" expression  {left, 1}
+            | expression "!=" expression  {left, 1}
+            | expression "is" expression  {left, 1}
+            | expression "in" expression  {left, 1}
+            | expression "and" expression {left, 1}
+            | expression "or" expression  {left, 1}
+            | negation {1}
+            | gauge_exp {1}
+            | "(" expression ")" {7}
+            | unpack {13}
+            | float_exp {13}
+            | int_exp {13}
+            | formatted_string {13}
+            | string {13}
+            | direction_exp {13}
+            | list_expression {13}
+            | list_comp {13}
+            | dict_expression {13}
+            | dict_comp {13}
+            | needle_instruction {13}
+            | needle_id {12}
+            | carrier {12}
+            | sheet_id {12}
+            | function_call {11}
+            | accessor {10}
+            | sliced_list {9}
+            | identifier {8};
 
 /*layout structure handles comments in language*/
 
