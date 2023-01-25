@@ -7,6 +7,7 @@ from knit_script.knit_script_interpreter.expressions.variables import Variable_E
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.knit_script_errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knitting_machine.Machine_State import Machine_State
+from knit_script.knitting_machine.machine_components.needles import Needle
 
 
 class Unpack(Expression):
@@ -108,7 +109,12 @@ class Sliced_List(Expression):
         """
         iterable = self._iter_exp.evaluate(context)
         if isinstance(iterable, Machine_State):
-            raise Knit_Script_Error(f"Machine_State is not iterable and cannot be indexed or sliced into: {self}")
+            if self._end is None and self._spacer is None:
+                start = self._start.evaluate(context)
+                assert isinstance(start, Needle), f"Machine_State can only be index by needles not {start}"
+                return context.machine_state[start]
+            else:
+                raise Knit_Script_Error(f"Machine_State is not iterable and cannot be indexed or sliced into: {self}")
         assert isinstance(iterable, Iterable)
         iterable = [i for i in iterable]
         if self._start is None:

@@ -1,4 +1,4 @@
-"""Interpreter processes knitpass into knitout instructions"""
+"""Interpreter processes knit script into knitout instructions"""
 from inspect import stack
 from typing import List, Tuple, Any, Optional
 
@@ -22,11 +22,6 @@ class Knit_Script_Interpreter:
         :param debug_parser: Will provide full parglare output for parsed file shift reduce status
         :param debug_parser_layout: Will provide layout information from parser
         """
-        # self._debug_parser_layout = debug_parser_layout
-        # self._debug_parser = debug_parser
-        # pg_loc = os.path.join(os.path.dirname(__file__), 'knit_script.pg')
-        # self._grammar:Grammar = Grammar.from_file(pg_loc, debug=debug_grammar, ignore_case=True)
-        # self._parser:Parser = Parser(self._grammar, debug=debug_parser, debug_layout=debug_parser_layout, actions=action.all)
         self._parser: Knit_Script_Parser = Knit_Script_Parser(debug_grammar, debug_parser, debug_parser_layout)
         if context is None:
             self._knit_pass_context: Knit_Script_Context = Knit_Script_Context(parser=self._parser)
@@ -44,7 +39,7 @@ class Knit_Script_Interpreter:
     def parse(self, pattern: str, pattern_is_file: bool = False) -> Tuple[list, list]:
         """
         Executes the parsing code for the parglare parser
-        :param pattern: either a file or the knitspeak string to be parsed
+        :param pattern: either a file or the knit script  string to be parsed
         :param pattern_is_file: if true, assumes that the pattern is parsed from a file
         :return:
         """
@@ -83,7 +78,7 @@ class Knit_Script_Interpreter:
         on_file = ""
         if pattern_is_file:
             on_file = f"on {pattern}"
-        print(f"\n###################Start Knit Script Interpreter{on_file}###################\n")
+        print(f"\n###################Start Knit Script Interpreter {on_file}###################\n")
         try:
             self._knit_pass_context.execute_header(header)
             self._knit_pass_context.execute_statements(statements)

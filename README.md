@@ -25,7 +25,7 @@ We have not tested these samples on a kniterate machine however the knitout to [
 
 You can check that your installation using the installation_test.ks and installation_test.py files. Running the installation_test.py file should produce two files: `stst_10.k` and `stst_10.dat` ([if you have included a dat-compiler](#Add-Your-Own-Dat-Compiler)). Similarly, you can convert installation_test.ks into the same files using the entry points. 
 
-### Using knit_script from command line (Unix) # todo, untested
+### Using knit_script from command line (Unix)
 ```
 $knit-script -k <name for knitout to generate> -d <name for dat file to generate, optional> <name of knit_script file>
 ```
@@ -59,9 +59,9 @@ knit_graph = knit_script_to_knitout('<pattern file>', '<knitout file name>')
 To also generate a data file use:
 
 ```python
-from knit_script.interpret import knitscript_to_knitout_to_dat
+from knit_script.interpret import knit_script_to_knitout_to_dat
 
-knit_graph = knitscript_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
+knit_graph = knit_script_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
 ```
 
 Additional examples of accessing the interpreter can be seen in the `test` package.

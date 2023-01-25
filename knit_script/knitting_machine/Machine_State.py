@@ -342,7 +342,6 @@ class Machine_State:
         else:
             return self.back_bed[item]
 
-
     def sheet_of(self, needle: Needle) -> int:
         """
         :param needle: needle to get sheet from

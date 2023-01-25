@@ -1,4 +1,4 @@
-"""COnsole function for processing knit_script"""
+"""Console function for processing knit_script"""
 import getopt
 import sys
 from typing import Optional
@@ -10,8 +10,8 @@ from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
 
 def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True) -> Knit_Graph:
     """
-    Processes a knit script pattern into knitout and a dat file for shimi seiki machines and returns the resulting knit graph from the operations
-    :param: pattern: the knitpass pattern or a file containing it
+    Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations
+    :param: pattern: the knit script pattern or a file containing it
     :param: out_file_name: the output location for knitout and dat files
     :param: pattern_is_filename: if true, pattern is a filename
     :return: the KnitGraph constructed during parsing on virtual machine
@@ -21,10 +21,10 @@ def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename
     return knit_graph
 
 
-def knitscript_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: Optional[str] = None, pattern_is_filename: bool = False) -> Knit_Graph:
+def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: Optional[str] = None, pattern_is_filename: bool = False) -> Knit_Graph:
     """
-    Processes a knit script pattern into knitout and a dat file for shimi seiki machines and returns the resulting knit graph from the operations
-    :param: pattern: the knitpass pattern or a file containing it
+    Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations
+    :param: pattern: the knit script pattern or a file containing it
     :param: knitout_name: the output location for knitout
     :param: dat_name: output location for dat file. If none, dat file will share name with knitout
     :param: pattern_is_filename: if true, pattern is a filename
@@ -52,7 +52,7 @@ def main():
     try:
         opts, args = getopt.getopt(argv, "k:d:",
                                    ["knitout =", "dat =", "string"])
-        assert len(args) == 1, f"Expected knitscript pattern but got {args}"
+        assert len(args) == 1, f"Expected knit script pattern but got {args}"
         pattern = args[0]
         for opt, arg in opts:
             if opt in ['-k', '--knitout']:
@@ -62,10 +62,10 @@ def main():
             elif opt == "--string":
                 pattern_str = True
         if knitout is None:
-            assert not pattern_str, "Cannot make knitout file without a output name or a knitscript file"
+            assert not pattern_str, "Cannot make knitout file without a output name or a knit script file"
             knitout = pattern[0:pattern.index('.')] + '.k'
         if dat is not None:
-            knit_graph = knitscript_to_knitout_to_dat(pattern, knitout, dat, pattern_is_filename=not pattern_str)
+            knit_graph = knit_script_to_knitout_to_dat(pattern, knitout, dat, pattern_is_filename=not pattern_str)
             print(f"Generated Knitout to {knitout} and DAT to {dat}")
         else:
             knit_graph = knit_script_to_knitout(pattern, knitout, pattern_is_filename=not pattern_str)
