@@ -76,3 +76,8 @@ class Test_Small_Code(TestCase):
         }
         """
         knitout, knit_graph = self.parser.write_knitout(program, f"global_test.k", pattern_is_file=False)
+
+    def test_bo(self):
+        program = r"""
+            import  caston
+        """

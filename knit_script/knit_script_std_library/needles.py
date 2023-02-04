@@ -1,5 +1,7 @@
 """Functions that are automatically imported in knitscript"""
+from typing import List
 
+from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
 
 
@@ -10,3 +12,13 @@ def needle(is_front: bool, index: int):
     :return: Returns a Needle with given position and bed
     """
     return Needle(is_front, index)
+
+
+def direction_sorted_needles(needles: List[Needle], direction: Pass_Direction, racking: float = 0.0) -> List[Needle]:
+    """
+    :param racking: racking of machine
+    :param needles: the needles to sort
+    :param direction: the direction to sort by
+    :return: list of needles sorted by given direction
+    """
+    return direction.sort_needles(needles, racking=racking)

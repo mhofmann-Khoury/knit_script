@@ -37,17 +37,20 @@ class Knit_Script_Context:
         self._header = value
         self.machine_state = self._header.machine_state()
 
-    def enter_sub_scope(self, function_name: Optional[str] = None, module_name: Optional[str] = None) -> Knit_Script_Scope:
+    def enter_sub_scope(self, function_name: Optional[str] = None, module_name: Optional[str] = None, module_scope: Optional[Knit_Script_Scope] = None) -> Knit_Script_Scope:
         """
             Creates a child scope and sets it as the current variable scope
+            :param module_name: the name of the module owning this scope
+            :param function_name: the name of the function owning this scope
+            :param module_scope: the scope of the function declaration
             :return: Return the scope that was entered
         """
         if function_name is not None:
-            self.variable_scope = self.variable_scope.enter_new_scope(function_name, is_function=True)
+            self.variable_scope = self.variable_scope.enter_new_scope(function_name, is_function=True, module_scope=module_scope)
         elif module_name is not None:
-            self.variable_scope = self.variable_scope.enter_new_scope(module_name, is_module=True)
+            self.variable_scope = self.variable_scope.enter_new_scope(module_name, is_module=True, module_scope=module_scope)
         else:
-            self.variable_scope = self.variable_scope.enter_new_scope()
+            self.variable_scope = self.variable_scope.enter_new_scope(module_scope=module_scope)
         return self.variable_scope
 
     def exit_current_scope(self):

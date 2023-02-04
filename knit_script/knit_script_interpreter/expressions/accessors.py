@@ -45,6 +45,9 @@ class Attribute_Accessor_Expression(Expression):
             return Attribute_Accessor_Expression(self.parent[:-1], self.parent[1])
 
     def parent_path(self):
+        """
+        :return: path to parent value
+        """
         parent_source_str = ""
         for p in self.parent:
             parent_source_str += f"{p}."

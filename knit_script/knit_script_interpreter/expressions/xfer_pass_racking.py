@@ -5,6 +5,7 @@ from typing import Optional
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knitting_machine.Machine_State import Machine_State
+from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Position
 
 
@@ -40,12 +41,17 @@ class Xfer_Pass_Racking(Expression):
         else:
             distance = int(self._distance_expression.evaluate(context))
             direction = self._side.evaluate(context)
+            if isinstance(direction, Pass_Direction):
+                if direction is Pass_Direction.Leftward:
+                    direction = Machine_Position.Left
+                else:
+                    direction = Machine_Position.Right
             assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right],\
                 f"Expected Left or Right Direction but got {direction}"
             if direction is Machine_Position.Left:
-                return Machine_State.get_rack(front_pos=0, back_pos=distance)
-            else:
                 return Machine_State.get_rack(front_pos=0, back_pos=-1 * distance)
+            else:
+                return Machine_State.get_rack(front_pos=0, back_pos=distance)
 
     def __str__(self):
         if self._is_across:

@@ -126,13 +126,16 @@ class TestKnit_Pass_Interpreter(TestCase):
         print(statements)
 
     def test_xfer(self):
-        program = "xfer n across to Front bed sliders;"
-        header, statements = self.parser.parse(program)
-        print(statements)
-        program = "xfer n, n2 2 to Left to Back bed;"
-        header, statements = self.parser.parse(program)
-        print(statements)
-        program = "xfer [f1, f2, b3] 4 to Right;"
+        # program = "xfer n across to Front bed sliders;"
+        # header, statements = self.parser.parse(program)
+        # print(statements)
+        # program = "xfer n, n2 2 to Left to Back bed;"
+        # header, statements = self.parser.parse(program)
+        # print(statements)
+        # program = "xfer [f1, f2, b3] 4 to Right;"
+        # header, statements = self.parser.parse(program)
+        # print(statements)
+        program = "xfer [f1, f2, b3] 4 to Rightward;"
         header, statements = self.parser.parse(program)
         print(statements)
 
@@ -360,5 +363,16 @@ class TestKnit_Pass_Interpreter(TestCase):
         _, results = self.parser.parse(program)
         print(results)
         program = "swap f1 with sheet 3;"
+        _, results = self.parser.parse(program)
+        print(results)
+
+    def test_if_else(self):
+        program = """
+        if reverse == Leftward:{
+            print "leftward pass";
+        } else:{
+            print "rightward pass";
+        }
+        """
         _, results = self.parser.parse(program)
         print(results)

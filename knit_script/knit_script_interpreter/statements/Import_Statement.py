@@ -13,7 +13,7 @@ from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 class Import_Statement(Statement):
     """
-        A statement that imports a python or knitscript module
+        A statement that imports a python or knit script module
     """
 
     def __init__(self, src: Expression, alias: Optional[Expression] = None):
@@ -38,7 +38,10 @@ class Import_Statement(Statement):
             alias = None
         module = None
         try:
-            module = importlib.import_module(src_string)
+            try:
+                module = importlib.import_module(src_string)
+            except ModuleNotFoundError as e:
+                module = importlib.import_module(f'knit_script.knit_script_std_library.{src_string}')
         except (ImportError, ModuleNotFoundError) as e:
             local_path = os.path.dirname(context.ks_file)
             library_path = os.path.dirname(ks_library.__file__)

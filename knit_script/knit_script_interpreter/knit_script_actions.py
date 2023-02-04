@@ -346,7 +346,7 @@ def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression],
     :param _:
     :param __:
     :param fill_exp: Expression that fills the list
-    :param spacer: the spacer value across the variables
+    :param spacer: the spacer value across the variables.
     :param variables: variables to fill from iterable
     :param iter_exp: the iterable to pass over
     :param comp_cond: condition to evaluate for adding a value
@@ -358,44 +358,44 @@ def list_comp(_, __, fill_exp: Expression, variables: List[Variable_Expression],
 @action
 def started_slice(_, __, start: Expression,
                   end: Optional[Expression],
-                  spacer: Optional[Expression]) -> Tuple[Optional[Expression], Optional[Expression], Optional[Expression]]:
+                  spacer: Optional[Expression]) -> Tuple[Expression, Optional[Expression], Optional[Expression]]:
     """
     :param _:
     :param __:
     :param start: first value in slide
     :param end: end of slice value
     :param spacer: spacing value
-    :return: slice values
+    :return: (start expression), (end expression), (spacer expression). End and spacer can be none
     """
     return start, end, spacer
 
 
 @action
 def ended_slice(_, __, end: Expression,
-                spacer: Optional[Expression]) -> Tuple[Optional[Expression], Optional[Expression], Optional[Expression]]:
+                spacer: Optional[Expression]) -> Tuple[Optional[Expression], Expression, Optional[Expression]]:
     """
     :param _:
     :param __:
     :param end: end of slice value
     :param spacer: spacing value
-    :return: slice values
+    :return: (start expression), (end expression), (spacer expression). Start is None. spacer can be none.
     """
     return None, end, spacer
 
 
 @action
-def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression], Optional[Expression], Optional[Expression]]:
+def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression], Optional[Expression], Expression]:
     """
     :param _:
     :param __:
     :param spacer: spacing value
-    :return: slice values
+    :return: (start expression), (end expression), (spacer expression). Start and end are none. Spacer cannot be None
     """
     return None, None, spacer
 
 
 @action
-def slice_data(_, nodes: list) -> Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]:
+def slice_data(_, nodes: list) -> Union[Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]:
     """
     :param _:
     :param nodes: data from different slicing configurations
@@ -403,13 +403,13 @@ def slice_data(_, nodes: list) -> Tuple[Optional[Expression], bool, Optional[Exp
     """
     slice_values = nodes[0]
     if isinstance(slice_values, Expression):  # index passed
-        return slice_values, False, None, False, None
+        return slice_values
     else:
         return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[2]
 
 
 @action
-def sliced_list(_, __, iter_exp: Expression, slices: Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]) -> Sliced_List:
+def sliced_list(_, __, iter_exp: Expression, slices: Union[Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]) -> Sliced_List:
     """
     :param _: ignored parser context
     :param __: ignored nodes
@@ -417,6 +417,8 @@ def sliced_list(_, __, iter_exp: Expression, slices: Tuple[Optional[Expression],
     :param slices: data about how to form an index or slice
     :return: the slicer statement
     """
+    if isinstance(slices, Expression):
+        return Sliced_List(iter_exp, start=slices, is_index=True)
     return Sliced_List(iter_exp, slices[0], slices[1], slices[2], slices[3], slices[4])
 
 
@@ -509,10 +511,21 @@ def elif_statement(_, __, exp: Expression, stmnt: Statement) -> Tuple[Expression
 
 
 @action
+def else_statement(_, __, false_statement: Code_Block) -> Code_Block:
+    """
+    :param _:
+    :param __:
+    :param false_statement: code block to execute when false
+    :return: the code to execute when false
+    """
+    return false_statement
+
+
+@action
 def if_statement(_, __,
                  condition: Expression, true_statement: Code_Block,
                  elifs: List[Tuple[Expression, Statement]],
-                 false_statement: Optional[Code_Block] = None) -> If_Statement:
+                 else_stmt: Optional[Code_Block]) -> If_Statement:
     """
 
     :param elifs: list of else-if conditions and statements
@@ -520,13 +533,13 @@ def if_statement(_, __,
     :param __:
     :param condition: branching condition
     :param true_statement: statement to execute on true
-    :param false_statement: statement to execute on false
+    :param else_stmt: statement to execute on false
     :return: if statement
     """
     while len(elifs) > 0:
         elif_tuple = elifs.pop()
-        false_statement = If_Statement(elif_tuple[0], elif_tuple[1], false_statement)
-    return If_Statement(condition, true_statement, false_statement)
+        else_stmt = If_Statement(elif_tuple[0], elif_tuple[1], else_stmt)
+    return If_Statement(condition, true_statement, else_stmt)
 
 
 @action

@@ -28,7 +28,8 @@ class Assignment:
         :return: Name of variable being assigned
         """
         return self._variable_name
-    def assign_value(self, context: Knit_Script_Context, is_global:bool = False) -> Any:
+
+    def assign_value(self, context: Knit_Script_Context, is_global: bool = False) -> Any:
         """
         Assign the value to the variable
         :param is_global: If true, assigns variable to global space

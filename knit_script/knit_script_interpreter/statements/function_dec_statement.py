@@ -4,6 +4,7 @@ from typing import List, Any, Dict
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
 
@@ -13,7 +14,7 @@ class Function_Signature:
         Function object which processes parameter values and executes function call
     """
 
-    def __init__(self, name: str, parameter_names: List[str], body: Statement, defaults: Dict[str, Any]):
+    def __init__(self, name: str, parameter_names: List[str], body: Statement, defaults: Dict[str, Any], module_scope: Knit_Script_Scope):
         """
         Instantiate
         :param name: name of function
@@ -21,10 +22,11 @@ class Function_Signature:
         :param body: the body to execute on call
         :param defaults: key parameter names to default values
         """
-        self._name:str = name
+        self._name: str = name
         self._parameter_names: List[str] = parameter_names
         self._body: Statement = body
         self._defaults: Dict[str, Any] = defaults
+        self._module_scope: Knit_Script_Scope = module_scope
 
     def execute(self, context: Knit_Script_Context, args: List[Expression], kwargs: List[Assignment]) -> Any:
         """
@@ -33,7 +35,7 @@ class Function_Signature:
         :param args: args passed in order
         :param kwargs: args passed with keywords
         """
-        context.enter_sub_scope(function_name=self._name)  # enter function scope, set as function for return statements
+        context.enter_sub_scope(function_name=self._name, module_scope=self._module_scope)  # enter function scope, set as function for return statements
         filled_params = set()
         for param, arg in self._defaults.items():  # assign defaults, may get overridden
             context.variable_scope[param] = arg
@@ -106,7 +108,5 @@ class Function_Declaration(Statement):
                 print(f"KP-Warning: argument {kwarg.variable_name} shadows outer scope")
             defaults[kwarg.variable_name] = kwarg.value(context)
 
-        function = Function_Signature(self._func_name, params, self._body, defaults)
+        function = Function_Signature(self._func_name, params, self._body, defaults, context.variable_scope)
         context.variable_scope[self._func_name] = function  # assign to current scope
-
-

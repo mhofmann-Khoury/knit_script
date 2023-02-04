@@ -4,6 +4,7 @@ from typing import List, Tuple, Any, Optional
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
+from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.knit_script_errors.Knit_Script_Error import Knit_Script_Error
 
@@ -83,7 +84,12 @@ class Knit_Script_Interpreter:
             self._knit_pass_context.execute_header(header)
             self._knit_pass_context.execute_statements(statements)
         except AssertionError as e:
-            raise Knit_Script_Error(str(e))
+            self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.yarn_manager.cut_all_yarns())
+            with open("error.k", "w") as out:
+                out.writelines(self._knit_pass_context.knitout)
+            knitout_to_dat(f"error.k", f"error.dat")
+            raise e
+            # raise Knit_Script_Error(str(e))
 
     def knit_script_evaluate_expression(self, exp) -> Any:
         """

@@ -23,3 +23,8 @@ class Test_Examples(TestCase):
         name = f"{self.sample_directory}split_tube"
         knitout, knit_graph = self.parser.write_knitout(f"{name}.ks", f"{name}.k", pattern_is_file=True)
         knitout_to_dat(f"{name}.k", f"{name}.dat")
+
+    def test_bind_off(self):
+        name = f"{self.sample_directory}bo_test"
+        knitout, knit_graph = self.parser.write_knitout(f"{name}.ks", f"{name}.k", pattern_is_file=True)
+        knitout_to_dat(f"{name}.k", f"{name}.dat")

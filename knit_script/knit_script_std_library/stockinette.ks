@@ -1,16 +1,18 @@
 
 
-def stst(rows, start_dir=None):{
-	print f"Stockinette for {rows} rows";
+def stst(rows, stst_loops=None, start_dir=None):{
+	if stst_loops is None:{
+	    stst_loops = Front_Loops;
+	}
 	if start_dir is None:{
 		start_dir = reverse;
 	}
 	in start_dir direction:{
-		knit Front_Loops;
+		knit stst_loops;
 	}
 	for r in range(1, rows):{
 		in reverse direction:{
-			knit Front_Loops;
+			knit stst_loops;
 		}
 	}
 }

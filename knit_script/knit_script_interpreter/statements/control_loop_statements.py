@@ -50,7 +50,7 @@ class For_Each_Statement(Statement):
                  statement: Statement):
         """
         Instantiate
-        :param variables: to assign on each iteration of iterable
+        :param variables: to assign on each iteration of iterable.
         :param iter_expression: iterable to iterate over
         :param statement: statement to execute with each iteration
         """
@@ -76,7 +76,7 @@ class For_Each_Statement(Statement):
                 context.variable_scope[self.var_name] = var  # update iterator variable in scope
             else:  # multiple vars to unpack
                 iterated_var = [*var]
-                assert len(iterated_var) == self._variables, "Unpacked values do not match variables provided"
+                assert len(iterated_var) == len(self._variables), "Unpacked values do not match variables provided"
                 for var_name, var_val in zip(self._variables, iterated_var):
                     context.variable_scope[var_name.variable_name] = var_val
 

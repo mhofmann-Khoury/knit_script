@@ -80,7 +80,12 @@ class Sliced_List(Expression):
     """
         Slices a list using standard python syntax
     """
-    def __init__(self, iter_exp: Expression, start: Optional[Expression], start_to_end: bool, end: Optional[Expression], end_to_spacer: bool, spacer: Optional[Expression]):
+
+    def __init__(self, iter_exp: Expression,
+                 start: Optional[Expression] = None, start_to_end: bool = False,
+                 end: Optional[Expression] = None, end_to_spacer: bool = False,
+                 spacer: Optional[Expression] = None,
+                 is_index: bool = False):
         """
         Instantiate
         :param iter_exp: iterable to slice
@@ -94,6 +99,9 @@ class Sliced_List(Expression):
         start_to_end
         """
         super().__init__()
+        if is_index:
+            assert end is None and spacer is None
+        self._is_index = is_index
         self._end_to_spacer = end_to_spacer
         self._start_to_end = start_to_end
         self._spacer = spacer
@@ -109,30 +117,31 @@ class Sliced_List(Expression):
         """
         iterable = self._iter_exp.evaluate(context)
         if isinstance(iterable, Machine_State):
-            if self._end is None and self._spacer is None:
+            if self._is_index:
                 start = self._start.evaluate(context)
                 assert isinstance(start, Needle), f"Machine_State can only be index by needles not {start}"
                 return context.machine_state[start]
             else:
-                raise Knit_Script_Error(f"Machine_State is not iterable and cannot be indexed or sliced into: {self}")
+                raise Knit_Script_Error(f"Machine_State is not iterable and cannot be iterated over [{self._start}:{self._end}:{self._spacer}]")
         assert isinstance(iterable, Iterable)
         iterable = [i for i in iterable]
-        if self._start is None:
-            start = 0
+        if self._is_index:
+            index = self._start.evaluate(context)
+            return iterable[index]
         else:
-            start = int(self._start.evaluate(context))
-        if self._end is None:
-            end = len(iterable)
-        else:
-            end = int(self._end.evaluate(context))
-        if self._spacer is None:
-            spacer = 1
-        else:
-            spacer = int(self._spacer.evaluate(context))
-        if self._is_slice(): # colon signifies slicing
+            if self._start is None:
+                start = 0
+            else:
+                start = int(self._start.evaluate(context))
+            if self._end is None:
+                end = len(iterable)
+            else:
+                end = int(self._end.evaluate(context))
+            if self._spacer is None:
+                spacer = 1
+            else:
+                spacer = int(self._spacer.evaluate(context))
             return iterable[start:end:spacer]
-        else:
-            return iterable[start]
 
     def _is_slice(self):
         return self._start_to_end or self._end_to_spacer
@@ -235,7 +244,7 @@ class Knit_Script_Dictionary(Expression):
         :param kwargs: the key value pairs of a dictionary
         """
         super().__init__()
-        self._kwargs: List[Tuple[Expression, Expression]]= kwargs
+        self._kwargs: List[Tuple[Expression, Expression]] = kwargs
 
     def evaluate(self, context: Knit_Script_Context) -> dict:
         """
@@ -262,7 +271,7 @@ class Dictionary_Comprehension(Expression):
 
     def __init__(self, key: Expression, value: Expression,
                  variables: List[Variable_Expression], iter_exp: Expression,
-                 spacer: Optional[Union[str, Expression]]=None, comp_cond:Optional[Expression] = None ):
+                 spacer: Optional[Union[str, Expression]] = None, comp_cond: Optional[Expression] = None):
         """
         Instantiate
         :param key: key expression
@@ -332,4 +341,3 @@ class Dictionary_Comprehension(Expression):
 
     def __repr__(self):
         return str(self)
-

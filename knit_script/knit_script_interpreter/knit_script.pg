@@ -24,7 +24,9 @@ code_block: "{" statements=statement+ "}";
 
 if_statement: "if" condition=expression ":" true_statement=code_block
                 elifs=elif_statement*
-                ("else" ":" false_statement=code_block)?;
+                else_stmt=else_statement?;
+
+else_statement: "else" ":" false_statement=code_block;
 
 elif_statement: "elif" exp=expression ":" stmnt=code_block;
 

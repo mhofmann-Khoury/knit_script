@@ -15,7 +15,7 @@ def rack(machine_state, racking: float, comment: str = "") -> str:
     :param comment: additional details to document in the knitout
     :return: the racking instruction
     """
-    machine_state._racking = racking
+    machine_state.racking = racking
     # if racking != .25 and racking != -.75:  # racking for all needle knitting
     #     racking = math.floor(racking)
     return f"rack {racking} ;{comment}\n"
@@ -80,7 +80,7 @@ def tuck(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: 
     :param comment: additional details to document in the knitout
     :return: the tuck instruction
     """
-    loops = machine_state.tuck(needle, carrier_set,record_needle=record_needle)
+    loops = machine_state.tuck(needle, carrier_set, record_needle=record_needle)
     carriers = _make_carrier_set(carrier_set)
     return f"tuck {direction} {needle}{carriers} ; tuck loops: {loops}. {comment}\n"
 
@@ -119,7 +119,7 @@ def drop(machine_state, needle: Needle, comment: str = "", record_needle=True) -
     return f"drop {needle} ;Dropped loops: {loops}. {comment}\n"
 
 
-def xfer(machine_state, start: Needle, target: Needle, comment: str = "", record_needle:bool = True) -> str:
+def xfer(machine_state, start: Needle, target: Needle, comment: str = "", record_needle: bool = True) -> str:
     """
     Synonym for "split + N N2".
     Transfer loops from needle 1 to needle 2, leaving needle 1 empty
@@ -130,7 +130,7 @@ def xfer(machine_state, start: Needle, target: Needle, comment: str = "", record
     :param comment: additional details to document in the knitout
     :return: the xfer instruction
     """
-    machine_state.xfer(start, target, record_needle= record_needle)
+    machine_state.xfer(start, target, record_needle=record_needle)
     return f"xfer {start} {target} ;{comment}\n"
 
 

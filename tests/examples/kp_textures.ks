@@ -83,5 +83,5 @@ def stst_tube(width=20, height=20):{
 }
 
 with Carrier as 1:{
-	garter();
+	seed();
 }
