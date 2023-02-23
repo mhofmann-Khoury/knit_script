@@ -193,6 +193,8 @@ class Knit_Script_Context:
         for header_line in header:
             header_line.execute(self)
 
+        self.knitout = self._header.header_lines()
+
     def execute_statements(self, statements: list):
         """
         Execute the list of statements on current context
