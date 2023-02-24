@@ -12,7 +12,7 @@ This will clone the [repository](https://github.com/mhofmann-Khoury/knit_script)
 ## Install Stable Version from [PyPI](https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3)
 
 ```
-$ pip install knit_script
+$ pip install knit-script
 ```
 
 ## Add Your Own DAT Compiler
