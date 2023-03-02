@@ -12,13 +12,14 @@ class Try_Catch_Statement(Statement):
         manage try catch structure
     """
 
-    def __init__(self, try_statement: Statement, catch_statement: Statement, errors: List[Expression]):
+    def __init__(self, parser_node, try_statement: Statement, catch_statement: Statement, errors: List[Expression]):
         """
         Instantiate
+        :param parser_node:
         :param try_statement: statement to try to execute
         :param catch_statement: statement to execute on failure
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._errors = errors
         self._catch_statement = catch_statement
         self._try_statement = try_statement

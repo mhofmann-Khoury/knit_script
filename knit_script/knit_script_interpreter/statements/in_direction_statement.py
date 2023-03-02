@@ -14,13 +14,14 @@ class In_Direction_Statement(Statement):
         Statement that sets the machine direction for a set of instructions
     """
 
-    def __init__(self, direction: Expression, instructions: List[Needle_Instruction_Exp]):
+    def __init__(self, parser_node, direction: Expression, instructions: List[Needle_Instruction_Exp]):
         """
         Instantiate
+        :param parser_node:
         :param direction: direction to execute operations in
         :param instructions: instruction sets to execute
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._direction: Expression = direction
         self._instructions: List[Needle_Instruction_Exp] = instructions
 

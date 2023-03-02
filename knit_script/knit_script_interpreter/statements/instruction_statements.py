@@ -11,8 +11,8 @@ class Pause_Statement(Statement):
     An instruction execution that pauses the knitting machine
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parser_node):
+        super().__init__(parser_node)
 
     def execute(self, context: Knit_Script_Context):
         """

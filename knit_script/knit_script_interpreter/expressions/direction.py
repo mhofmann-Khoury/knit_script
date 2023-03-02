@@ -9,12 +9,13 @@ class Pass_Direction_Expression(Expression):
     Expression of a Machine Pass Direction
     """
 
-    def __init__(self, dir_word: str):
+    def __init__(self, parser_node, dir_word: str):
         """
         Instantiate
+        :param parser_node:
         :param dir_word: keyword for the direction
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._dir_word:str = dir_word
 
     def evaluate(self, context: Knit_Script_Context) -> Pass_Direction:

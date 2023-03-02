@@ -10,9 +10,11 @@ class Formatted_String_Value(Expression):
         Follows python fstring conventions
     """
 
-    def __init__(self, expressions: List[Expression]):
-        """List of expressions in order in formatting"""
-        super().__init__()
+    def __init__(self, parser_node, expressions: List[Expression]):
+        """List of expressions in order in formatting
+        :param parser_node:
+        """
+        super().__init__(parser_node)
         self.expressions: List[Expression] = expressions
 
     def evaluate(self, context: Knit_Script_Context) -> str:

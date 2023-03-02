@@ -10,8 +10,8 @@ from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_I
 class Machine_Accessor(Expression):
     """Used to access machine state directly"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parser_node):
+        super().__init__(parser_node)
 
     def evaluate(self, context: Knit_Script_Context) -> Machine_State:
         """
@@ -30,13 +30,14 @@ class Machine_Accessor(Expression):
 class Sheet_Expression(Expression):
     """Identifies sheets"""
 
-    def __init__(self, sheet_id: Union[Expression, str], gauge_id: Optional[Expression] = None):
+    def __init__(self, parser_node, sheet_id: Union[Expression, str], gauge_id: Optional[Expression] = None):
         """
         Instantiate
+        :param parser_node:
         :param sheet_id: the identifier of the sheet
         :param gauge_id: the identifier of the gauge, defaults to current gauge
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._sheet_id: Union[Expression, str] = sheet_id
         self._gauge_id: Optional[Expression] = gauge_id
 

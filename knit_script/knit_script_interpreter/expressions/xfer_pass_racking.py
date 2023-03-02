@@ -14,16 +14,15 @@ class Xfer_Pass_Racking(Expression):
         structures racking direction
     """
 
-    def __init__(self, is_across: bool,
-                 distance_expression: Optional[Expression] = None,
-                 side: Optional[Expression] = None):
+    def __init__(self, parser_node, is_across: bool, distance_expression: Optional[Expression] = None, side: Optional[Expression] = None):
         """
         Instantiate
+        :param parser_node:
         :param is_across: true if xfer is directly across beds
         :param distance_expression: the needle offset for xfer
         :param side: offset direction
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._side: Optional[Expression] = side
         self._is_across:bool = is_across
         if self._is_across:

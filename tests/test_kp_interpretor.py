@@ -135,7 +135,11 @@ class TestKnit_Pass_Interpreter(TestCase):
         # program = "xfer [f1, f2, b3] 4 to Right;"
         # header, statements = self.parser.parse(program)
         # print(statements)
-        program = "xfer [f1, f2, b3] 4 to Rightward;"
+        # program = "xfer [f1, f2, b3] 4 to Rightward;"
+        # header, statements = self.parser.parse(program)
+        # print(statements)
+
+        program = "xfer Back_Loops[1::2]  1 to left to front bed;"
         header, statements = self.parser.parse(program)
         print(statements)
 

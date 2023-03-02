@@ -76,14 +76,15 @@ class Operator(Enum):
 
 class Operator_Expression(Expression):
     """Expression for managing operations of expressions"""
-    def __init__(self, lhs: Expression, op_str: str, rhs: Expression):
+    def __init__(self, parser_node, lhs: Expression, op_str: str, rhs: Expression):
         """
         Instantiate
+        :param parser_node:
         :param lhs: left expression
         :param op_str:  operation
         :param rhs: right expression
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._rhs: Expression = rhs
         self.op_str: str = op_str
         self._lhs: Expression = lhs

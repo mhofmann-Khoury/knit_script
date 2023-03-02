@@ -10,12 +10,13 @@ class Variable_Expression(Expression):
         A structure for accessing variables by name from the current context scope
     """
 
-    def __init__(self, variable_name: str):
+    def __init__(self, parser_node, variable_name: str):
         """
         Instantiate
+        :param parser_node:
         :param variable_name: name of variable
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._variable_name: str = variable_name
 
     @property

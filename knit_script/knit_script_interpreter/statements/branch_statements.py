@@ -11,15 +11,15 @@ class If_Statement(Statement):
         conditional if else branch structure
     """
 
-    def __init__(self, condition: Expression, true_statement: Statement,
-                 false_statement: Optional[Statement] = None):
+    def __init__(self, parser_node, condition: Expression, true_statement: Statement, false_statement: Optional[Statement] = None):
         """
         Instantiate
+        :param parser_node:
         :param condition: branching condition
         :param true_statement: statement to execute on true
         :param false_statement: statement to execute on false
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._condition: Expression = condition
         self._true_statement: Statement = true_statement
         self._false_statement: Optional[Statement] = false_statement

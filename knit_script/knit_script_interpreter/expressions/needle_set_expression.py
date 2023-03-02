@@ -27,13 +27,14 @@ class Needle_Sets(Enum):
 class Needle_Set_Expression(Expression):
     """Evaluates keywords to sets of needles on the machine"""
 
-    def __init__(self, set_str: str):
+    def __init__(self, parser_node, set_str: str):
         """
         Instantiate
+        :param parser_node:
         :param set_str: the string to identify the set
         """
-        super().__init__()
-        self._set_str:str = set_str
+        super().__init__(parser_node)
+        self._set_str: str = set_str
 
     @property
     def set_str(self) -> str:

@@ -71,15 +71,16 @@ class Function_Declaration(Statement):
         Statement structure for declaring functions
     """
 
-    def __init__(self, func_name: str, args: List[Variable_Expression], kwargs: List[Assignment], body: Statement):
+    def __init__(self, parser_node, func_name: str, args: List[Variable_Expression], kwargs: List[Assignment], body: Statement):
         """
         Instantiate
+        :param parser_node:
         :param func_name: name of function
         :param args: list of variables for arguments
         :param kwargs: list of key word assignments
         :param body: body to execute
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._kwargs: List[Assignment] = kwargs
         self._args: List[Variable_Expression] = args
         self._body: Statement = body

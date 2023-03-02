@@ -12,12 +12,13 @@ from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Ca
 class Cut_Statement(Statement):
     """Cuts a set of carriers. Creates outhook operations"""
 
-    def __init__(self, carriers: List[Expression]):
+    def __init__(self, parser_node, carriers: List[Expression]):
         """
         Instantiate
+        :param parser_node:
         :param carriers: list of carriers to outhook
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._carriers: List[Expression] = carriers
 
     def __str__(self):
@@ -63,12 +64,13 @@ class Remove_Statement(Statement):
     Statement removing carriers from bed without cuts. Equivalent to out operations
     """
 
-    def __init__(self, carriers: List[Expression]):
+    def __init__(self, parser_node, carriers: List[Expression]):
         """
         Instantiate
+        :param parser_node:
         :param carriers: Carriers to out
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._carriers: List[Expression] = carriers
 
     def __str__(self):

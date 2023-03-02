@@ -13,13 +13,14 @@ class While_Statement(Statement):
         While loop execution structure
     """
 
-    def __init__(self, condition: Expression, statement: Statement):
+    def __init__(self, parser_node, condition: Expression, statement: Statement):
         """
         Instantiate
+        :param parser_node:
         :param condition: condition to evaluate on while
         :param statement: the statement to execute with each iteration
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._condition: Expression = condition
         self._statement: Statement = statement
 
@@ -45,16 +46,15 @@ class For_Each_Statement(Statement):
         Statements that give access to iterable variable over an iterable element (lists)
     """
 
-    def __init__(self, variables: List[Variable_Expression],
-                 iter_expression: Union[Expression, List[Expression]],
-                 statement: Statement):
+    def __init__(self, parser_node, variables: List[Variable_Expression], iter_expression: Union[Expression, List[Expression]], statement: Statement):
         """
         Instantiate
+        :param parser_node:
         :param variables: to assign on each iteration of iterable.
         :param iter_expression: iterable to iterate over
         :param statement: statement to execute with each iteration
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._variables: List[Variable_Expression] = variables
         if len(self._variables) == 1:
             self.var_name: Optional[str] = self._variables[0].variable_name

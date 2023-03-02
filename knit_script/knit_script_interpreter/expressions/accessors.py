@@ -17,14 +17,14 @@ class Attribute_Accessor_Expression(Expression):
         Accesses attributes of expression either from knitscript or underlying python
     """
 
-    def __init__(self, parent_path: Union[List[Expression], Expression],
-                 attribute: Expression):
+    def __init__(self, parser_node, parent_path: Union[List[Expression], Expression], attribute: Expression):
         """
         instantiate
+        :param parser_node:
         :param parent_path: the expression to access and attribute from
         :param attribute: the attribute of the parent expression. May produce more accessors
         """
-        super().__init__()
+        super().__init__(parser_node)
         self.is_method_call = False
         if isinstance(parent_path, list):
             self.parent: List[Expression] = parent_path
@@ -42,7 +42,7 @@ class Attribute_Accessor_Expression(Expression):
         if len(self.parent) == 1:
             return self.parent[0]
         else:
-            return Attribute_Accessor_Expression(self.parent[:-1], self.parent[1])
+            return Attribute_Accessor_Expression(parser_node, self.parent[:-1], self.parent[1])
 
     def parent_path(self):
         """
@@ -59,7 +59,7 @@ class Attribute_Accessor_Expression(Expression):
             parent_source: Expression = self.parent[0]
             parent = parent_source.evaluate(context)
         else:  # recursively process parent path
-            parent_accessor = Attribute_Accessor_Expression(self.parent[:-1], self.parent[-1])
+            parent_accessor = Attribute_Accessor_Expression(parser_node, self.parent[:-1], self.parent[-1])
             parent = parent_accessor.evaluate(context)
         return parent
 

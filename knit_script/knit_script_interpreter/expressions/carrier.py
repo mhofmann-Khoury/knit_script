@@ -9,12 +9,13 @@ class Carrier_Expression(Expression):
         Used for processing carrier strings
     """
 
-    def __init__(self, carrier_str: str):
+    def __init__(self, parser_node, carrier_str: str):
         """
         Instantiate
+        :param parser_node:
         :param carrier_str: the string to identify the carrier from
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._carrier_str:str = carrier_str
 
     def evaluate(self, context: Knit_Script_Context) -> Yarn_Carrier:

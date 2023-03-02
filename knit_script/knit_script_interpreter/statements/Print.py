@@ -9,12 +9,13 @@ class Print(Statement):
         Prints content to python console
     """
 
-    def __init__(self, string: Expression):
+    def __init__(self, parser_node, string: Expression):
         """
         Instantiate
+        :param parser_node:
         :param string: the strint to print
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._string: Expression = string
 
     def execute(self, context: Knit_Script_Context):

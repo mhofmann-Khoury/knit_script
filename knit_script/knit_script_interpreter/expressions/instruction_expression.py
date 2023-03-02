@@ -123,13 +123,14 @@ class Needle_Instruction_Exp(Expression):
         Instructions that happen on a needle
     """
 
-    def __init__(self, instruction: Union[Expression, Needle_Instruction], needles: Union[List[Expression], Expression]):
+    def __init__(self, parser_node, instruction: Union[Expression, Needle_Instruction], needles: Union[List[Expression], Expression]):
         """
         Instantiate
+        :param parser_node:
         :param instruction: the instruction to do to a needle set
         :param needles: the needles to do the instruction on
         """
-        super().__init__()
+        super().__init__(parser_node)
         if not isinstance(needles, list):
             needles = [needles]
         self._needles = needles
@@ -191,8 +192,8 @@ class Machine_Instruction_Exp(Expression):
         Expression evaluates to machine instructions
     """
 
-    def __init__(self, inst_str: str):
-        super().__init__()
+    def __init__(self, parser_node, inst_str: str):
+        super().__init__(parser_node)
         self.inst_str = inst_str
 
     def evaluate(self, context: Knit_Script_Context) -> Machine_Instruction:

@@ -11,8 +11,8 @@ class Header_Statement(Statement):
         Header statements update variables of the machine state and knitout
     """
 
-    def __init__(self, type_id: Header_ID_Value, value: Expression):
-        super().__init__()
+    def __init__(self, parser_node, type_id: Header_ID_Value, value: Expression):
+        super().__init__(parser_node)
         self._value: Expression = value
         self._type_id: Header_ID_Value = type_id
 

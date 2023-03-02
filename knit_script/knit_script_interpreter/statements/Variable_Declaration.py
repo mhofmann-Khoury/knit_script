@@ -9,14 +9,15 @@ class Variable_Declaration(Statement):
         Used to set a variable value at current scope
     """
 
-    def __init__(self, assignment: Assignment, is_global: bool = False):
+    def __init__(self, parser_node, assignment: Assignment, is_global: bool = False):
         """
         Instantiate
+        :param parser_node:
         :param assignment: assignment to make on execution
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._is_global = is_global
-        self._assignment:Assignment = assignment
+        self._assignment: Assignment = assignment
 
     def execute(self, context: Knit_Script_Context):
         """

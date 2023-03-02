@@ -13,6 +13,14 @@ class Knit_Script_Globals:
         self.values: Dict[str, Any] = {}
         self._exit_value: Any = None
 
+    def copy(self):
+        """
+        :return: shallow copy of the current values
+        """
+        copy_values = Knit_Script_Globals()
+        copy_values.values = {k: v for k,v in self.values.items()}
+        copy_values._exit_value = self._exit_value
+        return copy_values
     @property
     def exit_value(self):
         """

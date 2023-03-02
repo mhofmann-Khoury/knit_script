@@ -18,7 +18,7 @@ class Knit_Script_Context:
     def __init__(self, parent_scope: Optional[Knit_Script_Scope] = None,
                  bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
                  ks_file=None, parser=None):
-        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(parent_scope)
+        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
         self._header: Header = Header(bed_width, machine_position)
         self.machine_state: Machine_State = self._header.machine_state()
         self.knitout: List[str] = self._header.header_lines()
@@ -121,15 +121,14 @@ class Knit_Script_Context:
         """
         :return: Racking at current scope
         """
-        return Sheet_Identifier(self.variable_scope.sheet, self.variable_scope.gauge)
+        return self.variable_scope.sheet
 
     @sheet.setter
     def sheet(self, value: Optional[Union[Sheet_Identifier, int]]):
         self.variable_scope.sheet = value
-        sheet = self.sheet
-        self.machine_state.sheet = sheet.sheet
-        self.knitout.append(f";Resetting to sheet {sheet} of {self.gauge}\n")
-        self.knitout.extend(self.machine_state.reset_sheet(sheet.sheet))
+        self.knitout.append(f";Resetting to sheet {self.sheet} of {self.gauge}\n")
+        self.knitout.extend(self.machine_state.reset_sheet(self.sheet.sheet))
+        self.machine_state.sheet = value
         # Resets machine to the needed sheet, peeling other layers out of the way
 
     @property
@@ -143,8 +142,6 @@ class Knit_Script_Context:
     @gauge.setter
     def gauge(self, value: Optional[int]):
         self.variable_scope.gauge = value
-        gauge = self.gauge  # makes sure to manage any side effects of setters
-        self.machine_state.gauge = gauge
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False,
                    global_needle: bool = False, sheet: Optional[int] = None, gauge: Optional[int] = None) -> Needle:

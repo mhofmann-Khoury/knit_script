@@ -3,15 +3,18 @@ Base class of all expression values
 """
 from typing import Any, List
 
+from parglare.parser import LRStackNode
+
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 
-class Expression:
+class Expression(KS_Element):
     """
         Super class for all expressions which evaluate to a value
     """
-    def __init__(self):
-        pass
+    def __init__(self, parser_node: LRStackNode):
+        super().__init__(parser_node)
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
         """

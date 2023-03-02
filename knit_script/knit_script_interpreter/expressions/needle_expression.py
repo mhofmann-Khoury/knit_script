@@ -9,12 +9,13 @@ class Needle_Expression(Expression):
         Expression that evaluates to a Needle
     """
 
-    def __init__(self, needle_str: str):
+    def __init__(self, parser_node, needle_str: str):
         """
         Instantiate
+        :param parser_node:
         :param needle_str: string to parse to a needle
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._needle_str:str = needle_str
 
     def evaluate(self, context: Knit_Script_Context) -> Needle:

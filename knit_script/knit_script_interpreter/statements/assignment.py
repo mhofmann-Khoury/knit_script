@@ -3,31 +3,25 @@ from typing import Any
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.ks_element import KS_Element
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Variables
-from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 
 
-class Assignment:
+class Assignment(KS_Element):
     """
         Class for managing assignment expressions
     """
 
-    def __init__(self, var_name: str, value_expression: Expression):
+    def __init__(self, parser_node, var_name: str, value_expression: Expression):
         """
         Instantiate
+        :param parser_node:
         :param var_name: name of variable
         :param value_expression: value to assign
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._value_expression: Expression = value_expression
-        self._variable_name: str = var_name
-
-    @property
-    def variable_name(self) -> str:
-        """
-        :return: Name of variable being assigned
-        """
-        return self._variable_name
+        self.variable_name: str = var_name
 
     def assign_value(self, context: Knit_Script_Context, is_global: bool = False) -> Any:
         """
@@ -51,7 +45,10 @@ class Assignment:
         :param context: the current context to evaluate value at
         :return: Value that is being assigned to variable
         """
-        expression_result = self._value_expression.evaluate(context)
+        if not isinstance(self._value_expression, Expression):
+            expression_result = self._value_expression
+        else:
+            expression_result = self._value_expression.evaluate(context)
         return expression_result
 
     def __str__(self):

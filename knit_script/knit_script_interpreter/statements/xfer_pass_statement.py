@@ -17,18 +17,16 @@ class Xfer_Pass_Statement(Statement):
         Executes transfers at specified racking with target needles
     """
 
-    def __init__(self, racking: Expression,
-                 needles: List[Expression],
-                 bed: Optional[Expression],
-                 is_sliders: bool = False):
+    def __init__(self, parser_node, racking: Expression, needles: List[Expression], bed: Optional[Expression], is_sliders: bool = False):
         """
         Instantiate
+        :param parser_node:
         :param racking: racking for xfers
         :param needles: needles to start xfer from
         :param bed: beds to land on. Exclude needles already on bed
         :param is_sliders: True if transferring to sliders
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._is_sliders = is_sliders
         self._bed = bed
         self._racking = racking

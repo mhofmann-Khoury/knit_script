@@ -23,15 +23,15 @@ class Function_Call(Expression):
         The name of the function to call
     """
 
-    def __init__(self, func_name: Variable_Expression, args: List[Expression],
-                 kwargs: List[Assignment]):
+    def __init__(self, parser_node, func_name: Variable_Expression, args: List[Expression], kwargs: List[Assignment]):
         """
         Instantiate
+        :param parser_node:
         :param func_name: name of the function
         :param args: the list of argument expressions to fill in
         :param kwargs: the list of assignments to fill in by keywords
         """
-        super().__init__()
+        super().__init__(parser_node)
         self.kwargs: List[Assignment] = kwargs
         self.args: List[Expression] = args
         self.func_name: Variable_Expression = func_name

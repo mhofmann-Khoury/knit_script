@@ -11,13 +11,14 @@ class Assertion(Statement):
         Includes python style assertions in language
     """
 
-    def __init__(self, condition: Expression, error_str: Optional[Expression] = None):
+    def __init__(self, parser_node, condition: Expression, error_str: Optional[Expression] = None):
         """
         Instantiate
+        :param parser_node:
         :param condition: Condition to test
         :param error_str: error to report
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._error_str: Optional[Expression] = error_str
         self._condition: Expression = condition
 

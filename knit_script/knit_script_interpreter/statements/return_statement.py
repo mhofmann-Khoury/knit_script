@@ -9,12 +9,13 @@ class Return_Statement(Statement):
         Statement which will break out of function scope leaving behind a returned value
     """
 
-    def __init__(self, exp: Expression):
+    def __init__(self, parser_node, exp: Expression):
         """
         Instantiate
+        :param parser_node:
         :param exp: expression to return
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._exp: Expression = exp
 
     def execute(self, context: Knit_Script_Context):

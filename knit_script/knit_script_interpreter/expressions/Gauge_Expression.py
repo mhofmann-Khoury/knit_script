@@ -9,13 +9,14 @@ class Gauge_Expression(Expression):
     """
         Manages gauge expressions
     """
-    def __init__(self, sheet: Expression, gauge: Expression):
+    def __init__(self, parser_node, sheet: Expression, gauge: Expression):
         """
         Instantiate
+        :param parser_node:
         :param sheet: the sheet position
         :param gauge: the number of sheets
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._sheet: Expression = sheet
         self._gauge: Expression = gauge
 

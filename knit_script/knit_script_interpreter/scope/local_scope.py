@@ -14,7 +14,8 @@ class Knit_Script_Scope:
         Keeps track of values in a confined scope. Also accesses globals and checks python scope
     """
 
-    def __init__(self, parent=None, name: Optional[str] = None, is_function: bool = False, is_module: bool = False, module_scope=None):
+    def __init__(self, context, parent=None, name: Optional[str] = None, is_function: bool = False, is_module: bool = False, module_scope=None):
+        self.context = context
         self._is_module = is_module
         self._is_function = is_function
         self.returned: bool = False
@@ -23,7 +24,7 @@ class Knit_Script_Scope:
         self.module_scope: Optional[Knit_Script_Scope] = module_scope
         if self.parent is None:
             self.globals: Knit_Script_Globals = Knit_Script_Globals()
-            self.machine_scope: Machine_Scope = Machine_Scope()
+            self.machine_scope: Machine_Scope = Machine_Scope(self.context)
             self._sub_scope_globals = set()
         else:
             self.globals: Knit_Script_Globals = self.parent.globals
@@ -77,7 +78,7 @@ class Knit_Script_Scope:
         self.machine_scope.gauge = value
 
     @property
-    def sheet(self) -> int:
+    def sheet(self) -> Sheet_Identifier:
         """
         :return: The current sheet being worked on the machine
         """
@@ -177,7 +178,7 @@ class Knit_Script_Scope:
                 elif scope.module_scope is not None:
                     try:
                         return scope.module_scope[key]
-                    except NameError as e:
+                    except NameError:
                         pass
                 scope = scope.parent
             if is_global:
@@ -195,7 +196,7 @@ class Knit_Script_Scope:
         scope = self
         for key in path[:-1]:
             if key not in scope:
-                scope[key] = Knit_Script_Scope(scope, key, is_module=True)
+                scope[key] = Knit_Script_Scope(self.context, scope, key, is_module=True)
             scope = scope[key]
         scope[path[-1]] = value
 
@@ -266,6 +267,7 @@ class Knit_Script_Scope:
                         module_scope=None):
         """
         Enters a new sub scope and puts it into the hierarchy
+        :param module_scope:
         :param name: name of the sub_scope if a function or module
         :param is_function: If true, may have return values
         :param is_module: If true, module is added by variable name
@@ -273,7 +275,7 @@ class Knit_Script_Scope:
         """
         if is_module or is_function:
             assert name is not None, "Functions and Modules must be named"
-        child_scope = Knit_Script_Scope(self, name, is_function, is_module, module_scope=module_scope)
+        child_scope = Knit_Script_Scope(self.context, self, name, is_function, is_module, module_scope=module_scope)
         if is_module:
             self[name] = child_scope
         self.child_scope = child_scope

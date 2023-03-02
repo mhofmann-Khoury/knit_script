@@ -14,12 +14,13 @@ class Drop_Pass(Statement):
     """
         Executes a set of drops from left to right
     """
-    def __init__(self, needles: List[Expression]):
+    def __init__(self, parser_node, needles: List[Expression]):
         """
         Instantiate
+        :param parser_node:
         :param needles: the list of needles to drop from
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._needles: List[Expression] = needles
 
     def execute(self, context: Knit_Script_Context):

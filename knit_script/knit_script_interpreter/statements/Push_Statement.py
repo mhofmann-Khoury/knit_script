@@ -12,14 +12,14 @@ class Push_Statement(Statement):
         Pushes a layer to a specified position in hierarchy
     """
 
-    def __init__(self, needles: List[Expression],
-                 push_val: Union[str, Expression, Tuple[Expression, str]]):
+    def __init__(self, parser_node, needles: List[Expression], push_val: Union[str, Expression, Tuple[Expression, str]]):
         """
         Instantiate
+        :param parser_node:
         :param needles: needles to change layering
         :param push_val: direction, set to value, or direction with a given value
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._needles: List[Expression] = needles
         self._push_val: Union[str, Expression, Tuple[Expression, str]] = push_val
 

@@ -412,7 +412,10 @@ class Sheet_Identifier:
         return self.sheet < int(other)
 
     def __eq__(self, other):
-        return self.sheet == int(other)
+        if isinstance(other, Sheet_Identifier):
+            return self.sheet == other.sheet and self.gauge == other.gauge
+        else:
+            return self.sheet == int(other)
 
     def __gt__(self, other):
         return self.sheet > int(other)

@@ -9,12 +9,13 @@ class Not_Expression(Expression):
         Expression with a "not" negating them
     """
 
-    def __init__(self, negated_expression: Expression):
+    def __init__(self, parser_node, negated_expression: Expression):
         """
         Instantiate
+        :param parser_node:
         :param negated_expression: the expression to negate
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._negated_expression:Expression = negated_expression
 
     def evaluate(self, context: Knit_Script_Context) -> bool:

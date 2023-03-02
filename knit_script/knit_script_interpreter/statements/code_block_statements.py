@@ -9,12 +9,13 @@ from knit_script.knit_script_interpreter.statements.Statement import Statement
 class Code_Block(Statement):
     """Used for executing any block of code in a new scope"""
 
-    def __init__(self, statements: List[Statement]):
+    def __init__(self, parser_node, statements: List[Statement]):
         """
         Instantiate
+        :param parser_node:
         :param statements: ordered list of statements to execute
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._statements: List[Statement] = statements
 
     def execute(self, context: Knit_Script_Context):

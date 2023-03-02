@@ -84,7 +84,8 @@ class Machine_State:
 
     @gauge.setter
     def gauge(self, value: int):
-        assert value > 0, "Knitout Error: Gauging must be greater than 0"
+        assert 0 <= self.sheet < value, f"KnitScript Error: sheet {self.sheet} is greater than target gauge {value}"
+        assert value > 0, "KnitScript Error: Gauging must be greater than 0"
         assert value <= Machine_State.MAX_GAUGE, \
             f"KnitScript Error: Gauging cannot be greater than max_gauge=={Machine_State.MAX_GAUGE}"
         old_gauge = self.gauge
@@ -104,11 +105,14 @@ class Machine_State:
         Setting the layer will not reset the machine to a machine state to work the given layer
         :return: the current layer being worked
         """
-        return self._sheet
+        try:
+            return self._sheet
+        except AttributeError:
+            return 0
 
     @sheet.setter
     def sheet(self, value: int):
-        self.record_sheet(self.sheet)  # record layer before changing layers
+        # self.record_sheet(self.sheet)  # record layer before changing layers
         assert 0 <= value < self.gauge, f"KnitScript Error: Layer must be between 0 and the gauge {self.gauge}"
         self._sheet = value
 

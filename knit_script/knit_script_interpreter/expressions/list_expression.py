@@ -15,12 +15,13 @@ class Unpack(Expression):
         Used to unpack values into a tuple with * function
     """
 
-    def __init__(self, exp: Expression):
+    def __init__(self, parser_node, exp: Expression):
         """
         Instantiate
+        :param parser_node:
         :param exp: expression to unpack
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._exp = exp
 
     def evaluate(self, context: Knit_Script_Context) -> tuple:
@@ -43,12 +44,13 @@ class Knit_Script_List(Expression):
         Evaluates to list of expression values. Lists are not typed following python style conventions
     """
 
-    def __init__(self, expressions: List[Expression]):
+    def __init__(self, parser_node, expressions: List[Expression]):
         """
         Instantiate
+        :param parser_node:
         :param expressions: expressions to fill list with
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._expressions: List[Expression] = expressions
 
     def evaluate(self, context: Knit_Script_Context) -> list:
@@ -81,13 +83,11 @@ class Sliced_List(Expression):
         Slices a list using standard python syntax
     """
 
-    def __init__(self, iter_exp: Expression,
-                 start: Optional[Expression] = None, start_to_end: bool = False,
-                 end: Optional[Expression] = None, end_to_spacer: bool = False,
-                 spacer: Optional[Expression] = None,
-                 is_index: bool = False):
+    def __init__(self, parser_node, iter_exp: Expression, start: Optional[Expression] = None, start_to_end: bool = False, end: Optional[Expression] = None, end_to_spacer: bool = False,
+                 spacer: Optional[Expression] = None, is_index: bool = False):
         """
         Instantiate
+        :param parser_node:
         :param iter_exp: iterable to slice
         :param start: start of slice, inclusive, defaults to 0
         :param end: end of slice, exclusive, defaults to last element
@@ -98,7 +98,7 @@ class Sliced_List(Expression):
         end_to_spacer
         start_to_end
         """
-        super().__init__()
+        super().__init__(parser_node)
         if is_index:
             assert end is None and spacer is None
         self._is_index = is_index
@@ -161,17 +161,17 @@ class List_Comp(Expression):
         Runs a list comprehension over an iterator
     """
 
-    def __init__(self, fill_exp: Expression, spacer: Optional[Union[str, Expression]],
-                 variables: List[Variable_Expression], iter_exp: Expression, comp_cond: Optional[Expression]):
+    def __init__(self, parser_node, fill_exp: Expression, spacer: Optional[Union[str, Expression]], variables: List[Variable_Expression], iter_exp: Expression, comp_cond: Optional[Expression]):
         """
         Instantiate
+        :param parser_node:
         :param fill_exp: Expression that fills the list
-        :param spacer: the spacer value across the variables
+        :param spacer: the spacer value across the variables.
         :param variables: variables to fill from iterable
         :param iter_exp: the iterable to pass over
         :param comp_cond: condition to evaluate for adding a value
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._comp_cond: Optional[Expression] = comp_cond
         self._spacer: Optional[Union[str, Expression]] = spacer
         self._fill_exp: Expression = fill_exp
@@ -238,12 +238,13 @@ class Knit_Script_Dictionary(Expression):
         Used to process dictionary structures
     """
 
-    def __init__(self, kwargs: List[Tuple[Expression, Expression]]):
+    def __init__(self, parser_node, kwargs: List[Tuple[Expression, Expression]]):
         """
         Instantiate
+        :param parser_node:
         :param kwargs: the key value pairs of a dictionary
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._kwargs: List[Tuple[Expression, Expression]] = kwargs
 
     def evaluate(self, context: Knit_Script_Context) -> dict:
@@ -269,18 +270,18 @@ class Dictionary_Comprehension(Expression):
         Used for supporting dictionary comprehension
     """
 
-    def __init__(self, key: Expression, value: Expression,
-                 variables: List[Variable_Expression], iter_exp: Expression,
-                 spacer: Optional[Union[str, Expression]] = None, comp_cond: Optional[Expression] = None):
+    def __init__(self, parser_node, key: Expression, value: Expression, variables: List[Variable_Expression], iter_exp: Expression, spacer: Optional[Union[str, Expression]] = None,
+                 comp_cond: Optional[Expression] = None):
         """
         Instantiate
+        :param parser_node:
         :param key: key expression
         :param value: value expression
         :param variables: variables to parse from iterable
         :param iter_exp: the iterable to parse over
         todo add conditions to comprehension
         """
-        super().__init__()
+        super().__init__(parser_node)
         self._spacer = spacer
         self._comp_cond = comp_cond
         self._key: Expression = key

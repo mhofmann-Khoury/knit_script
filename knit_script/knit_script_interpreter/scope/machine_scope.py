@@ -48,7 +48,8 @@ class Machine_Scope:
         Keeps track of the machine state within different scopes
     """
 
-    def __init__(self, parent_scope=None):
+    def __init__(self, context, parent_scope=None):
+        self.context = context
         if parent_scope is None:
             self._direction: Pass_Direction = Pass_Direction.Leftward
             self._carrier: Optional[Yarn_Carrier] = None
@@ -62,6 +63,18 @@ class Machine_Scope:
             self._racking: float = parent_scope.racking
             self._gauge: int = parent_scope.gauge
             self._sheet: Sheet_Identifier = parent_scope.sheet
+
+    def copy(self):
+        """
+        :return: machine scope that is a copy of this machine scope
+        """
+        scope = Machine_Scope(self.context)
+        scope.direction = self.direction
+        scope.carrier = self.carrier
+        scope.racking = self.racking
+        scope.gauge = self.gauge
+        scope.sheet = self.sheet
+        return scope
 
     @property
     def direction(self) -> Pass_Direction:
@@ -117,10 +130,14 @@ class Machine_Scope:
             value = 1
         if not (0 < value < Machine_State.MAX_GAUGE):
             raise Gauge_Value_Error(value)
-        self._gauge = int(value)
-        if self.sheet >= self.gauge:
-            print(f"Knit Script Warning: Gauge of {self.gauge} is greater than current sheet {self.sheet} so sheet is set to {self.gauge - 1}")
-            self.sheet = self.gauge - 1
+        if self.gauge != int(value):
+            self._gauge = int(value)
+            self.context.machine_state.gauge = self.gauge
+            if 0 > int(self.sheet) or int(self.sheet) >= self.gauge:
+                print(f"Knit Script Warning: Gauge of {self.gauge} is greater than current sheet {self.sheet} so sheet is set to {self.gauge - 1}")
+                self.sheet = self.gauge - 1
+            else:
+                self.sheet = Sheet_Identifier(self.sheet.sheet, self.gauge)
 
     @property
     def sheet(self) -> Sheet_Identifier:
@@ -137,8 +154,14 @@ class Machine_Scope:
             if not (0 <= value < self.gauge):
                 raise Sheet_Value_Error(value, self.gauge)
             value = Sheet_Identifier(value, self.gauge)
-        self.gauge = value.gauge
-        self._sheet = value
+        if self.gauge != value.gauge:
+            self.gauge = value.gauge
+        if self.sheet != value:
+            self._sheet = value
+            self.context.machine_state.sheet = self.sheet.sheet
+        if 0 > int(self.sheet) or int(self.sheet) >= self.gauge:
+            print(f"Knit Script Warning: Gauge of {self.gauge} is greater than current sheet {self.sheet} so sheet is set to {self.gauge - 1}")
+            self.sheet = self.gauge - 1
 
     def __getitem__(self, key: str) -> Any:
         if Machine_Variables.in_machine_variables(key):

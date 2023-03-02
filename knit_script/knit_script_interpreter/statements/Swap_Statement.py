@@ -8,8 +8,8 @@ from knit_script.knitting_machine.machine_components.needles import Needle
 
 class Swap_Statement(Statement):
 
-    def __init__(self, needles: List[Expression], swap_type: str, value: Expression):
-        super().__init__()
+    def __init__(self, parser_node, needles: List[Expression], swap_type: str, value: Expression):
+        super().__init__(parser_node)
         self._needles = needles
         if swap_type == "sheet":
             self._layer: Optional[Expression] = None

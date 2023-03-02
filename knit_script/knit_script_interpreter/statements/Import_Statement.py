@@ -16,8 +16,8 @@ class Import_Statement(Statement):
         A statement that imports a python or knit script module
     """
 
-    def __init__(self, src: Expression, alias: Optional[Expression] = None):
-        super().__init__()
+    def __init__(self, parser_node, src: Expression, alias: Optional[Expression] = None):
+        super().__init__(parser_node)
         self.src: Expression = src
         self.alias: Optional[str] = alias
 
