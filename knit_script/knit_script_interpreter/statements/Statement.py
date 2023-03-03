@@ -1,5 +1,4 @@
 """Basic statement structures"""
-from parglare.common import Location
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -15,7 +14,6 @@ class Statement(KS_Element):
     def __init__(self, parser_node: LRStackNode):
         super().__init__(parser_node)
 
-
     def execute(self, context: Knit_Script_Context):
         """
         Executes the instruction at the current machine context
@@ -28,6 +26,7 @@ class Expression_Statement(Statement):
     """
         Statement with no effect on program state but creates and does not use an expression
     """
+
     def __init__(self, parser_node, expression: Expression):
         """
         Instantiate

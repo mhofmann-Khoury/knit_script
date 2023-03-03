@@ -36,11 +36,10 @@ class Import_Statement(Statement):
             alias = self.src.variable_name
         else:
             alias = None
-        module = None
         try:
             try:
                 module = importlib.import_module(src_string)
-            except ModuleNotFoundError as e:
+            except ModuleNotFoundError:
                 module = importlib.import_module(f'knit_script.knit_script_std_library.{src_string}')
         except (ImportError, ModuleNotFoundError) as e:
             local_path = os.path.dirname(context.ks_file)

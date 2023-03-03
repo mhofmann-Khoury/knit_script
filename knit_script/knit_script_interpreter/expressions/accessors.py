@@ -42,7 +42,7 @@ class Attribute_Accessor_Expression(Expression):
         if len(self.parent) == 1:
             return self.parent[0]
         else:
-            return Attribute_Accessor_Expression(parser_node, self.parent[:-1], self.parent[1])
+            return Attribute_Accessor_Expression(self.parser_node, self.parent[:-1], self.parent[1])
 
     def parent_path(self):
         """
@@ -59,7 +59,7 @@ class Attribute_Accessor_Expression(Expression):
             parent_source: Expression = self.parent[0]
             parent = parent_source.evaluate(context)
         else:  # recursively process parent path
-            parent_accessor = Attribute_Accessor_Expression(parser_node, self.parent[:-1], self.parent[-1])
+            parent_accessor = Attribute_Accessor_Expression(self.parser_node, self.parent[:-1], self.parent[-1])
             parent = parent_accessor.evaluate(context)
         return parent
 
@@ -152,7 +152,7 @@ class Attribute_Accessor_Expression(Expression):
             attribute = self.attribute.evaluate(context)
             if isinstance(attribute, Needle):
                 if isinstance(parent, Machine_State):
-                    if isinstance(attribute, Sheet_Needle): # assume actual position instead of sheet conversion
+                    if isinstance(attribute, Sheet_Needle):  # assume actual position instead of sheet conversion
                         return parent[Needle(attribute.is_front, attribute.sheet_pos)]
                     else:
                         return parent[attribute]

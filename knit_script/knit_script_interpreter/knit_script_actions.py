@@ -265,6 +265,7 @@ def f_string_section(parser_node, __, exp: Optional[Expression] = None, string_v
     if exp is not None:
         return exp
     else:
+        string_value = string_value.replace("\\n", "\n")
         return String_Value(parser_node, string_value)
 
 

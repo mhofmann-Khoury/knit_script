@@ -9,6 +9,13 @@ $ pip install -e .
 ```
 This will clone the [repository](https://github.com/mhofmann-Khoury/knit_script) to your machine and then install the system for active development to your python interpreter associated with pip. This will give you access to knit_script from anywhere on your machine as other standard python libraries.
 
+Distribution is updated with the following commands from within the repo directory:
+```
+python setup.py sdist
+python -m build
+twine upload dist/*
+```
+
 ## Install Stable Version from [PyPI](https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3)
 
 ```

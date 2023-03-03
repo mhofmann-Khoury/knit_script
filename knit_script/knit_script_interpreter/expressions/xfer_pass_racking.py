@@ -24,7 +24,7 @@ class Xfer_Pass_Racking(Expression):
         """
         super().__init__(parser_node)
         self._side: Optional[Expression] = side
-        self._is_across:bool = is_across
+        self._is_across: bool = is_across
         if self._is_across:
             self._distance_expression = 0
         self._distance_expression: Optional[Expression] = distance_expression
@@ -45,8 +45,8 @@ class Xfer_Pass_Racking(Expression):
                     direction = Machine_Position.Left
                 else:
                     direction = Machine_Position.Right
-            assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right],\
-                f"Expected Left or Right Direction but got {direction}"
+            assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right], \
+                f"KS:{self.line_number}: Expected Left or Right Direction but got {direction}"
             if direction is Machine_Position.Left:
                 return Machine_State.get_rack(front_pos=0, back_pos=-1 * distance)
             else:

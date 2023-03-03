@@ -25,7 +25,8 @@ class Print(Statement):
         """
         print_str = f"KS: {self._string.evaluate(context)}"
         print(print_str)
-        context.knitout.append(f";{print_str}\n")
+        ks_string = print_str.replace("\n", "\n;")
+        context.knitout.append(f";{ks_string}\n")
 
     def __str__(self):
         return f"Print({self._string})"
