@@ -9,7 +9,30 @@ from knit_script.knitting_machine.machine_components.machine_position import Mac
 
 
 class TestKnit_Pass_Interpreter(TestCase):
-    parser = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
+    parser = Knit_Script_Interpreter(debug_grammar=True, debug_parser=True, debug_parser_layout=False)
+
+    def test_parser(self):
+        program = r"""
+def alt_tuck_needle_set(co_needles, co_dir=Leftward):{
+    if co_dir == Leftward:{
+        in co_dir direction:{
+            tuck co_needles[1::2];
+        }
+        in reverse direction:{
+            tuck co_needles[0::2];
+        }
+    } else:{
+        in co_dir direction:{
+            tuck co_needles[0::2];
+        }
+        in reverse direction:{
+            tuck co_needles[1::2];
+        }
+    }
+}
+        """
+        header, statements = self.parser.parse(program)
+        print(statements)
 
     def test_values(self):
         program = "1.2;"

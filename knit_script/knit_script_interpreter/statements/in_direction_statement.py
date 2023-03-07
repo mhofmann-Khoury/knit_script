@@ -36,13 +36,18 @@ class In_Direction_Statement(Statement):
         direction = self._direction.evaluate(context)
         needles_to_instruction: Dict[Needle, Needle_Instruction] = {}
 
+        has_splits = False
         for instruction_exp in self._instructions:
             instruction, needles = instruction_exp.evaluate(context)
+            if instruction is Needle_Instruction.split:
+                has_splits = True
             for needle in needles:
                 needles_to_instruction[needle] = instruction
 
         machine_pass = Carriage_Pass(needles_to_instruction, direction)
-        machine_pass.write_knitout(context)
+        context.last_carriage_pass_result = machine_pass.write_knitout(context)
+        if not has_splits: # no second needle to report
+            context.last_carriage_pass_result = [n for n in context.last_carriage_pass_result.keys()]
         context.exit_current_scope()
 
     def __str__(self):

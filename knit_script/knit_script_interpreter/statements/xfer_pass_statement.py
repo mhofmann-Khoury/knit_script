@@ -67,14 +67,16 @@ class Xfer_Pass_Statement(Statement):
 
         racking = self._racking.evaluate(context)
         if racking != 0:  # rack for left or right transfers
+            results = {}
             front_needles_to_instruction = {n: i for n, i in needles_to_instruction.items() if n.is_front}
             if len(front_needles_to_instruction) > 0:
                 machine_pass = Carriage_Pass(front_needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking)
-                machine_pass.write_knitout(context)
+                results.update(machine_pass.write_knitout(context))
             back_needles_to_instruction = {n: i for n, i in needles_to_instruction.items() if n.is_back}
             if len(back_needles_to_instruction) > 0:
-                machine_pass = Carriage_Pass(back_needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking * -1) # racking is reversed for back bed xfers
-                machine_pass.write_knitout(context)
+                machine_pass = Carriage_Pass(back_needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking * -1)  # racking is reversed for back bed xfers
+                results.update(machine_pass.write_knitout(context))
+            context.last_carriage_pass_result = results
         else:
             machine_pass = Carriage_Pass(needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking)
-            machine_pass.write_knitout(context)
+            context.last_carriage_pass_result = machine_pass.write_knitout(context)

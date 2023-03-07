@@ -55,7 +55,7 @@ class Carriage_Pass:
         requires_rack = self._rack is not None and self._rack != context.racking
         return requires_rack or self._require_second
 
-    def write_knitout(self, context: Knit_Script_Context):
+    def write_knitout(self, context: Knit_Script_Context) -> Dict[Needle, Optional[Needle]]:
         """
         Executes machine pass instructions on the current context
         :param context: the knit_pass context to execute on
@@ -101,12 +101,15 @@ class Carriage_Pass:
             else:
                 context.knitout.extend(f"rack {context.racking - .25}; All needle racking {context.racking} to left\n")
 
+        results = {}
+
         for needle in needles_in_order:
             instruction = self._needle_to_instruction[needle]
             if instruction.requires_second_needle:
                 second_needle = context.machine_state.xfer_needle_at_racking(needle, slider=self._to_sliders)
             else:
                 second_needle = None
+            results[needle] = second_needle
             executed_instruction = instruction.execute(context.machine_state, needle,
                                                        context.direction, context.carrier,
                                                        second_needle)
@@ -117,6 +120,7 @@ class Carriage_Pass:
             context.machine_state.yarn_manager.count_machine_pass()
         # tries to releasehook before next pass
         self._attempt_releasehook(context, needles_in_order)
+        return results
 
     def _attempt_releasehook(self, context, needles_in_order):
         # manage a preemptive releasehook operation

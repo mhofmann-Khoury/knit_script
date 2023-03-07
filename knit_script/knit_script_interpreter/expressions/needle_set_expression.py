@@ -1,7 +1,7 @@
 """Expressions for accessing standard needle sets from the machine state"""
 
 from enum import Enum
-from typing import List
+from typing import List, Optional, Dict, Union
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -10,6 +10,7 @@ from knit_script.knitting_machine.machine_components.needles import Needle
 
 class Needle_Sets(Enum):
     """Naming of Needles sets on Machine State"""
+    Last_Pass = "Last_Pass"
     Needles = "Needles"
     Front_Needles = "Front_Needles"
     Back_Needles = "Back_Needles"
@@ -43,7 +44,7 @@ class Needle_Set_Expression(Expression):
         """
         return self._set_str
 
-    def evaluate(self, context: Knit_Script_Context) -> List[Needle]:
+    def evaluate(self, context: Knit_Script_Context) -> Union[List[Needle], Dict[Needle, Optional[Needle]]]:
         """
         Evaluate the expression
         :param context: The current context of the knit_script_interpreter
@@ -74,6 +75,9 @@ class Needle_Set_Expression(Expression):
             return context.machine_state.all_loops()
         elif kp_set is Needle_Sets.Slider_Loops:
             return context.machine_state.all_slider_loops()
+        elif kp_set is Needle_Sets.Last_Pass:
+            return context.last_carriage_pass_result
+
 
     def __str__(self):
         return self._set_str

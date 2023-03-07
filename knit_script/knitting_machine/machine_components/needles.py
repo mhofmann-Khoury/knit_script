@@ -1,5 +1,6 @@
 """File used to manage Needles and Slider Needles"""
 import math
+from copy import copy
 from typing import Set, Iterable
 
 from knit_script.knit_graphs.Loop import Loop

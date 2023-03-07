@@ -68,7 +68,7 @@ class Markov_Tree:
                 self._grow_branch(row, needle)
 
     def _print_row(self, row: int) -> str:
-        s = ""
+        s = f"{row}: "
         for branch_point in self.tree[row]:
             if branch_point is None:
                 s += "*"
@@ -87,5 +87,5 @@ class Markov_Tree:
 
 
 # random.seed(10)
-tree = Markov_Tree(10, 10)
-print(tree)
+# tree = Markov_Tree(10, 10)
+# print(tree)

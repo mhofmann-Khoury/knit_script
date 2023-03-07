@@ -1,5 +1,5 @@
 """Manages variable scope and machine state of knit pass during execution"""
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 
 from knit_script.knit_script_interpreter.header_structure import Header
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
@@ -24,6 +24,7 @@ class Knit_Script_Context:
         self.knitout: List[str] = self._header.header_lines()
         self.ks_file: Optional[str] = ks_file
         self.parser = parser
+        self.last_carriage_pass_result: Union[List[Needle], Dict[Needle, Optional[Needle]]] = {}
 
     @property
     def header(self) -> Header:
@@ -199,3 +200,5 @@ class Knit_Script_Context:
         """
         for statement in statements:
             statement.execute(self)
+
+

@@ -43,4 +43,5 @@ class Drop_Pass(Statement):
 
         machine_pass = Carriage_Pass(needles_to_instruction, Pass_Direction.Rightward)
 
-        machine_pass.write_knitout(context)
+        needle_results = machine_pass.write_knitout(context)
+        context.last_carriage_pass_result = [n for n in needle_results.keys()] # stores needles that were dropped

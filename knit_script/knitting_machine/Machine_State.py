@@ -552,7 +552,7 @@ class Machine_State:
     def all_slider_loops(self, on_sheet: bool = True, sheet: Optional[int] = None, gauge: Optional[int] = None) -> List[Needle]:
         """
         All slider needles that hold loops ordered for a machine pass
-        :param on_sheet: If true, only returns loops on specified sheet
+        :param on_sheet: If true, only returns loops on specified sheet.
         :param sheet: sheet defaults to current sheet
         :param gauge: gauge defaults to current gauge
         :return: Set of front bed needles with loops on them
@@ -739,6 +739,11 @@ class Machine_State:
                     self.set_layer_position(other_pos, other_layer, set_other_positions=False)
 
     def swap_layer_at_positions(self, first_pos: int, second_pos: int):
+        """
+        Swaps the layer values between two needle positions
+        :param first_pos:
+        :param second_pos:
+        """
         first_layer = self._needle_pos_to_layer_pos[first_pos]
         self._needle_pos_to_layer_pos[first_pos] = self._needle_pos_to_layer_pos[second_pos]
         self._needle_pos_to_layer_pos[second_pos] = first_layer
