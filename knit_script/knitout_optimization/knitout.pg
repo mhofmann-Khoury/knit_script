@@ -1,0 +1,82 @@
+S: program;
+
+program: code=code_line+;
+
+code_line: magic_string | header_line | instruction;
+
+magic_string: ";!" "knitout" "-" v=int_exp;
+header_line: ";;" h_op=header_op;
+header_op: machine_op
+			| gauge_op
+			| yarn_op
+			| carriers_op
+			| position_op
+			| h_extension_op
+			| width_op;
+
+machine_op: "Machine" ":" m=identifier;
+gauge_op: "Gauge" ":" g=int_exp;
+yarn_op: "Yarn" "-" C=int_exp ":" yt=yarn_type color=identifier;
+yarn_type: l=int_exp "-" r=int_exp;
+carriers_op: "Carriers" ":" CS=carrier_set;
+position_op: "Position" ":" p=identifier;
+h_extension_op: "X" "-" code=identifier;
+width_op: "Width" ":" w=int_exp;
+
+instruction: in_op
+				| inhook_op
+				| releasehook_op
+				| out_op
+				| outhook_op
+				| stitch_op
+				| rack_op
+				| knit_op
+				| tuck_op
+				| split_op
+				| drop_op
+				| amiss_op
+				| xfer_op
+				| miss_op
+				| pause_op
+				| extension_op;
+
+in_op: "in" cs=carrier_set;
+inhook_op: "inhook" cs=carrier_set;
+releasehook_op: "releasehook" cs=carrier_set;
+out_op: "out" cs=carrier_set;
+outhook_op: "outhook" cs=carrier_set;
+stitch_op: "stitch" L=float_exp T=float_exp;
+rack_op: "rack" R=float_exp ;
+knit_op: "knit" D=direction N=needle_id CS=carrier_set;
+tuck_op: "tuck" D=direction N=needle_id CS=carrier_set;
+split_op: "split" D=direction N=needle_id N2=needle_id CS=carrier_set ;
+drop_op: "drop" N=needle_id ;
+amiss_op: "amiss" N=needle_id;
+xfer_op: "xfer" N=needle_id N2=needle_id ;
+miss_op: "miss" D=direction N=needle_id CS=carrier_set;
+pause_op: "pause";
+extension_op: "x-" code=identifier;
+
+
+
+direction: "+" | "-";
+
+carrier_set: carriers=carrier+;
+carrier: int_exp | identifier;
+
+
+/*layout structure handles comments in language*/
+
+LAYOUT: LayoutItem | LAYOUT LayoutItem | EMPTY;
+LayoutItem: WS | Comment;
+
+terminals
+
+identifier: /[a-zA-Z_]+[0-9a-zA-Z_]*/{9};
+float_exp: /-?[0-9]*(\.?[0-9]+)?/;
+int_exp: /-?[0-9]+/ {prefer};
+needle_id: /[fb]s?[0-9]+/{10};
+semi_colon: ";";
+
+WS: /\s+/;
+Comment: /(?<!;);(?![;!]).*/;

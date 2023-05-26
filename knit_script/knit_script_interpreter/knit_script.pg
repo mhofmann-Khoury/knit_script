@@ -206,10 +206,7 @@ expression: expression "^" expression {right, 6}
             | sliced_list {9}
             | identifier {8};
 
-/*layout structure handles comments in language*/
 
-LAYOUT: LayoutItem | LAYOUT LayoutItem | EMPTY;
-LayoutItem: WS | Comment;
 Comment: '/*' CorNCs '*/' | LineComment;
 CorNCs: CorNC | CorNCs CorNC | EMPTY;
 CorNC: Comment | NotComment | WS;

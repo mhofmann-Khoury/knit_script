@@ -52,7 +52,7 @@ class Pass_Direction(Enum):
     @staticmethod
     def get_direction(dir_str):
         """
-        Returns a Pass direction enum given a valid string
+        Returns a Pass direction enum given a valid string.
         :param dir_str: string to convert to direction
         :return: Pass direction by string
         """
@@ -74,6 +74,16 @@ class Pass_Direction(Enum):
         position_sorted = sorted(needles,
                                  key=functools.cmp_to_key(lambda x, y: Needle.needle_at_racking_cmp(x, y, racking)),
                                  reverse=not ascending)
+        for i in range(1, len(position_sorted)-1):
+            l = position_sorted[i-1]
+            n = position_sorted[i]
+            r = position_sorted[i + 1]
+            if l.racked_position_on_front(racking) == n.racked_position_on_front(racking) and (not l.is_front) and n.is_front:
+                position_sorted[i-1] = n
+                position_sorted[i] = l
+            elif n.racked_position_on_front(racking) == r.racked_position_on_front(racking) and (not n.is_front) and r.is_front:
+                position_sorted[i] = r
+                position_sorted[i+1] = n
         return position_sorted
 
     def __str__(self):
