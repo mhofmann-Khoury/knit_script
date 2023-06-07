@@ -64,7 +64,7 @@ class Knit_Script_Interpreter:
             caller_file = stack()[1].filename
             self._knit_pass_context.ks_file = caller_file
         self._interpret_knit_script(pattern, pattern_is_file)
-        self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.yarn_manager.cut_all_yarns())
+        self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.carrier_system.cut_all_yarns())
         with open(out_file_name, "w") as out:
             out.writelines(self._knit_pass_context.knitout)
         knitgraph = self._knit_pass_context.machine_state.knit_graph
@@ -83,7 +83,7 @@ class Knit_Script_Interpreter:
             self._knit_pass_context.execute_header(header)
             self._knit_pass_context.execute_statements(statements)
         except AssertionError as e:
-            self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.yarn_manager.cut_all_yarns())
+            self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.carrier_system.cut_all_yarns())
             with open("error.k", "w") as out:
                 out.writelines(self._knit_pass_context.knitout)
             knitout_to_dat(f"error.k", f"error.dat")

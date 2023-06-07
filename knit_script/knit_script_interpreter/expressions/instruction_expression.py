@@ -8,7 +8,7 @@ from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.knitout_instructions import knit, tuck, xfer, split, miss, drop
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Needle_Instruction(Enum):
@@ -83,7 +83,7 @@ class Needle_Instruction(Enum):
         return self is Needle_Instruction.xfer
 
     def execute(self, machine_state: Machine_State, first_needle: Needle,
-                direction: Optional[Pass_Direction] = None, carrier: Optional[Yarn_Carrier] = None,
+                direction: Optional[Pass_Direction] = None, carrier: Optional[Carrier_Set] = None,
                 second_needle: Optional[Needle] = None) -> str:
         """
         Update machine state with knitout instruction with given parameters

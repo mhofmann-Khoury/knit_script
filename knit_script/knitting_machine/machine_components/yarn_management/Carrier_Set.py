@@ -1,40 +1,33 @@
 """
     Representation of a Yarn Carrier on the machine
 """
-from typing import Union, List, Optional
+from typing import Union, List
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Loop import Loop
-
-from knit_script.knit_graphs.Yarn import Yarn
 from knit_script.knit_script_interpreter.knit_script_errors.yarn_management_errors import Duplicate_Carrier_Error, Non_Existent_Carrier_Error
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier import Carrier
 
 
-class Yarn_Carrier:
+class Carrier_Set:
     """
     A structure to represent the location of a Yarn_carrier
     ...
 
     Attributes
     ----------
-    loops_since_release: int
-        The number of loops that have been made with carrier since a release hook was called
-        Stays 0 when not on the yarn inserting hook
     """
 
-    def __init__(self, carrier_ids: Union[int, List[Union[int]]] = 3, carrier_name: Optional[str] = None):
+    def __init__(self, carrier_ids: Union[int, List[Union[int]]] = 3):
         """
         Represents the state of the yarn_carriage
-        :param carrier_name:
         :param carrier_ids: The carrier_id for this yarn
         """
-        if carrier_name is None:
-            carrier_name = f"C{carrier_ids}"
         if isinstance(carrier_ids, int):
             self._carrier_ids = [carrier_ids]
-        elif isinstance(carrier_ids, Yarn_Carrier):
+        elif isinstance(carrier_ids, Carrier_Set):
             self._carrier_ids = [*carrier_ids._carrier_ids]
-        else: # list or carriers or integers
+        else:  # list or carriers or integers
             duplicates = set()
             self._carrier_ids = []
             for c in carrier_ids:
@@ -44,7 +37,7 @@ class Yarn_Carrier:
                     duplicates.add(c)
                     self._carrier_ids.append(c)
                 else:
-                    assert isinstance(c, Yarn_Carrier)
+                    assert isinstance(c, Carrier_Set)
                     for c_id in c._carrier_ids:
                         if c_id in duplicates:
                             raise Duplicate_Carrier_Error(c_id)
@@ -53,24 +46,35 @@ class Yarn_Carrier:
         for carrier in self.carrier_ids:
             if not (1 <= carrier <= 10):
                 raise Non_Existent_Carrier_Error(carrier)
-            assert 1 <= carrier <= 10, f"Carriers must between 1 and 10, but got {carrier}"
-        self._yarns: List[Yarn] = [Yarn(f"{carrier_name}.{cid}") for cid in self.carrier_ids]
-        self.loops_since_release: int = 0
+            assert 1 <= carrier <= 10, f"Carriers must between 1 and 10, but got {carrier}"  # todo parameter carrier spacing by machine type
 
-    def create_loops(self, knit_graph:Knit_Graph) -> List[Loop]:
+    def get_carriers(self, carrier_system) -> List[Carrier]:
+        """
+        :param carrier_system: carrier system referenced by set
+        :return: carriers that correspond to the ids in the carrier set
+        """
+        return [carrier_system[cid] for cid in self.carrier_ids]
+
+    def create_loops(self, knit_graph: Knit_Graph, carrier_system) -> List[Loop]:
         """
         Creates a list of loops from the yarns in the carrier set
-        :param knit_graph: the KnitGraph to add the loops to
+        :param carrier_system:
+        :param knit_graph: The KnitGraph to add the loops to
         :return: the loops
         """
-        self.loops_since_release += 1
-        return [y.add_loop_to_end(knit_graph=knit_graph)[1] for y in self._yarns]
+        carriers = self.get_carriers(carrier_system)
+        loops = [carrier.yarn.add_loop_to_end(knit_graph=knit_graph)[1] for carrier in carriers]
+        for carrier in carriers:
+            carrier.count_loop()
+        return loops
 
-    def release_carrier(self):
+    def release_carriers(self, carrier_system):
         """
             Sets the carrier as being released from yarn inserting hook
+            :param carrier_system:
         """
-        self.loops_since_release = 0
+        for carrier in self.get_carriers(carrier_system):
+            carrier.releasehook()
 
     @property
     def carrier_ids(self) -> List[int]:
@@ -80,7 +84,7 @@ class Yarn_Carrier:
         return self._carrier_ids
 
     @property
-    def many_yarns(self) -> bool:
+    def many_carriers(self) -> bool:
         """
         :return: True if this carrier involves multiple carriers
         """
@@ -88,26 +92,44 @@ class Yarn_Carrier:
 
     def __str__(self):
         carriers = ""
-        for carrier in self.carrier_ids:
-            carriers += f" {carrier}"
+        for cid in self.carrier_ids:
+            carriers += f" {cid}"
         return carriers
 
     def __repr__(self):
         return str(self)
 
     def __hash__(self):
-        if self.many_yarns:
+        if self.many_carriers:
             hash_val = 0
             for i, carrier in enumerate(self.carrier_ids):
-                hash_val += (10 ** i) * carrier  # gives unique hash for list of different orders
+                hash_val += (10 ** i) * carrier  # gives unique hash for a list of different orders
             return hash_val
         else:
             return self.carrier_ids[0]
 
     def __eq__(self, other):
-        if isinstance(other, Yarn_Carrier):
+        if isinstance(other, Carrier_Set):
             return hash(self) == hash(other)
         return False
 
     def __iter__(self):
         return iter(self.carrier_ids)
+
+    def __len__(self):
+        return len(self.carrier_ids)
+
+    @property
+    def carrier_count(self) -> int:
+        """
+        :return: number of carriers
+        """
+        return len(self)
+
+    @staticmethod
+    def carrier_set_by_count(carrier_count: int = 10):
+        """
+        :param carrier_count: the number of carriers in the carrier set
+        :return: a carrier set of that size
+        """
+        return Carrier_Set([i for i in range(1, carrier_count + 1)])

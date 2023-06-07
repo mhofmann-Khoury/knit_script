@@ -62,7 +62,7 @@ class Carriage_Pass:
         """
 
         # Force a releasehook before racking or xfers
-        if not context.machine_state.yarn_manager.inserting_hook_available:  # check for release hook
+        if not context.machine_state.carrier_system.inserting_hook_available:  # check for release hook
             if self._needs_released_hook(context):
                 cmd = releasehook(context.machine_state)
                 context.knitout.append(cmd)
@@ -117,23 +117,23 @@ class Carriage_Pass:
         context.racking = cur_rack
 
         if self._knitting_pass:  # only counts towards release hook if new loops are created
-            context.machine_state.yarn_manager.count_machine_pass()
+            context.machine_state.carrier_system.count_machine_pass()
         # tries to releasehook before next pass
         self._attempt_releasehook(context, needles_in_order)
         return results
 
     def _attempt_releasehook(self, context, needles_in_order):
         # manage a preemptive releasehook operation
-        if context.machine_state.yarn_manager.inserting_hook_available:  # nothing to release
+        if context.machine_state.carrier_system.inserting_hook_available:  # nothing to release
             return
 
         has_conflicting_needle = False  # requires a pre-emptive releasehook operation
         for needle in needles_in_order:
-            if context.machine_state.yarn_manager.conflicts_with_inserting_hook(needle, self._direction):
+            if context.machine_state.carrier_system.conflicts_with_inserting_hook(needle, self._direction):
                 has_conflicting_needle = True
                 break
         # Attempt release hooks at end of each pass. Often results in no actions
-        release = context.machine_state.yarn_manager.try_releasehook()  # true if enough knits or needed to prevent conflict
+        release = context.machine_state.carrier_system.try_releasehook()  # true if enough knits or needed to prevent conflict
         if release or has_conflicting_needle:
             cmd = releasehook(context.machine_state)
             context.knitout.append(cmd)

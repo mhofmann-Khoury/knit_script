@@ -1,20 +1,11 @@
 from unittest import TestCase
 
-from knit_script.knitout_optimization.knitout_parser import Knitout_Parser
+from knit_script.knitout_optimization.Knitout_Interpreter import Knitout_Interpreter
 
 
-def _print_parse(parser, pattern, is_file: bool = False):
-    v, header, instructions, codes_by_line, comments = parser.parse(pattern, pattern_is_file=is_file)
-    print(f"Version == {v}")
-    print(str(header))
-    print(str(instructions))
-    print(str(codes_by_line))
-    print(str(comments))
-
-
-class TestKnitout_Parser(TestCase):
+class TestKnitout_Interpreter(TestCase):
     def test_header(self):
-        parser = Knitout_Parser(False, False)
+        interpreter = Knitout_Interpreter(True, True)
         pattern = r"""
         ;!knitout-2
         ;;Machine: SWG091N2
@@ -24,10 +15,10 @@ class TestKnitout_Parser(TestCase):
         ;;Carriers: 1 2 3 4 5 6 7 8 9 10
         ;;Yarn-5: 50-50 Rust
         """
-        _print_parse(parser, pattern)
+        interpreter.write_trimmed_knitout(pattern, out_file="test.k", pattern_is_file=False)
 
     def test_instructions(self):
-        parser = Knitout_Parser(False, False)
+        interpreter = Knitout_Interpreter(True, True)
         pattern = r"""
         ;!knitout-2
         inhook  1 ;
@@ -36,10 +27,10 @@ class TestKnitout_Parser(TestCase):
         tuck - b35 1 ; 
                 """
 
-        _print_parse(parser, pattern)
+        interpreter.write_trimmed_knitout(pattern, out_file="test.k", pattern_is_file=False)
 
     def test_comments(self):
-        parser = Knitout_Parser(False, False)
+        interpreter = Knitout_Interpreter(True, True)
         pattern = r"""
         ;!knitout-2
         ;;Machine: SWG091N2
@@ -47,10 +38,10 @@ class TestKnitout_Parser(TestCase):
         inhook  1 ; inline comment
         ; solo comment
                 """
-        _print_parse(parser, pattern)
+        interpreter.write_trimmed_knitout(pattern, out_file="test.k", pattern_is_file=False)
 
     def test_sample(self):
-        parser = Knitout_Parser(False, False, False)
+        interpreter = Knitout_Interpreter(True, True)
         pattern = r"""
                 ;!knitout-2
                 ;;Machine: SWG091N2
@@ -58,9 +49,9 @@ class TestKnitout_Parser(TestCase):
                 ;;Yarn-5: 50-50 Rust
                 ;;Carriers: 1 2 3 4 5 6 7 8 9 10
                 ;;Position: Right
-                
+
                 inhook 5
-                
+
                 tuck - f10 5
                 tuck - f8 5
                 tuck - f6 5
@@ -71,9 +62,9 @@ class TestKnitout_Parser(TestCase):
                 tuck + f5 5
                 tuck + f7 5
                 tuck + f9 5
-                
+
                 releasehook 5
-                
+
                 knit - f10 5
                 knit - f9 5
                 knit - f8 5
@@ -84,7 +75,7 @@ class TestKnitout_Parser(TestCase):
                 knit - f3 5
                 knit - f2 5
                 knit - f1 5
-                
+
                 knit + f1 5
                 knit + f2 5
                 knit + f3 5
@@ -95,7 +86,7 @@ class TestKnitout_Parser(TestCase):
                 knit + f8 5
                 knit + f9 5
                 knit + f10 5
-                
+
                 outhook 5
                         """
-        _print_parse(parser, pattern)
+        interpreter.write_trimmed_knitout(pattern, out_file="test.k", pattern_is_file=False)

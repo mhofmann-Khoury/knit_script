@@ -5,12 +5,12 @@ from typing import Optional, List, Tuple, Iterable, Dict, Union
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph, Pull_Direction
 from knit_script.knit_graphs.Loop import Loop
 from knit_script.knitting_machine.knitout_instructions import xfer
-from knit_script.knitting_machine.machine_components.Carrier_Grippers import Carrier_Insertion_System
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Insertion_System import Carrier_Insertion_System
 from knit_script.knitting_machine.machine_components.Sheet_Needle import get_sheet_needle, Sheet_Needle, Slider_Sheet_Needle
 from knit_script.knitting_machine.machine_components.machine_bed import Machine_Bed
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle, Slider_Needle
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Machine_State:
@@ -28,7 +28,7 @@ class Machine_State:
         The status of needles on the back bed
     last_carriage_direction: Pass_Direction
         the last direction the carriage took, used to infer the current position of the carriage (left or right)
-    yarn_manager: Carrier_Insertion_System
+    carrier_system: Carrier_Insertion_System
         The system used to track the state of carriers and the yarn inserting hook
     knit_graph: Knit_Graph
         The knit graph that has been made by operations on the machine
@@ -49,7 +49,7 @@ class Machine_State:
         self.back_bed: Machine_Bed = Machine_Bed(is_front=False, needle_count=needle_count)
         self.last_carriage_direction: Pass_Direction = Pass_Direction.Rightward
         # Presumes carriage is left on Right side before knitting
-        self.yarn_manager: Carrier_Insertion_System = Carrier_Insertion_System(carrier_count, hook_size)
+        self.carrier_system: Carrier_Insertion_System = Carrier_Insertion_System(carrier_count, hook_size)
         self._loop_id_counter: int = 0
         self.knit_graph: Knit_Graph = Knit_Graph()
         self._gauge: int = 1
@@ -122,39 +122,39 @@ class Machine_State:
         """
         return self.front_bed.sliders_are_clear() and self.back_bed.sliders_are_clear()
 
-    def in_hook(self, yarn_carrier: Yarn_Carrier):
+    def in_hook(self, yarn_carrier: Carrier_Set):
         """
         Declares that the in_hook for this yarn carrier is in use
         :param yarn_carrier: the yarn_carrier to bring in
         """
-        self.yarn_manager.inhook(yarn_carrier)
+        self.carrier_system.inhook(yarn_carrier)
 
     def release_hook(self):
         """
         Declares that the in-hook is not in use but yarn remains in use
         """
-        self.yarn_manager.releasehook()
+        self.carrier_system.releasehook()
 
-    def out_hook(self, yarn_carrier: Yarn_Carrier):
+    def out_hook(self, yarn_carrier: Carrier_Set):
         """
         Declares that the yarn is no longer in service, will need to be in-hooked to use
         :param yarn_carrier: the yarn carrier to remove from service
         """
-        self.yarn_manager.outhook(yarn_carrier)
+        self.carrier_system.outhook(yarn_carrier)
 
-    def bring_in(self, yarn_carrier: Yarn_Carrier):
+    def bring_in(self, yarn_carrier: Carrier_Set):
         """
         Brings the yarn carrier into action
         :param yarn_carrier:
         """
-        self.yarn_manager.bring_in(yarn_carrier)
+        self.carrier_system.bring_in(yarn_carrier)
 
-    def out(self, yarn_carrier: Yarn_Carrier):
+    def out(self, yarn_carrier: Carrier_Set):
         """
         Moves the yarn_carrier out of action
         :param yarn_carrier:
         """
-        self.yarn_manager.out(yarn_carrier)
+        self.carrier_system.out(yarn_carrier)
 
     def switch_carriage_direction(self):
         """
@@ -181,7 +181,7 @@ class Machine_State:
         loops_on_back = self[Needle(is_front=False, position=needle_position)].has_loops
         self._loop_record[needle_position] = loops_on_front, loops_on_back
 
-    def add_loops(self, needle: Needle, carrier_set: Optional[Yarn_Carrier] = None,
+    def add_loops(self, needle: Needle, carrier_set: Optional[Carrier_Set] = None,
                   loops: Optional[Iterable[Loop]] = None,
                   drop_prior_loops: bool = True, record_needle=True) -> List[Loop]:
         """
@@ -197,9 +197,9 @@ class Machine_State:
         bed = self.front_bed if needle.is_front else self.back_bed
         prior_loops = [l for l in bed[needle].held_loops]
         if carrier_set is not None:
-            assert self.yarn_manager.is_active(carrier_set), f"Yarn Carrier {carrier_set} not in operation"
-            self.yarn_manager.make_loop(carrier_set, needle)
-        loops = bed.add_loops(needle, self.knit_graph, carrier_set, loops, drop_prior_loops=drop_prior_loops)
+            assert self.carrier_system.is_active(carrier_set), f"Yarn Carrier {carrier_set} not in operation"
+            self.carrier_system.make_loop(carrier_set, needle)
+        loops = bed.add_loops(needle, self.knit_graph, self.carrier_system, carrier_set, loops, drop_prior_loops=drop_prior_loops)
         if new_loops:  # Manage Knit Graph construction
             for loop in loops:
                 if drop_prior_loops:
@@ -210,9 +210,9 @@ class Machine_State:
             self.record_needle_position(needle.position)
         return loops
 
-    def knit(self, needle: Needle, carrier_set: Yarn_Carrier, record_needle=True) -> List[Loop]:
+    def knit(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
         """
-        Create new loop with carrier set on needle. Pull through held needles
+        Create new loop with the carrier set on needle. Pull through held needles,
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
         :param needle: needle to knit with
         :param carrier_set: carrier set to use to make loop (multiple loops when plating with multiple carrier
@@ -223,7 +223,7 @@ class Machine_State:
         loops = self.add_loops(needle, carrier_set, drop_prior_loops=True, record_needle=record_needle)
         return loops
 
-    def tuck(self, needle: Needle, carrier_set: Yarn_Carrier, record_needle=True) -> List[Loop]:
+    def tuck(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
         """
         Create new loop with carrier set on needle. Do not pull through held loops
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
@@ -276,7 +276,7 @@ class Machine_State:
             self.add_loops(target, loops=loops, drop_prior_loops=False, record_needle=record_needle)
             self.drop(start, record_needle=record_needle)
 
-    def split(self, start: Needle, target: Needle, carrier_set: Yarn_Carrier, record_needle=True) -> List[Loop]:
+    def split(self, start: Needle, target: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
         """
         Xfers needle from start to target and makes new loop with carrier set on start needle
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets

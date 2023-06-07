@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, Set, Union
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Variable_Scope:
@@ -121,7 +121,7 @@ class Variable_Scope:
         self[self._direction_id] = value
 
     @property
-    def current_carrier(self) -> Optional[Yarn_Carrier]:
+    def current_carrier(self) -> Optional[Carrier_Set]:
         """
         :return: Active carrier at current scope
         """
@@ -129,14 +129,14 @@ class Variable_Scope:
         return carrier
 
     @current_carrier.setter
-    def current_carrier(self, carrier: Optional[Yarn_Carrier]):
+    def current_carrier(self, carrier: Optional[Carrier_Set]):
         if isinstance(carrier, int):
-            carrier = Yarn_Carrier(carrier)
+            carrier = Carrier_Set(carrier)
         elif isinstance(carrier, float):
-            carrier = Yarn_Carrier(int(carrier))
+            carrier = Carrier_Set(int(carrier))
         elif isinstance(carrier, list):
-            carrier = Yarn_Carrier(carrier)
-        assert carrier is None or isinstance(carrier, Yarn_Carrier), f"Cannot set Carrier to non-carrier, int, or list of ints/carriers {carrier}"
+            carrier = Carrier_Set(carrier)
+        assert carrier is None or isinstance(carrier, Carrier_Set), f"Cannot set Carrier to non-carrier, int, or list of ints/carriers {carrier}"
         self[self._carrier_id] = carrier
 
     @property

@@ -2,6 +2,9 @@
 from enum import Enum
 from typing import Optional
 
+from knit_script.knitout_optimization.Knitout_Context import Knitout_Context
+from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line
+
 
 class Instruction_Type(Enum):
     """
@@ -31,34 +34,16 @@ class Instruction_Type(Enum):
         return str(self)
 
 
-class Instruction:
+class Instruction(Knitout_Line):
     """
         Super class for knitout operations
     """
 
-    def __init__(self, instruction_type: Instruction_Type):
+    def __init__(self, instruction_type: Instruction_Type, comment: Optional[str]):
+        super().__init__(comment)
         self.instruction_type = instruction_type
-        self.comment = None
-
-    @property
-    def has_comment(self) -> bool:
-        """
-        :return: True if comment is present
-        """
-        return self.comment is not None
-
-    @property
-    def comment_str(self) -> str:
-        """
-        :return: comment as a string
-        """
-        if not self.has_comment:
-            return ""
-        else:
-            return self.comment
 
     def __str__(self):
-        return f"{self.instruction_type};{self.comment_str}\n"
+        return f"{self.instruction_type}{self.comment_str}"
 
-    def __repr__(self):
-        return str(self)
+

@@ -6,7 +6,7 @@ from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_G
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope, Machine_Variables
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Knit_Script_Scope:
@@ -45,14 +45,14 @@ class Knit_Script_Scope:
         self.machine_scope.direction = value
 
     @property
-    def carrier(self) -> Optional[Yarn_Carrier]:
+    def carrier(self) -> Optional[Carrier_Set]:
         """
         :return: the current carrier being used by the machine
         """
         return self.machine_scope.carrier
 
     @carrier.setter
-    def carrier(self, carrier: Optional[Yarn_Carrier]):
+    def carrier(self, carrier: Optional[Carrier_Set]):
         self.machine_scope.carrier = carrier
 
     @property

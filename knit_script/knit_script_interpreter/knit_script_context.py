@@ -9,7 +9,7 @@ from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_N
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Position
 from knit_script.knitting_machine.machine_components.needles import Needle, Slider_Needle
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Knit_Script_Context:
@@ -79,20 +79,20 @@ class Knit_Script_Context:
         self.variable_scope.direction = value
 
     @property
-    def carrier(self) -> Optional[Yarn_Carrier]:
+    def carrier(self) -> Optional[Carrier_Set]:
         """
         :return: Carrier in use at scope
         """
         return self.variable_scope.carrier
 
     @carrier.setter
-    def carrier(self, carrier: Optional[Yarn_Carrier]):
+    def carrier(self, carrier: Optional[Carrier_Set]):
         if self.carrier != carrier:
             self.variable_scope.carrier = carrier
             if self.carrier is not None \
-                    and not self.machine_state.yarn_manager.is_active(self.carrier):  # if yarn is not active, bring it in by inhook operation
-                if self.machine_state.yarn_manager.yarn_is_loose(self.carrier):  # inhook loose yarns
-                    if not self.machine_state.yarn_manager.inserting_hook_available:
+                    and not self.machine_state.carrier_system.is_active(self.carrier):  # if yarn is not active, bring it in by inhook operation
+                if self.machine_state.carrier_system.yarn_is_loose(self.carrier):  # inhook loose yarns
+                    if not self.machine_state.carrier_system.inserting_hook_available:
                         releasehook_op = releasehook(self.machine_state, f"Releasehook to activate carrier {self.carrier}")
                         self.knitout.append(releasehook_op)
                     inhook_op = inhook(self.machine_state, self.carrier, f"Activating carrier {self.carrier}")

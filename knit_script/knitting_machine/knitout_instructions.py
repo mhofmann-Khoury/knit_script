@@ -5,7 +5,7 @@ import os
 
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 def rack(machine_state, racking: float, comment: str = "") -> str:
@@ -21,7 +21,7 @@ def rack(machine_state, racking: float, comment: str = "") -> str:
     return f"rack {racking} ;{comment}\n"
 
 
-def _make_carrier_set(carrier: Yarn_Carrier) -> str:
+def _make_carrier_set(carrier: Carrier_Set) -> str:
     """
     Returns the string of the carrier formatted for knitout
     :param carrier: the set of carriers to be converted to a carrier set command parameter
@@ -32,7 +32,7 @@ def _make_carrier_set(carrier: Yarn_Carrier) -> str:
     return str(carrier)
 
 
-def miss(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Yarn_Carrier, comment: str = "") -> str:
+def miss(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Carrier_Set, comment: str = "") -> str:
     """
     Move the specified carriers as if they had just formed a loop in direction D at location N.
     (Not generally needed, used when performing explicit kickbacks or purposeful yarn capture.)
@@ -45,12 +45,12 @@ def miss(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: 
     direction
     machine_state
     """
-    assert machine_state.yarn_manager.is_active(carrier_set), f"Yarn-Carrier {carrier_set} is not active"
+    assert machine_state.carrier_system.is_active(carrier_set), f"Yarn-Carrier {carrier_set} is not active"
     carriers = _make_carrier_set(carrier_set)
     return f"miss {direction} {needle} {carriers};{comment}\n"
 
 
-def knit(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Yarn_Carrier, comment: str = "", record_needle=True):
+def knit(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Carrier_Set, comment: str = "", record_needle=True):
     """
     Pull a loop formed in direction D by the yarns in carriers CS through the loops on needle N,
     dropping them in the process.
@@ -68,7 +68,7 @@ def knit(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: 
     return f"knit {direction} {needle}{carriers} ;knit loops: {loops}. {comment}\n"
 
 
-def tuck(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Yarn_Carrier, comment: str = "", record_needle=True) -> str:
+def tuck(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Carrier_Set, comment: str = "", record_needle=True) -> str:
     """
     Add a loop formed in direction D by the yarns held by carriers in CS to those already on needle N.
     Tucking with an empty carrier set will pull on the stitches without doing anything else (an "a-miss").
@@ -86,7 +86,7 @@ def tuck(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: 
 
 
 def split(machine_state, direction: Pass_Direction, start: Needle, target,
-          carrier_set: Yarn_Carrier, comment: str = "", record_needle=True) -> str:
+          carrier_set: Carrier_Set, comment: str = "", record_needle=True) -> str:
     """
     Pull a loop formed in direction D by the yarns in carriers CS through the loops on needle N,
     transferring the old loops to opposite-bed needle N2 in the process.
@@ -115,7 +115,7 @@ def drop(machine_state, needle: Needle, comment: str = "", record_needle=True) -
     :param comment: additional details to document in the knitout
     :return: the drop instruction
     """
-    loops = machine_state.drop(needle, record_needle)
+    loops = machine_state.drop_from_needle(needle, record_needle)
     return f"drop {needle} ;Dropped loops: {loops}. {comment}\n"
 
 
@@ -134,7 +134,7 @@ def xfer(machine_state, start: Needle, target: Needle, comment: str = "", record
     return f"xfer {start} {target} ;{comment}\n"
 
 
-def bring_in(machine_state, carrier_set: Yarn_Carrier, comment: str = "") -> str:
+def bring_in(machine_state, carrier_set: Carrier_Set, comment: str = "") -> str:
     """
     enter is used to avoid confusion with "in" keyword. Brings yarn carrier into action without yarn holding hook
     :param machine_state: the current machine model to update
@@ -146,7 +146,7 @@ def bring_in(machine_state, carrier_set: Yarn_Carrier, comment: str = "") -> str
     return f"in {_make_carrier_set(carrier_set)} ;{comment}{os.linesep}"
 
 
-def inhook(machine_state, carrier_set: Yarn_Carrier, comment: str = "") -> str:
+def inhook(machine_state, carrier_set: Carrier_Set, comment: str = "") -> str:
     """
     Indicate that the given carrier set should be brought into action using the yarn inserting hook when next used.
     The inserting hook will be parked just before the first stitch made with the carriers
@@ -167,7 +167,7 @@ def releasehook(machine_state, comment: str = "") -> str:
     :param comment: additional details to document in the knitout
     :return: the releasehook instruction
     """
-    released_carrier = machine_state.yarn_manager.hooked_carrier
+    released_carrier = machine_state.carrier_system.hooked_carriers
     machine_state.release_hook()
     if released_carrier is None:
         return f"; no-op. Releasehook with no hooked carriers\n"
@@ -175,7 +175,7 @@ def releasehook(machine_state, comment: str = "") -> str:
         return f"releasehook {_make_carrier_set(released_carrier)} ;{comment}\n"
 
 
-def outhook(machine_state, carrier_set: Yarn_Carrier, comment: str = "") -> str:
+def outhook(machine_state, carrier_set: Carrier_Set, comment: str = "") -> str:
     """
     Release the yarns currently held in the yarn inserting hook.
     Must be proceeded by a call to inhook with the same carrier set and at least one knitting operation.
@@ -188,7 +188,7 @@ def outhook(machine_state, carrier_set: Yarn_Carrier, comment: str = "") -> str:
     return f"outhook {_make_carrier_set(carrier_set)} ;{comment}\n"
 
 
-def out(machine_state, carrier_set: Yarn_Carrier, comment: str = "") -> str:
+def out(machine_state, carrier_set: Carrier_Set, comment: str = "") -> str:
     """
     Bring a set of carriers out of action by directly moving into the grippers
     :param machine_state: the current machine model to update

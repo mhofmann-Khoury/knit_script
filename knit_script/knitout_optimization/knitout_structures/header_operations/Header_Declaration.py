@@ -1,51 +1,25 @@
-from enum import Enum
 from typing import Optional
 
-
-class Header_Operation(Enum):
-    """
-        Header operations
-    """
-    Machine = "Machine"
-    Gauge = "Gauge"
-    Yarn = "Yarn"
-    Carriers = "Carriers"
-    Position = "Position"
-    Width = "Width"
-    X = "X-"
-
-    def __str__(self):
-        return self.value
+from knit_script.knit_script_interpreter.header_structure import Header, Header_ID
+from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line
 
 
-class Header_Declaration:
+class Header_Declaration(Knitout_Line):
     """
         Super class of all header operations in knitout
     """
 
-    def __init__(self, op_name: Header_Operation):
-        self.comment = None
+    def __init__(self, op_name: Header_ID, comment: Optional[str]):
+        super().__init__(comment)
         self.operation = op_name
-
-    @property
-    def has_comment(self) -> bool:
-        """
-        :return: True if comment is present
-        """
-        return self.comment is not None
-
-    @property
-    def comment_str(self) -> str:
-        """
-        :return: comment as a string
-        """
-        if not self.has_comment:
-            return ""
-        else:
-            return self.comment
 
     def __str__(self):
         return f";;{self.operation}{self.comment_str}"
 
-    def __repr__(self):
-        return str(self)
+    def add_to_header(self, header: Header) -> bool:
+        """
+        update the header or redundancy error
+        :param header: header to check against
+        :return: True if header is updated
+        """
+        return False

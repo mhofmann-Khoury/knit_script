@@ -7,7 +7,7 @@ from knit_script.knit_script_interpreter.knit_script_errors.gauge_errors import 
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Machine_Variables(Enum):
@@ -52,14 +52,14 @@ class Machine_Scope:
         self.context = context
         if parent_scope is None:
             self._direction: Pass_Direction = Pass_Direction.Leftward
-            self._carrier: Optional[Yarn_Carrier] = None
+            self._carrier: Optional[Carrier_Set] = None
             self._racking: float = 0.0
             self._gauge: int = 1
             self._sheet: Sheet_Identifier = Sheet_Identifier(0, self._gauge)
         else:
             assert isinstance(parent_scope, Machine_Scope)
             self._direction: Pass_Direction = parent_scope.direction
-            self._carrier: Optional[Yarn_Carrier] = parent_scope.carrier
+            self._carrier: Optional[Carrier_Set] = parent_scope.carrier
             self._racking: float = parent_scope.racking
             self._gauge: int = parent_scope.gauge
             self._sheet: Sheet_Identifier = parent_scope.sheet
@@ -89,21 +89,21 @@ class Machine_Scope:
         self._direction = value
 
     @property
-    def carrier(self) -> Optional[Yarn_Carrier]:
+    def carrier(self) -> Optional[Carrier_Set]:
         """
         :return: the current carrier being used by the machine
         """
         return self._carrier
 
     @carrier.setter
-    def carrier(self, carrier: Optional[Union[int, float, list, Yarn_Carrier]]):
+    def carrier(self, carrier: Optional[Union[int, float, list, Carrier_Set]]):
         if isinstance(carrier, int):
-            carrier = Yarn_Carrier(carrier)
+            carrier = Carrier_Set(carrier)
         elif isinstance(carrier, float):
-            carrier = Yarn_Carrier(int(carrier))
+            carrier = Carrier_Set(int(carrier))
         elif isinstance(carrier, list):
-            carrier = Yarn_Carrier(carrier)
-        assert carrier is None or isinstance(carrier, Yarn_Carrier), f"Cannot set Carrier to non-carrier, int, or list of ints/carriers {carrier}"
+            carrier = Carrier_Set(carrier)
+        assert carrier is None or isinstance(carrier, Carrier_Set), f"Cannot set Carrier to non-carrier, int, or list of ints/carriers {carrier}"
         self._carrier = carrier
 
     @property

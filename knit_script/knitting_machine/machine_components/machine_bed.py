@@ -6,7 +6,7 @@ from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Loop import Loop
 
 from knit_script.knitting_machine.machine_components.needles import Slider_Needle, Needle
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Machine_Bed:
@@ -55,10 +55,11 @@ class Machine_Bed:
         """
         return self._is_front
 
-    def add_loops(self, needle: Needle, knit_graph: Knit_Graph, yarn_carrier: Optional[Yarn_Carrier] = None, loops: Optional[List[Loop]] = None, drop_prior_loops: bool = True) -> \
+    def add_loops(self, needle: Needle, knit_graph: Knit_Graph, carrier_system, yarn_carrier: Optional[Carrier_Set] = None, loops: Optional[List[Loop]] = None, drop_prior_loops: bool = True) -> \
             List[Loop]:
         """
         Puts the loop_id on given needle, overrides existing loops as if a knit operation took place
+        :param carrier_system:
         :param knit_graph: The Knitgraph to add loops to
         :param loops: the loops to put on the needle if not creating with the yarn carrier
         :param yarn_carrier: The yarn carrier the loops are made with
@@ -67,7 +68,7 @@ class Machine_Bed:
         :return Returns the list of loops made with the carrier on this needle
         """
         if loops is None:
-            loops = yarn_carrier.create_loops(knit_graph)
+            loops = yarn_carrier.create_loops(knit_graph, carrier_system)
             for loop in loops:
                 knit_graph.add_loop(loop)
         needle = self[needle]  # make sure needle instance is the one in the machine bed state

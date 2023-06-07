@@ -1,7 +1,7 @@
 """Carrier expression"""
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knitting_machine.machine_components.yarn_carrier import Yarn_Carrier
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Carrier_Expression(Expression):
@@ -18,12 +18,12 @@ class Carrier_Expression(Expression):
         super().__init__(parser_node)
         self._carrier_str: str = carrier_str
 
-    def evaluate(self, context: Knit_Script_Context) -> Yarn_Carrier:
+    def evaluate(self, context: Knit_Script_Context) -> Carrier_Set:
         """
         :param context:
         :return: carrier with given integer
         """
-        return Yarn_Carrier(int(self._carrier_str[1:]))
+        return Carrier_Set(int(self._carrier_str[1:]))
 
     def __str__(self):
         return self._carrier_str

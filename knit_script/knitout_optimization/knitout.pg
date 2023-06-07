@@ -61,13 +61,13 @@ extension_op: "x-" code=identifier;
 
 direction: "+" | "-";
 
-carrier_set: carriers=carrier+;
-carrier: int_exp | identifier;
+carrier_set: carriers=int_exp+;
 
 
 /*layout structure handles comments in language*/
-
-LAYOUT: LayoutItem | LAYOUT LayoutItem | EMPTY;
+LAYOUT: comment_line | commented_line | EMPTY;
+comment_line: LayoutItem;
+commented_line: code=LAYOUT comment=LayoutItem;
 LayoutItem: WS | Comment;
 
 terminals
