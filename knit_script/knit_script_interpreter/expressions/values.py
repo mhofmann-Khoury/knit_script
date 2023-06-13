@@ -2,7 +2,8 @@
 from typing import Any
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.header_structure import Header_ID, Machine_Type
+from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 

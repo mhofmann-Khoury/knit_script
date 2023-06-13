@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 
 class Knitout_Line:
@@ -8,6 +8,11 @@ class Knitout_Line:
 
     def __init__(self, comment: Optional[str]):
         self.comment = comment
+        self.original_line_number: Optional[int] = None
+        self.follow_comments: List[Comment_Line] = []
+
+    def add_follow_comment(self, comment_line):
+        self.follow_comments.append(comment_line)
 
     @property
     def has_comment(self) -> bool:
@@ -35,10 +40,19 @@ class Knitout_Line:
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __lt__(self, other):
+        if self.original_line_number is None:
+            if other.original_line_number is None:
+                return False
+            else:
+                return True
+        else:
+            return self.original_line_number < other.original_line_number
+
 
 class Version_Line(Knitout_Line):
 
-    def __init__(self, version: int, comment: Optional[str]=None):
+    def __init__(self, version: int, comment: Optional[str] = None):
         super().__init__(comment)
         self.version = version
 

@@ -1,7 +1,7 @@
 """Parser code for accessing Parglare language support"""
 from typing import Tuple
 
-from parglare import Parser, Grammar
+from parglare import Parser, Grammar, GLRParser
 from pkg_resources import resource_stream
 
 from knit_script.knit_script_interpreter.knit_script_actions import action

@@ -1,7 +1,7 @@
 from typing import Optional
 
-from knit_script.knit_script_interpreter.header_structure import Header, Header_ID
 from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 
 
 class Header_Declaration(Knitout_Line):
@@ -16,7 +16,7 @@ class Header_Declaration(Knitout_Line):
     def __str__(self):
         return f";;{self.operation}{self.comment_str}"
 
-    def add_to_header(self, header: Header) -> bool:
+    def add_to_header(self, header) -> bool:
         """
         update the header or redundancy error
         :param header: header to check against

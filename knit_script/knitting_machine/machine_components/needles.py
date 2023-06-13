@@ -1,6 +1,5 @@
 """File used to manage Needles and Slider Needles"""
 import math
-from copy import copy
 from typing import Set, Iterable
 
 from knit_script.knit_graphs.Loop import Loop
@@ -74,11 +73,14 @@ class Needle:
         """
         for l in loops:
             self.add_loop(l)
+            l.put_on_needle(self)
 
     def drop(self):
         """
         releases all held loops by resetting the loop-set
         """
+        for l in self.held_loops:
+            l.drop_from_needle()
         self.held_loops = set()
 
     @property

@@ -48,7 +48,7 @@ class Machine_State:
         self.front_bed: Machine_Bed = Machine_Bed(is_front=True, needle_count=needle_count)
         self.back_bed: Machine_Bed = Machine_Bed(is_front=False, needle_count=needle_count)
         self.last_carriage_direction: Pass_Direction = Pass_Direction.Rightward
-        # Presumes carriage is left on Right side before knitting
+        # Presumes carriage is left on the Right side before knitting
         self.carrier_system: Carrier_Insertion_System = Carrier_Insertion_System(carrier_count, hook_size)
         self._loop_id_counter: int = 0
         self.knit_graph: Knit_Graph = Knit_Graph()
@@ -198,7 +198,7 @@ class Machine_State:
         prior_loops = [l for l in bed[needle].held_loops]
         if carrier_set is not None:
             assert self.carrier_system.is_active(carrier_set), f"Yarn Carrier {carrier_set} not in operation"
-            self.carrier_system.make_loop(carrier_set, needle)
+            self.carrier_system.make_loop(carrier_set, needle, self.knit_graph)
         loops = bed.add_loops(needle, self.knit_graph, self.carrier_system, carrier_set, loops, drop_prior_loops=drop_prior_loops)
         if new_loops:  # Manage Knit Graph construction
             for loop in loops:
@@ -213,7 +213,7 @@ class Machine_State:
     def knit(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
         """
         Create new loop with the carrier set on needle. Pull through held needles,
-        :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
+        :param record_needle: If true, records locations of loops at this position. Used for resetting sheets.
         :param needle: needle to knit with
         :param carrier_set: carrier set to use to make loop (multiple loops when plating with multiple carrier
         :return: list of loops created
@@ -225,11 +225,11 @@ class Machine_State:
 
     def tuck(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
         """
-        Create new loop with carrier set on needle. Do not pull through held loops
+        Create a new loop with a carrier set on needle. Do not pull through held loops
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
         :param needle: needle to tuck with
-        :param carrier_set: carrier set to make loops from
-        :return: list of loops created
+        :param carrier_set: carrier set to make loops from.
+        :return: List of loops created
         """
         assert not needle.is_slider, f"Cannot tuck on slider {needle}"
         assert self.sliders_are_clear(), "Cannot tuck when sliders are in use"

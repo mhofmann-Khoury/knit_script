@@ -5,8 +5,9 @@ class Duplicate_Carrier_Error(Knit_Script_Error):
     """
         Error for reporting that a carrier is used twice in a carrier declaration
     """
+
     def __init__(self, carrier: int):
-        self._carrier:int = carrier
+        self._carrier: int = carrier
         super().__init__(self._message())
 
     @property
@@ -15,14 +16,16 @@ class Duplicate_Carrier_Error(Knit_Script_Error):
         :return: The carrier that errored
         """
         return self._carrier
+
     def _message(self) -> str:
-        return f"Duplicate carrier declared: {self._carrier} "# todo: error management that tracks line numbers
+        return f"Duplicate carrier declared: {self._carrier} "  # todo: error management that tracks line numbers
 
 
 class Non_Existent_Carrier_Error(Knit_Script_Error):
     """Raised when using a carrier that is not available on the machine"""
+
     def __init__(self, carrier: int):
-        self._carrier:int = carrier
+        self._carrier: int = carrier
         super().__init__(self._message())
 
     @property

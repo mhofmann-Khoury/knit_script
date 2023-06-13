@@ -1,7 +1,7 @@
 """The Loop data structure"""
 from typing import List, Optional
 
-from knit_script.knitting_machine.machine_components.needles import Needle
+from knit_script.knitout_optimization.knitout_structures.knitout_instructions.instruction import Instruction
 
 
 class Loop:
@@ -25,7 +25,7 @@ class Loop:
         The position of this loop relative to other layers
     """
 
-    def __init__(self, loop_id: int, yarn, layer: int = 0, is_twisted: bool = False, holding_needle: Optional[Needle] = None):
+    def __init__(self, loop_id: int, yarn, layer: int = 0, is_twisted: bool = False, holding_needle = None):
         """
         :param holding_needle: needle that currently holds the loop
         :param layer:
@@ -34,7 +34,8 @@ class Loop:
         :param is_twisted: True if the loop should be twisted
             (created by pulling a carrier backwards across the needle)
         """
-        self._holding_needle: Optional[Needle] = holding_needle
+        self._holding_needle= holding_needle
+        self.operations: List[Instruction] = []
         self.is_twisted: bool = is_twisted
         assert loop_id >= 0, f"{loop_id}: Loop_id must be non-negative"
         self._loop_id: int = loop_id
@@ -42,7 +43,7 @@ class Loop:
         self.parent_loops: List[Loop] = []
         self.layer: int = layer
 
-    def put_on_needle(self, needle: Needle):
+    def put_on_needle(self, needle):
         """
         :param needle: Needle that now holds the loop
         """
@@ -55,7 +56,7 @@ class Loop:
         self._holding_needle = None
 
     @property
-    def holding_needle(self) -> Optional[Needle]:
+    def holding_needle(self):
         """
         :return: Needle that currently holds this loop
         """
@@ -67,6 +68,10 @@ class Loop:
         :return: True if loop is on a needle
         """
         return self.holding_needle is not None
+
+    def apply_operation(self, instruction: Instruction):
+        self.operations.append(instruction)
+        # todo update holding needle based on operation
 
     def add_parent_loop(self, parent, stack_position: Optional[int] = None):
         """

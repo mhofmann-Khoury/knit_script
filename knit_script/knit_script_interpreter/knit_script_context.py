@@ -1,7 +1,7 @@
 """Manages variable scope and machine state of knit pass during execution"""
 from typing import Optional, List, Union, Dict
 
-from knit_script.knit_script_interpreter.header_structure import Header
+from knit_script.knitting_machine.machine_specification.Header import Header
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.knitout_instructions import inhook, bring_in, rack, releasehook
@@ -13,7 +13,7 @@ from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set
 
 
 class Knit_Script_Context:
-    """Manages state of the Knitting machine during program execution"""
+    """Manages the state of the Knitting machine during program execution"""
 
     def __init__(self, parent_scope: Optional[Knit_Script_Scope] = None,
                  bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
@@ -200,5 +200,3 @@ class Knit_Script_Context:
         """
         for statement in statements:
             statement.execute(self)
-
-

@@ -116,6 +116,9 @@ class Carrier_Set:
     def __iter__(self):
         return iter(self.carrier_ids)
 
+    def __getitem__(self, item: int):
+        return self.carrier_ids[item]
+
     def __len__(self):
         return len(self.carrier_ids)
 

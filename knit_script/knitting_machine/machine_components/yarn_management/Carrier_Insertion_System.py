@@ -1,6 +1,7 @@
 """Representation of the carrier managing components of the machine"""
 from typing import Dict, Optional, List
 
+from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Yarn import Yarn
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
@@ -108,27 +109,28 @@ class Carrier_Insertion_System:
                 return True  # yarn is not on inserting hook and has no needles for its loops
         return False
 
-    def bring_in(self, carrier: Carrier_Set):
+    def bring_in(self, carrier_set: Carrier_Set):
         """
         Brings in a yarn carrier without insertion hook (tail to gripper). Yarn is considered loose until knit
-        :param carrier:
+        :param carrier_set:
         """
-        for cid in carrier.carrier_ids:
-            if self[cid].yarn.last_needle() is None:
-                print(f"Knit Script Warning: yarn {cid} is loose and may not knit correctly. Suggestion: Use inhook {cid}")
-            self[cid].bring_in()
+        for carrier in carrier_set.get_carriers(self):
+            if carrier.yarn.last_needle() is None:
+                print(f"Knit Script Warning: yarn {carrier.yarn} on carrier {carrier} is loose and may not knit correctly. Suggestion: Use inhook {carrier.carrier_id}")
+            carrier.bring_in()
 
-    def inhook(self, carrier: Carrier_Set):
+    def inhook(self, carrier_set: Carrier_Set):
         """
         Brings a yarn in with insertion hook. Yarn is not loose
-        :param carrier:
+        :param carrier_set:
         """
         assert self.inserting_hook_available, \
-            f"Cannot inhook {carrier} while {self.hooked_carriers} is on yarn inserting hook"
-        self.hooked_carriers = carrier
+            f"Cannot inhook {carrier_set} while {self.hooked_carriers} is on yarn inserting hook"
+        self.hooked_carriers = carrier_set
         self._searching_for_position = True
         self.hook_position = None
-        self.bring_in(carrier)
+        for carrier in carrier_set.get_carriers(self):
+            carrier.inhook()
 
     def releasehook(self):
         """
@@ -159,22 +161,23 @@ class Carrier_Insertion_System:
                     return False
             return True
 
-    def out(self, carrier: Carrier_Set):
+    def out(self, carrier_set: Carrier_Set):
         """
         Moves carrier to gripper, removing it from action but does not cut it loose
-        :param carrier:
+        :param carrier_set:
         """
-        for cid in carrier.carrier_ids:
-            self[cid].out()
+        for carrier in carrier_set.get_carriers(self):
+            carrier.out()
 
-    def outhook(self, carrier: Carrier_Set):
+    def outhook(self, carrier_set: Carrier_Set):
         """
-        Cuts carrier yarn, moves it to grippers with insertion hook. Carrier will no longer be active and is now loose
-        :param carrier:
+        Cuts carrier yarn, moves it to grippers with insertion hook.
+        The Carrier will no longer be active and is now loose
+        :param carrier_set:
         """
-        assert self.inserting_hook_available, f"Cannot outhook {carrier} because inserting hook is holding {self.hooked_carriers}"
-        for cid in carrier.carrier_ids:
-            self[cid].outhook()
+        assert self.inserting_hook_available, f"Cannot outhook {carrier_set} because inserting hook is holding {self.hooked_carriers}"
+        for carrier in carrier_set.get_carriers(self):
+            carrier.outhook()
 
     def cut_all_yarns(self) -> List[str]:
         """
@@ -190,9 +193,10 @@ class Carrier_Insertion_System:
                 carrier_operations.append(f"outhook {cid}; Cut yarn {cid}, disconnecting knitted piece\n")  # todo, unify knitout operations
         return carrier_operations
 
-    def make_loop(self, carrier: Carrier_Set, needle: Needle):
+    def make_loop(self, carrier: Carrier_Set, needle: Needle, knit_graph: Knit_Graph):
         """
         Establishes that yarn carrier has been used to make a loop at a given needle
+        :param knit_graph:
         :param carrier:
         :param needle:
         """
@@ -200,7 +204,7 @@ class Carrier_Insertion_System:
             self.hook_position = needle.position
             self._searching_for_position = False
         for cid in carrier.carrier_ids:
-            loop_id, loop = self[cid].yarn.add_loop_to_end()
+            loop_id, loop = self[cid].yarn.add_loop_to_end(knit_graph=knit_graph)
             loop.put_on_needle(needle)
 
     def __getitem__(self, item: int) -> Carrier:

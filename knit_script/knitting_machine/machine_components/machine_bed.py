@@ -90,7 +90,7 @@ class Machine_Bed:
         :param needle: The position to drop loops from main and slider needles
         :return list of loops that were dropped
         """
-        needle = self[needle]  # make sure correct needle instance in machine bed state is used
+        needle = self[needle]  # make sure the correct needle instance in machine bed state is used
         loops = [l for l in needle.held_loops]
         for loop in needle.held_loops:
             self.loops_to_needle[loop] = None

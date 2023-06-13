@@ -2,7 +2,6 @@
 from enum import Enum
 from typing import Optional
 
-from knit_script.knitout_optimization.Knitout_Context import Knitout_Context
 from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line
 
 
@@ -45,5 +44,8 @@ class Instruction(Knitout_Line):
 
     def __str__(self):
         return f"{self.instruction_type}{self.comment_str}"
+
+    def execute(self, machine_state) -> bool:
+        return False
 
 

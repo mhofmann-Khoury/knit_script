@@ -1,11 +1,11 @@
-S: program;
+S: code_line;
 
-program: code=code_line+;
+code_line: c=code? com=comment?;
 
-code_line: magic_string | header_line | instruction;
+code: magic_string | header_line | instruction;
 
 magic_string: ";!" "knitout" "-" v=int_exp;
-header_line: ";;" h_op=header_op;
+header_line: ";;" h_op=header_op {10};
 header_op: machine_op
 			| gauge_op
 			| yarn_op
@@ -16,8 +16,7 @@ header_op: machine_op
 
 machine_op: "Machine" ":" m=identifier;
 gauge_op: "Gauge" ":" g=int_exp;
-yarn_op: "Yarn" "-" C=int_exp ":" yt=yarn_type color=identifier;
-yarn_type: l=int_exp "-" r=int_exp;
+yarn_op: "Yarn" "-" C=int_exp ":" size=int_exp "-" plies=int_exp color=identifier;
 carriers_op: "Carriers" ":" CS=carrier_set;
 position_op: "Position" ":" p=identifier;
 h_extension_op: "X" "-" code=identifier;
@@ -57,18 +56,11 @@ miss_op: "miss" D=direction N=needle_id CS=carrier_set;
 pause_op: "pause";
 extension_op: "x-" code=identifier;
 
-
-
 direction: "+" | "-";
 
 carrier_set: carriers=int_exp+;
 
-
-/*layout structure handles comments in language*/
-LAYOUT: comment_line | commented_line | EMPTY;
-comment_line: LayoutItem;
-commented_line: code=LAYOUT comment=LayoutItem;
-LayoutItem: WS | Comment;
+comment: ";" content = comment_content? {1};
 
 terminals
 
@@ -76,7 +68,6 @@ identifier: /[a-zA-Z_]+[0-9a-zA-Z_]*/{9};
 float_exp: /-?[0-9]*(\.?[0-9]+)?/;
 int_exp: /-?[0-9]+/ {prefer};
 needle_id: /[fb]s?[0-9]+/{10};
-semi_colon: ";";
+KEYWORD: /\w+/;
 
-WS: /\s+/;
-Comment: /(?<!;);(?![;!]).*/;
+comment_content: /.*/;

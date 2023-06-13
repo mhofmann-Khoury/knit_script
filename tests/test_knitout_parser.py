@@ -13,27 +13,49 @@ def _print_parse(parser, pattern, is_file: bool = False):
 
 
 class TestKnitout_Parser(TestCase):
+
+    def test_magic(self):
+        parser = Knitout_Parser(debug_grammar=True, debug_parser=True)
+        pattern = r"""
+        ;!knitout-2
+        ;;Machine: SWG091N2 
+        ;;Position: Center 
+        ;;Gauge: 15 
+        ;;Width: 250 
+        ;;Carriers: 1 2 3 4 5 6 7 8 9 10 
+        ;;Yarn-5: 50-50 Rust ; 
+        inhook  1
+        """
+        _print_parse(parser, pattern)
+
     def test_header(self):
-        parser = Knitout_Parser(False, False)
+        parser = Knitout_Parser(debug_grammar=True, debug_parser=True)
+        pattern = r"""
+        ;!knitout-2
+        ;;Machine: SWG091N2 
+        ;;Position: Center 
+        ;;Gauge: 15 
+        ;;Width: 250 
+        ;;Carriers: 1 2 3 4 5 6 7 8 9 10 
+        ;;Yarn-5: 50-50 Rust 
+        inhook  1
+        """
+        _print_parse(parser, pattern)
+        # ;;Width: 250
+        # ;;Carriers: 1 2 3 4 5 6 7 8 9 10
+        # ;;Yarn-5: 50-50 Rust
+
+    def test_instructions(self):
+        parser = Knitout_Parser(True, True)
         pattern = r"""
         ;!knitout-2
         ;;Machine: SWG091N2
         ;;Position: Center
         ;;Gauge: 15
-        ;;Width: 250
-        ;;Carriers: 1 2 3 4 5 6 7 8 9 10
-        ;;Yarn-5: 50-50 Rust
-        """
-        _print_parse(parser, pattern)
-
-    def test_instructions(self):
-        parser = Knitout_Parser(False, False)
-        pattern = r"""
-        ;!knitout-2
-        inhook  1 ;
+        inhook  1
         tuck - b39 1 ; comment
-        tuck - b37 1 ; 
-        tuck - b35 1 ; 
+        tuck - b37 1
+        tuck - b35 1
                 """
 
         _print_parse(parser, pattern)
@@ -53,18 +75,18 @@ class TestKnitout_Parser(TestCase):
         parser = Knitout_Parser(False, False, False)
         pattern = r"""
                 ;!knitout-2
-                ;;Machine: SWG091N2
-                ;;Gauge: 15
-                ;;Yarn-5: 50-50 Rust
-                ;;Carriers: 1 2 3 4 5 6 7 8 9 10
-                ;;Position: Right
-                
-                inhook 5
+        ;;Machine: SWG091N2 ; header comment
+        ;;Position: Center 
+        ;;Gauge: 15 
+        ;;Width: 250 
+        ;;Carriers: 1 2 3 4 5 6 7 8 9 10 
+        ;;Yarn-5: 50-50 Rust 
+                inhook 5; stuff
                 
                 tuck - f10 5
                 tuck - f8 5
                 tuck - f6 5
-                tuck - f4 5
+                tuck - f4 5; also stuff
                 tuck - f2 5
                 tuck + f1 5
                 tuck + f3 5
@@ -78,7 +100,7 @@ class TestKnitout_Parser(TestCase):
                 knit - f9 5
                 knit - f8 5
                 knit - f7 5
-                knit - f6 5
+                knit - f6 5; another stuff
                 knit - f5 5
                 knit - f4 5
                 knit - f3 5

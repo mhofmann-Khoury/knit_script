@@ -4,6 +4,8 @@ from knit_script.knitout_optimization.knitout_structures.knitout_instructions.in
 
 
 class Pause_Instruction(Instruction):
-    def __init__(self, comment: Optional[str]):
+    def __init__(self, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Pause, comment)
 
+    def execute(self, machine_state):
+        pass

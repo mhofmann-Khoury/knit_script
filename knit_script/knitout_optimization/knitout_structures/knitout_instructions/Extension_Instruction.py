@@ -5,9 +5,12 @@ from knit_script.knitout_optimization.knitout_structures.knitout_instructions.in
 
 class Extension_Instruction(Instruction):
 
-    def __init__(self, code: str, comment: Optional[str]):
+    def __init__(self, code: str, comment: Optional[str] = None):
         super().__init__(Instruction_Type.X, comment)
         self.code = code
 
     def __str__(self):
         return f"{self.instruction_type} {self.code}{self.comment_str}"
+
+    def execute(self, machine_state):
+        pass

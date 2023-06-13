@@ -9,7 +9,9 @@ from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set
 
 class Needle_Instruction(Instruction):
 
-    def __init__(self, instruction_type: Instruction_Type, needle: Needle, direction: Optional[Pass_Direction] = None, needle_2: Optional[Needle] = None, carrier_set: Optional[Carrier_Set] = None,
+    def __init__(self, instruction_type: Instruction_Type,
+                 needle: Needle, direction: Optional[Pass_Direction] = None, needle_2: Optional[Needle] = None,
+                 carrier_set: Optional[Carrier_Set] = None,
                  comment: Optional[str] = None):
         super().__init__(instruction_type, comment)
         self.carrier_set = carrier_set
@@ -38,6 +40,10 @@ class Needle_Instruction(Instruction):
         """
         return self.carrier_set is not None
 
+    def _test_operation(self, machine_state):
+        if self.has_carrier_set:
+            assert machine_state.carrier_system.is_active(self.carrier_set), f"Cannot {self.instruction_type} with inactive carrier set {self.carrier_set}"
+
     def __str__(self):
         if self.has_direction:
             dir_str = f" {self.direction}"
@@ -56,41 +62,67 @@ class Needle_Instruction(Instruction):
 
 class Knit_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, direction: str, cs: Carrier_Set, comment: Optional[str]):
+    def __init__(self, needle: Needle, direction: str, cs: Carrier_Set, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Knit, needle, direction=Pass_Direction.get_direction(direction), carrier_set=cs, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)
+        machine_state.knit(self.needle, self.carrier_set)
 
 
 class Tuck_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, direction: str, cs: Carrier_Set, comment: Optional[str]):
+    def __init__(self, needle: Needle, direction: str, cs: Carrier_Set, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Tuck, needle, direction=Pass_Direction.get_direction(direction), carrier_set=cs, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)
+        machine_state.tuck(self.needle, self.carrier_set)
 
 
 class Split_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, direction: str, n2: Needle, cs: Carrier_Set, comment: Optional[str]):
+    def __init__(self, needle: Needle, direction: str, n2: Needle, cs: Carrier_Set, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Split, needle, direction=Pass_Direction.get_direction(direction), needle_2=n2, carrier_set=cs, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)
+        machine_state.split(self.needle, self.needle_2, self.carrier_set)
 
 
 class Drop_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, comment: Optional[str]):
+    def __init__(self, needle: Needle, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Split, needle, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)
+        machine_state.drop(self.needle)
 
 
 class Amiss_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, comment: Optional[str]):
+    def __init__(self, needle: Needle, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Amiss, needle, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)
 
 
 class Xfer_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, n2: Needle, comment: Optional[str]):
+    def __init__(self, needle: Needle, n2: Needle, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Xfer, needle, needle_2=n2, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)
+        machine_state.xfer(self.needle, self.needle_2)
 
 
 class Miss_Instruction(Needle_Instruction):
 
-    def __init__(self, needle: Needle, direction: str, cs: Carrier_Set, comment: Optional[str]):
+    def __init__(self, needle: Needle, direction: str, cs: Carrier_Set, comment: Optional[str] = None):
         super().__init__(Instruction_Type.Miss, needle, direction=Pass_Direction.get_direction(direction), carrier_set=cs, comment=comment)
+
+    def execute(self, machine_state):
+        self._test_operation(machine_state)

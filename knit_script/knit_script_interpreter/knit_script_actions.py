@@ -21,7 +21,8 @@ from knit_script.knit_script_interpreter.expressions.values import Boolean_Value
     Machine_Type_Value, Header_ID_Value
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
-from knit_script.knit_script_interpreter.header_structure import Header_ID, Machine_Type
+from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
 from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from knit_script.knit_graphs.Yarn import Yarn
+from knit_script.knitout_optimization.knitout_errors.carrier_operation_errors import In_Active_Carrier_Error, Releasehook_Unhooked_Carrier, Out_Inactive_Carrier_Error
 
 
 class Carrier:
@@ -53,14 +54,16 @@ class Carrier:
         """
             Record in operation
         """
-        assert not self.is_active, f"Cannot bring {self} because it is already active"
+        if self.is_active:
+            raise In_Active_Carrier_Error(self.carrier_id)
         self._is_active = True
 
     def inhook(self):
         """
             Record inhook operation
         """
-        assert not self.is_active, f"Cannot bring {self} because it is already active"
+        if self.is_active:
+            raise In_Active_Carrier_Error(self.carrier_id)
         self._is_active = True
         assert not self.is_hooked, f"Cannot hooked {self} because it is already on the yarn inserting hook"
         self._is_hooked = True
@@ -70,15 +73,17 @@ class Carrier:
         """
             Record release hook operation
         """
-        assert self.is_hooked, f"Cannot release {self} because it is not on the yarn inserting hook"
-        self._is_hooked = True
+        if not self.is_hooked:
+            raise Releasehook_Unhooked_Carrier(self.carrier_id)
+        self._is_hooked = False
         self._loops_since_release = 0
 
     def out(self):
         """
             Record out operation
         """
-        assert not self.is_active, f"Cannot take {self} out because it is not active"
+        if not self.is_active:
+            raise Out_Inactive_Carrier_Error(self.carrier_id)
         assert not self.is_hooked, f"Cannot take {self} out because it is on the yarn inserting hook"
         self._is_active = False
 
@@ -86,7 +91,8 @@ class Carrier:
         """
             Record outhook operation
         """
-        assert not self.is_active, f"Cannot cut {self} because it is not active"
+        if not self.is_active:
+            raise Out_Inactive_Carrier_Error(self.carrier_id)
         assert not self.is_hooked, f"Cannot cut {self} because it is on the yarn inserting hook"
         self._is_active = False
         self.yarn = self.yarn.cut_yarn()
@@ -107,3 +113,6 @@ class Carrier:
 
     def __str__(self):
         return f"{self.carrier_id}:{self.yarn}"
+
+    def __repr__(self):
+        return str(self)

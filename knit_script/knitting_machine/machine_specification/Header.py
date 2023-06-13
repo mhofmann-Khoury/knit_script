@@ -1,5 +1,4 @@
 """Structures for Machine headers"""
-from enum import Enum
 from typing import List, Dict, Optional
 
 from knit_script.knit_graphs.Yarn import Yarn
@@ -13,34 +12,8 @@ from knit_script.knitout_optimization.knitout_structures.header_operations.Yarn_
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Position
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
-
-
-class Header_ID(Enum):
-    """
-        Values that can be updated in header
-    """
-    Machine = "Machine"
-    Width = "Width"
-    Gauge = "Gauge"
-    Carrier_Count = "Carriers"
-    Position = "Position"
-    Rack = "Rack"
-    Hook = "Hook"
-    Yarn = "Yarn"
-    X = "X-"
-
-    def __str__(self):
-        return self.value
-
-
-class Machine_Type(Enum):
-    """
-        Accepted Machine specifications
-    """
-    SWG091N2 = 'SWG091N2'
-
-    def __str__(self):
-        return self.value
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
+from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type
 
 
 class Header:
@@ -68,6 +41,8 @@ class Header:
         :param value: value to set it to
         """
         if header_id is Header_ID.Machine:
+            if isinstance(value, str):
+                value = Machine_Type[value]
             assert isinstance(value, Machine_Type), f"Expected String for Machine Type but got {value}"
             self.machine_type = value
         elif header_id is Header_ID.Carrier_Count:
@@ -103,7 +78,9 @@ class Header:
         :param code: header code to update by
         :return: True if the header is updated
         """
-        return code.add_to_header(self)
+        caused_update = code.add_to_header(self)
+        self.declarations[code.operation] = code
+        return caused_update
 
     def overwriting_declaration(self, code: Header_Declaration) -> bool:
         """

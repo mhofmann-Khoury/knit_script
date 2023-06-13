@@ -1,10 +1,10 @@
-from typing import Tuple, List, Dict, Optional
+from typing import List
 
+from knit_script.knitout_optimization.Knitout_Context import Knitout_Context
 from knit_script.knitout_optimization.knitout_parser import Knitout_Parser
-from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Version_Line, Knitout_Line
+from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Version_Line, Knitout_Line, Comment_Line
 from knit_script.knitout_optimization.knitout_structures.header_operations.Header_Declaration import Header_Declaration
 from knit_script.knitout_optimization.knitout_structures.knitout_instructions.instruction import Instruction
-from knit_script.knitting_machine.Machine_State import Machine_State
 
 
 class Knitout_Interpreter:
@@ -14,15 +14,52 @@ class Knitout_Interpreter:
 
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):
         self._parser = Knitout_Parser(debug_grammar, debug_parser, debug_parser_layout)
-        self._machine_state: Optional[Machine_State] = None
+        self._context = Knitout_Context()
 
-    def parse_knitout(self, pattern: str, pattern_is_file: bool = True) -> Tuple[Version_Line, List[Header_Declaration], List[Instruction], List[Knitout_Line], Dict[int, str]]:
+    def _reset_context(self):
+        self._context = Knitout_Context()
+
+    def parse_knitout(self, pattern: str, pattern_is_file: bool = True) -> tuple[Version_Line, list[Header_Declaration], list[Instruction], list[Knitout_Line], list[Knitout_Line]]:
         """
         :param pattern: knitout pattern
         :param pattern_is_file: true if the pattern is in a file
         :return: the parsing results of the knitout pattern
         """
         return self._parser.parse(pattern, pattern_is_file=pattern_is_file)
+
+    def interpret_knitout(self, pattern: str, pattern_is_file: bool = True, reset_context: bool = True) -> List[Knitout_Line]:
+        if reset_context:
+            self._reset_context()
+        version_line, header_declarations, instructions, knitout_by_lines, comments = self.parse_knitout(pattern, pattern_is_file)
+        top_comments = []
+        last_non_comment = None
+        for line in knitout_by_lines:
+            if not isinstance(line, Comment_Line):
+                last_non_comment = line
+            elif last_non_comment is None:
+                top_comments.append(line)
+            else:
+                last_non_comment.follow_comments.append(line)
+        first_headers_commented, first_instructions_commented = self._context.execute_knitout(version_line, header_declarations, instructions)
+        organized_knitout = []
+        organized_knitout.extend(top_comments)
+        organized_knitout.append(version_line)
+        organized_knitout.extend(version_line.follow_comments)
+        organized_knitout.extend(first_headers_commented)
+        for header_line in self._context.executed_header:
+            organized_knitout.append(header_line)
+            organized_knitout.extend(header_line.follow_comments)
+        organized_knitout.extend(first_instructions_commented)
+        for instruction in self._context.executed_instructions:
+            organized_knitout.append(instruction)
+            organized_knitout.extend(instruction.follow_comments)
+        return organized_knitout
+
+    def organize_knitout(self, pattern: str, out_file: str, pattern_is_file: bool = True, reset_context: bool = True ):
+        organized_knitout = self.interpret_knitout(pattern, pattern_is_file, reset_context)
+        knitout_lines = [str(kl) for kl in organized_knitout]
+        with open(out_file, "w") as out:
+            out.writelines(knitout_lines)
 
     def write_trimmed_knitout(self, pattern: str, out_file: str, pattern_is_file: bool = True):
         """
@@ -33,13 +70,13 @@ class Knitout_Interpreter:
         """
         v, header, instructions, codes_by_line, comments = self.parse_knitout(pattern, pattern_is_file)
         lines = []
-        for line, instruction in codes_by_line:
+        for line, instruction in enumerate(codes_by_line):
             if not isinstance(instruction, int):
                 line = str(instruction)
             index_last_semi = line.rfind(";")
             if index_last_semi >= 1:
                 line = line[:index_last_semi]
-            lines.append(line.strip()+"\n")
+            lines.append(line.strip() + "\n")
 
         with open(out_file, "w") as out:
             out.writelines(lines)
