@@ -49,6 +49,12 @@ class Knitout_Line:
         else:
             return self.original_line_number < other.original_line_number
 
+    def __hash__(self):
+        if self.original_line_number is None:
+            return hash(str(self))
+        else:
+            return self.original_line_number
+
 
 class Version_Line(Knitout_Line):
 

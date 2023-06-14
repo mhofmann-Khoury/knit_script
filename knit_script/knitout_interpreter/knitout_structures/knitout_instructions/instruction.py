@@ -1,8 +1,7 @@
 """Structure for Instructions"""
 from enum import Enum
 from typing import Optional
-
-from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 
 
 class Instruction_Type(Enum):
@@ -47,5 +46,3 @@ class Instruction(Knitout_Line):
 
     def execute(self, machine_state) -> bool:
         return False
-
-

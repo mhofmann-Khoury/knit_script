@@ -1,7 +1,7 @@
 from typing import Optional
 
 from knit_script.knit_graphs.Yarn import Yarn
-from knit_script.knitout_optimization.knitout_errors.carrier_operation_errors import In_Active_Carrier_Error, Releasehook_Unhooked_Carrier, Out_Inactive_Carrier_Error
+from knit_script.knitout_interpreter.knitout_errors.carrier_operation_errors import In_Active_Carrier_Error, Releasehook_Unhooked_Carrier, Out_Inactive_Carrier_Error
 
 
 class Carrier:
@@ -112,7 +112,10 @@ class Carrier:
         return self.carrier_id
 
     def __str__(self):
-        return f"{self.carrier_id}:{self.yarn}"
+        if self.yarn.yarn_id == str(self._carrier_id):
+            return str(self.carrier_id)
+        else:
+            return f"{self.carrier_id}:{self.yarn}"
 
     def __repr__(self):
         return str(self)

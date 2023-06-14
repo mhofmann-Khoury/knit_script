@@ -1,6 +1,6 @@
 from typing import Optional
 
-from knit_script.knitout_optimization.knitout_structures.knitout_instructions.instruction import Instruction, Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction, Instruction_Type
 
 
 class Extension_Instruction(Instruction):

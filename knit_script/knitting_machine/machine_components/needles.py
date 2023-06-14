@@ -168,8 +168,8 @@ class Needle:
 
     def at_racking_comparison(self, other, rack: float = 0.0) -> int:
         """
-        a comparison value between self and another needle at a given racking
-        :param other: other needle to compare positions
+        a comparison value between self and another needle at a given racking.
+        :param other: the other needle to compare positions
         :param rack: racking value to compare between
         :return: 1 if self > other, 0 if equal, -1 self < other
         """

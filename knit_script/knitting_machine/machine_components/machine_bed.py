@@ -55,22 +55,14 @@ class Machine_Bed:
         """
         return self._is_front
 
-    def add_loops(self, needle: Needle, knit_graph: Knit_Graph, carrier_system, yarn_carrier: Optional[Carrier_Set] = None, loops: Optional[List[Loop]] = None, drop_prior_loops: bool = True) -> \
-            List[Loop]:
+    def add_loops(self, needle: Needle, loops: List[Loop], drop_prior_loops: bool = True) -> List[Loop]:
         """
         Puts the loop_id on given needle, overrides existing loops as if a knit operation took place
-        :param carrier_system:
-        :param knit_graph: The Knitgraph to add loops to
         :param loops: the loops to put on the needle if not creating with the yarn carrier
-        :param yarn_carrier: The yarn carrier the loops are made with
         :param needle: the needle to add the loops on
         :param drop_prior_loops: If true, any loops currently held on this needle are dropped
         :return Returns the list of loops made with the carrier on this needle
         """
-        if loops is None:
-            loops = yarn_carrier.create_loops(knit_graph, carrier_system)
-            for loop in loops:
-                knit_graph.add_loop(loop)
         needle = self[needle]  # make sure needle instance is the one in the machine bed state
         assert 0 <= needle.position < self.needle_count, f"Cannot place a loop at position {needle.position}"
         assert not (drop_prior_loops and needle.is_slider), "Cannot knit on slider needle"

@@ -1,10 +1,10 @@
 from typing import List
 
-from knit_script.knitout_optimization.Knitout_Context import Knitout_Context
-from knit_script.knitout_optimization.knitout_parser import Knitout_Parser
-from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Version_Line, Knitout_Line, Comment_Line
-from knit_script.knitout_optimization.knitout_structures.header_operations.Header_Declaration import Header_Declaration
-from knit_script.knitout_optimization.knitout_structures.knitout_instructions.instruction import Instruction
+from knit_script.knitout_interpreter.Knitout_Context import Knitout_Context
+from knit_script.knitout_interpreter.knitout_parser import Knitout_Parser
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Version_Line, Knitout_Line, Comment_Line
+from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction
 
 
 class Knitout_Interpreter:
@@ -14,10 +14,10 @@ class Knitout_Interpreter:
 
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):
         self._parser = Knitout_Parser(debug_grammar, debug_parser, debug_parser_layout)
-        self._context = Knitout_Context()
+        self.context = Knitout_Context()
 
     def _reset_context(self):
-        self._context = Knitout_Context()
+        self.context = Knitout_Context()
 
     def parse_knitout(self, pattern: str, pattern_is_file: bool = True) -> tuple[Version_Line, list[Header_Declaration], list[Instruction], list[Knitout_Line], list[Knitout_Line]]:
         """
@@ -40,22 +40,22 @@ class Knitout_Interpreter:
                 top_comments.append(line)
             else:
                 last_non_comment.follow_comments.append(line)
-        first_headers_commented, first_instructions_commented = self._context.execute_knitout(version_line, header_declarations, instructions)
+        first_headers_commented, first_instructions_commented = self.context.execute_knitout(version_line, header_declarations, instructions)
         organized_knitout = []
         organized_knitout.extend(top_comments)
         organized_knitout.append(version_line)
         organized_knitout.extend(version_line.follow_comments)
         organized_knitout.extend(first_headers_commented)
-        for header_line in self._context.executed_header:
+        for header_line in self.context.executed_header:
             organized_knitout.append(header_line)
             organized_knitout.extend(header_line.follow_comments)
         organized_knitout.extend(first_instructions_commented)
-        for instruction in self._context.executed_instructions:
+        for instruction in self.context.executed_instructions:
             organized_knitout.append(instruction)
             organized_knitout.extend(instruction.follow_comments)
         return organized_knitout
 
-    def organize_knitout(self, pattern: str, out_file: str, pattern_is_file: bool = True, reset_context: bool = True ):
+    def organize_knitout(self, pattern: str, out_file: str, pattern_is_file: bool = True, reset_context: bool = True):
         organized_knitout = self.interpret_knitout(pattern, pattern_is_file, reset_context)
         knitout_lines = [str(kl) for kl in organized_knitout]
         with open(out_file, "w") as out:

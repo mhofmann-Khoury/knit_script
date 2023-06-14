@@ -2,6 +2,7 @@
 from typing import Dict, Optional, List
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
+from knit_script.knit_graphs.Loop import Loop
 from knit_script.knit_graphs.Yarn import Yarn
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
@@ -193,19 +194,23 @@ class Carrier_Insertion_System:
                 carrier_operations.append(f"outhook {cid}; Cut yarn {cid}, disconnecting knitted piece\n")  # todo, unify knitout operations
         return carrier_operations
 
-    def make_loop(self, carrier: Carrier_Set, needle: Needle, knit_graph: Knit_Graph):
+    def make_loops(self, carrier_set: Carrier_Set, needle: Needle, knit_graph: Knit_Graph) -> List[Loop]:
         """
         Establishes that yarn carrier has been used to make a loop at a given needle
         :param knit_graph:
-        :param carrier:
-        :param needle:
+        :param carrier_set:
+        :param needle: The needle to make the loops on.
+        :Return The list of loops created
         """
         if self._searching_for_position:  # mark inserting hook position
             self.hook_position = needle.position
             self._searching_for_position = False
-        for cid in carrier.carrier_ids:
-            loop_id, loop = self[cid].yarn.add_loop_to_end(knit_graph=knit_graph)
+        loops = []
+        for carrier in carrier_set.get_carriers(self):
+            loop_id, loop = carrier.yarn.add_loop_to_end(knit_graph=knit_graph)
             loop.put_on_needle(needle)
+            loops.append(loop)
+        return loops
 
     def __getitem__(self, item: int) -> Carrier:
         return self.carriers[item]

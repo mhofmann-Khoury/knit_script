@@ -1,6 +1,6 @@
 from typing import Optional
 
-from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 
 

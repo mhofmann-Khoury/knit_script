@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from knit_script.knitout_optimization.Knitout_Interpreter import Knitout_Interpreter
+from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
 
 
 class TestKnitout_Interpreter(TestCase):

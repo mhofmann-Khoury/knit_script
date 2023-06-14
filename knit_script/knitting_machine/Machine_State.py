@@ -174,7 +174,7 @@ class Machine_State:
 
     def record_needle_position(self, needle_position: int):
         """
-        Records if there are loops on front and back of given needle position
+        Records if there are loops on the front and back of given needle position
         :param needle_position:
         """
         loops_on_front = self[Needle(is_front=True, position=needle_position)].has_loops
@@ -189,17 +189,17 @@ class Machine_State:
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
         :param loops: If none, means a new loop is created in knitgraph. Otherwise, use old loops
         :param needle: The needle to add loops to
-        :param carrier_set: the set  of yarns making this loop
-        :param drop_prior_loops: If true, drops prior loops on the needle
-        :return set of loops added to the needle
+        :param carrier_set: the set of yarns making this loop
+        :param drop_prior_loops: If true, drops prior loops on the needle.
+        :return the set of loops added to the needle
         """
         new_loops = loops is None
         bed = self.front_bed if needle.is_front else self.back_bed
         prior_loops = [l for l in bed[needle].held_loops]
         if carrier_set is not None:
             assert self.carrier_system.is_active(carrier_set), f"Yarn Carrier {carrier_set} not in operation"
-            self.carrier_system.make_loop(carrier_set, needle, self.knit_graph)
-        loops = bed.add_loops(needle, self.knit_graph, self.carrier_system, carrier_set, loops, drop_prior_loops=drop_prior_loops)
+            loops = self.carrier_system.make_loops(carrier_set, needle, self.knit_graph)
+        loops = bed.add_loops(needle, loops, drop_prior_loops=drop_prior_loops)
         if new_loops:  # Manage Knit Graph construction
             for loop in loops:
                 if drop_prior_loops:
@@ -212,11 +212,11 @@ class Machine_State:
 
     def knit(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
         """
-        Create new loop with the carrier set on needle. Pull through held needles,
+        Create a new loop with the carrier set on needle. Pull through held needles,
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets.
-        :param needle: needle to knit with
-        :param carrier_set: carrier set to use to make loop (multiple loops when plating with multiple carrier
-        :return: list of loops created
+        :param needle: Needle to knit with
+        :param carrier_set: carrier set to use to make loop (multiple loops when plating with multiple carriers.
+        :return: List of loops created
         """
         assert not needle.is_slider, f"Cannot Knit on slider {needle}"
         assert self.sliders_are_clear(), "Cannot knit when sliders are in use"
@@ -355,7 +355,7 @@ class Machine_State:
 
     def layer_of(self, needle: Union[Needle, int]) -> int:
         """
-        :param needle: needle or needle position to check layer of
+        :param needle: needle or needle position to check layer of.
         :return: the layer of the given needle
         """
         return self._needle_pos_to_layer_pos[int(needle)]
@@ -364,9 +364,9 @@ class Machine_State:
         """
         The needle in the machine state specified
         :param is_front: True if on front
-        :param position: the needle index
-        :param sheet: the sheet of the needle, or None for current sheet
-        :param gauge: the gauge of the sheet needle, or None for current gauge
+        :param position: the needle index.
+        :param sheet: The sheet of the needle, or None for the current sheet.
+        :param gauge: The gauge of the sheet needle, or None for current gauge
         :return: needle on machine at given location
         """
         if sheet is None:
@@ -552,8 +552,8 @@ class Machine_State:
     def all_slider_loops(self, on_sheet: bool = True, sheet: Optional[int] = None, gauge: Optional[int] = None) -> List[Needle]:
         """
         All slider needles that hold loops ordered for a machine pass
-        :param on_sheet: If true, only returns loops on specified sheet.
-        :param sheet: sheet defaults to current sheet
+        :param on_sheet: If true, only returns loops on the specified sheet.
+        :param sheet: Sheet defaults to current sheet
         :param gauge: gauge defaults to current gauge
         :return: Set of front bed needles with loops on them
         """
@@ -565,28 +565,6 @@ class Machine_State:
         :param sheet: current sheet to record
         """
         return
-        # record = Sheet_Record(self.gauge, sheet)
-        # record.record_machine_state(self)
-        # self.sheet_records[sheet] = record
-
-    # def move_layer_relative_to_active_layer(self, layer_position, layer_index: int,
-    #                                         active_layer_position: int,
-    #                                         gauge: int, allow_layer_merge: bool = False) -> List[str]:
-    #     """
-    #     Move layer relative to layer that will be active. No-op if layer and active_layer are the same
-    #     :param layer_index: The index of the layer (0.0, 0.1, 0.2...) in the gauging schema that needs to be peeled away
-    #     :param layer_position: the position (lower -> front) of the layer to be peeled
-    #     :param active_layer_position: the position of the layer to remain active
-    #     :param gauge: the gauge of the current schema
-    #     :param allow_layer_merge:
-    #     :return: knitout instructions from xfers
-    #     """
-    #     if layer_position < active_layer_position:
-    #         return self.bring_layer_to_front(layer_index, gauge, allow_layer_merge)
-    #     elif layer_position > active_layer_position:
-    #         return self.bring_layer_to_back(layer_index, gauge, allow_layer_merge)
-    #     else:
-    #         return []
 
     def peel_sheet_relative_to_active_sheet(self, active_sheet: int) -> Tuple[List[str], List[int]]:
         """

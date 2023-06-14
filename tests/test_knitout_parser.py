@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from knit_script.knitout_optimization.knitout_parser import Knitout_Parser
+from knit_script.knitout_interpreter.knitout_parser import Knitout_Parser
 
 
 def _print_parse(parser, pattern, is_file: bool = False):

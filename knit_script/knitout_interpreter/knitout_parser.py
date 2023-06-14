@@ -4,10 +4,10 @@ import re
 from parglare import Parser, Grammar
 from pkg_resources import resource_stream
 
-from knit_script.knitout_optimization.knitout_actions import action
-from knit_script.knitout_optimization.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
-from knit_script.knitout_optimization.knitout_structures.header_operations.Header_Declaration import Header_Declaration
-from knit_script.knitout_optimization.knitout_structures.knitout_instructions.instruction import Instruction
+from knit_script.knitout_interpreter.knitout_actions import action
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
+from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction
 
 
 class Knitout_Parser:
@@ -16,7 +16,7 @@ class Knitout_Parser:
     """
 
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):
-        pg_resource_stream = resource_stream("knit_script", "knitout_optimization/knitout.pg")
+        pg_resource_stream = resource_stream("knit_script", "knitout_interpreter/knitout.pg")
         self._grammar: Grammar = Grammar.from_file(pg_resource_stream.name, debug=debug_grammar, ignore_case=True)
         self._set_parser(debug_parser, debug_parser_layout)
 
