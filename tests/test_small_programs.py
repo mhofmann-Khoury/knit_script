@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
+from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 
 
 class Test_Small_Code(TestCase):
@@ -31,6 +32,7 @@ class Test_Small_Code(TestCase):
                     }
                 """
         knitout, knit_graph = self.parser.write_knitout(program, f"installation_test.k", pattern_is_file=False)
+        knitout_to_dat('installation_test.k', "installation_test.dat")
 
     def test_sheet_accessor(self):
         program = """

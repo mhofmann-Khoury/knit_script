@@ -1,6 +1,5 @@
 
 def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward):{
-	print f"Cast on {w} loops";
 	side = Back_Needles;
 	if is_front:{
 		side = Front_Needles;
@@ -11,6 +10,8 @@ def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward):{
 	    first_pass_start = first_needle;
 	    second_pass_start = first_needle+1;
 	}
+
+	print f"Cast on {w} loops from {first_pass_start} to {first_pass_start+w}";
 	in co_dir direction:{
 		tuck side[first_pass_start:first_needle+w:2];
 	}

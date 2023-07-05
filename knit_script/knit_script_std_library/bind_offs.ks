@@ -2,7 +2,7 @@ import needles;
 
 
 
-def chain_bind_off(loops_to_bo =Loops, bo_direction=Leftward):{
+def chain_bind_off(loops_to_bo, bo_direction):{
     loops_bo_direction = needles.direction_sorted_needles(loops_to_bo, bo_direction);
 
     for i, bo_loop in enumerate(loops_bo_direction[:-1 ]):{

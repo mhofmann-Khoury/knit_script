@@ -106,7 +106,9 @@ class Header:
         """
         :return: Lines of the knitout header
         """
-        return [str(hl) for hl in self.header_declarations()]
+        lines = [";!knitout-2\n"]
+        lines.extend([str(hl) for hl in self.header_declarations()])
+        return lines
 
     def header_declarations(self) -> List[Header_Declaration]:
         """

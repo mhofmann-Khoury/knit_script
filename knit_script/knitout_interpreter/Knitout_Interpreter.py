@@ -1,7 +1,7 @@
 from typing import List
 
 from knit_script.knitout_interpreter.Knitout_Context import Knitout_Context
-from knit_script.knitout_interpreter.knitout_parser import Knitout_Parser
+from knit_script.knitout_interpreter.Knitout_Parser import Knitout_Parser
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Version_Line, Knitout_Line, Comment_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction

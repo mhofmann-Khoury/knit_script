@@ -65,7 +65,7 @@ def knit(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: 
     """
     loops = machine_state.knit(needle, carrier_set, record_needle=record_needle)
     carriers = _make_carrier_set(carrier_set)
-    return f"knit {direction} {needle}{carriers} ;knit loops: {loops}. {comment}\n"
+    return f"knit {direction} {needle} {carriers} ;knit loops: {loops}. {comment}\n"
 
 
 def tuck(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: Carrier_Set, comment: str = "", record_needle=True) -> str:
@@ -82,7 +82,7 @@ def tuck(machine_state, direction: Pass_Direction, needle: Needle, carrier_set: 
     """
     loops = machine_state.tuck(needle, carrier_set, record_needle=record_needle)
     carriers = _make_carrier_set(carrier_set)
-    return f"tuck {direction} {needle}{carriers} ; tuck loops: {loops}. {comment}\n"
+    return f"tuck {direction} {needle} {carriers} ; tuck loops: {loops}. {comment}\n"
 
 
 def split(machine_state, direction: Pass_Direction, start: Needle, target,
@@ -102,7 +102,7 @@ def split(machine_state, direction: Pass_Direction, start: Needle, target,
     """
     loops = machine_state.split(start, target, carrier_set, record_needle=record_needle)
     carriers = _make_carrier_set(carrier_set)
-    return f"split {direction} {start} {target}{carriers} ;Split loops: {loops}. {comment}\n"
+    return f"split {direction} {start} {target} {carriers} ;Split loops: {loops}. {comment}\n"
 
 
 def drop(machine_state, needle: Needle, comment: str = "", record_needle=True) -> str:

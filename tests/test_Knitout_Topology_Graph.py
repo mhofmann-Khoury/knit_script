@@ -19,14 +19,14 @@ class TestKnitout_Topology_Graph(TestCase):
                 knit + f2 1
                 knit + f3 1
                 knit + f4 1
-                ;knit - f4 1
-                ;knit - f3 1
-                ;knit - f2 1
-                ;knit - f1 1
-                ;split + f1 b1 1
-                ;split + f2 b2 1
-                ;split + f3 b3 1
-                ;split + f4 b4 1
+                knit - f4 1
+                knit - f3 1
+                knit - f2 1
+                knit - f1 1
+                split + f1 b1 1
+                split + f2 b2 1
+                split + f3 b3 1
+                split + f4 b4 1
                 outhook 1
                 """
         knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
@@ -46,14 +46,14 @@ class TestKnitout_Topology_Graph(TestCase):
                         tuck + f2 1
                         tuck + f3 1
                         tuck + f4 1
-                        knit + f1 2
-                        knit + f2 2
-                        knit + f3 2
-                        knit + f4 2
-                        knit - f4 1
-                        knit - f3 1
-                        knit - f2 1
-                        knit - f1 1
+                        knit - f1 2
+                        knit - f2 2
+                        knit - f3 2
+                        knit - f4 2
+                        knit + f4 1
+                        knit + f3 1
+                        knit + f2 1
+                        knit + f1 1
                         knit - f4 2
                         knit - f3 2
                         knit - f2 2
@@ -62,10 +62,10 @@ class TestKnitout_Topology_Graph(TestCase):
                         knit + f2 1
                         knit + f3 1
                         knit + f4 1
-                        knit + f1 2
-                        knit + f2 2
-                        knit + f3 2
-                        knit + f4 2
+                        knit - f1 2
+                        knit - f2 2
+                        knit - f3 2
+                        knit - f4 2
                         outhook 1 2
                         """
         knitout_instructions = interpreter.interpret_knitout(pattern, False, True)

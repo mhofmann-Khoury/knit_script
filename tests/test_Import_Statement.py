@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
+from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 
 
 class Test_Imports(TestCase):

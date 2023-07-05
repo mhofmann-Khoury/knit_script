@@ -1,4 +1,4 @@
-from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
+from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 
 knitout_name = "in_test.k"
 dat_name = "test.dat"

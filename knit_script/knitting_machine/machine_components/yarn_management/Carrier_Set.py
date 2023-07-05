@@ -91,8 +91,8 @@ class Carrier_Set:
         return len(self.carrier_ids) > 1
 
     def __str__(self):
-        carriers = ""
-        for cid in self.carrier_ids:
+        carriers = str(self.carrier_ids[0])
+        for cid in self.carrier_ids[1:]:
             carriers += f" {cid}"
         return carriers
 

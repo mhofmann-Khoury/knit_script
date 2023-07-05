@@ -4,7 +4,7 @@ from typing import List, Tuple, Any, Optional
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
-from knit_script.knit_script_interpreter.compile_knitout import knitout_to_dat
+from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
