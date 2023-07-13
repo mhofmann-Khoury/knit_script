@@ -10,14 +10,17 @@ from knit_script.knit_script_interpreter.expressions.direction import Pass_Direc
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.formatted_string import Formatted_String_Value
 from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
-from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp, Needle_Instruction
-from knit_script.knit_script_interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, List_Comp, Dictionary_Comprehension, Unpack, Sliced_List
+from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp, \
+    Needle_Instruction
+from knit_script.knit_script_interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, \
+    List_Comp, Dictionary_Comprehension, Unpack, Sliced_List
 from knit_script.knit_script_interpreter.expressions.machine_accessor import Machine_Accessor, Sheet_Expression
 from knit_script.knit_script_interpreter.expressions.needle_expression import Needle_Expression
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets, Needle_Set_Expression
 from knit_script.knit_script_interpreter.expressions.not_expression import Not_Expression
 from knit_script.knit_script_interpreter.expressions.operator_expressions import Operator_Expression
-from knit_script.knit_script_interpreter.expressions.values import Boolean_Value, Bed_Value, Float_Value, Int_Value, String_Value, None_Value, Machine_Position_Value, \
+from knit_script.knit_script_interpreter.expressions.values import Boolean_Value, Bed_Value, Float_Value, Int_Value, \
+    String_Value, None_Value, Machine_Position_Value, \
     Machine_Type_Value, Header_ID_Value
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
@@ -161,7 +164,8 @@ def print_statement(parser_node, __, exp: Expression) -> Print:
 
 
 @action
-def try_catch(parser_node, __, try_block: Statement, catch_block: Statement, errors: List[Expression]) -> Try_Catch_Statement:
+def try_catch(parser_node, __, try_block: Statement, catch_block: Statement,
+              errors: List[Expression]) -> Try_Catch_Statement:
     """
     :param errors: errors to accept
     :param parser_node: The parser element that created this value ignored parglare context
@@ -206,6 +210,8 @@ def assignment(parser_node, __, var_name: Variable_Expression, exp: Expression):
     :return: assignment expression which evaluates to expression value
     """
     # todo: ensure that typing is checking identifier not over shadowing keywords
+    if isinstance(var_name, Header_ID_Value):
+        var_name = Variable_Expression(parser_node, str(var_name))
     return Assignment(parser_node, var_name.variable_name, exp)
 
 
@@ -254,7 +260,8 @@ def string(parser_node, node: str) -> String_Value:
 
 
 @action
-def f_string_section(parser_node, __, exp: Optional[Expression] = None, string_value: Optional[str] = None) -> Expression:
+def f_string_section(parser_node, __, exp: Optional[Expression] = None,
+                     string_value: Optional[str] = None) -> Expression:
     """
     :param __:
     :param exp: expression in formatting
@@ -396,7 +403,8 @@ def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression], Optio
 
 
 @action
-def slice_data(_, nodes: list) -> Union[Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]:
+def slice_data(_, nodes: list) -> Union[
+    Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]:
     """
     :param _: The parser element that created this value
     :param nodes: data from different slicing configurations
@@ -406,11 +414,13 @@ def slice_data(_, nodes: list) -> Union[Expression, Tuple[Optional[Expression], 
     if isinstance(slice_values, Expression):  # index passed
         return slice_values
     else:
-        return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[2]
+        return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[
+            2]
 
 
 @action
-def sliced_list(parser_node, __, iter_exp: Expression, slices: Union[Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]) -> Sliced_List:
+def sliced_list(parser_node, __, iter_exp: Expression, slices: Union[
+    Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]) -> Sliced_List:
     """
     :param parser_node: The parser element that created this value ignored parser context
     :param __: ignored nodes
@@ -450,7 +460,8 @@ def dict_expression(parser_node, __, kwargs: List[Tuple[Expression, Expression]]
 @action
 def dict_comp(parser_node, __, key: Expression, value: Expression,
               variables: List[Variable_Expression], iter_exp: Expression,
-              spacer: Optional[Union[str, Expression]] = None, comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
+              spacer: Optional[Union[str, Expression]] = None,
+              comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
     """
     :param spacer: spacing to jump over list
     :param comp_cond: conditional on variables to skip specific designs
@@ -567,7 +578,8 @@ def while_statement(parser_node, __, condition: Expression, while_block: Code_Bl
 
 
 @action
-def for_each_statement(parser_node, __, variables: List[Variable_Expression], iters: List[Expression], block: Code_Block) -> For_Each_Statement:
+def for_each_statement(parser_node, __, variables: List[Variable_Expression], iters: List[Expression],
+                       block: Code_Block) -> For_Each_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -591,6 +603,8 @@ def as_assignment(parser_node, __, variable: Variable_Expression, exp: Expressio
     :param exp: expression to assign
     :return: Assignment value
     """
+    if isinstance(variable, Header_ID_Value):
+        variable = Variable_Expression(parser_node, str(variable))
     return Assignment(parser_node, var_name=variable.variable_name, value_expression=exp)
 
 
@@ -630,7 +644,8 @@ def instruction_assignment(parser_node, __, inst: Expression, needles: List[Expr
 
 
 @action
-def carriage_pass(parser_node, __, pass_dir: Expression, instructions: List[Needle_Instruction_Exp]) -> In_Direction_Statement:
+def carriage_pass(parser_node, __, pass_dir: Expression,
+                  instructions: List[Needle_Instruction_Exp]) -> In_Direction_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -745,7 +760,8 @@ def negation(parser_node, __, exp: Expression) -> Not_Expression:
 
 
 @action
-def xfer_rack(parser_node, __, is_across: Optional[str] = None, dist_exp: Optional[Expression] = None, side_id: Optional[Expression] = None) -> Xfer_Pass_Racking:
+def xfer_rack(parser_node, __, is_across: Optional[str] = None, dist_exp: Optional[Expression] = None,
+              side_id: Optional[Expression] = None) -> Xfer_Pass_Racking:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -755,6 +771,11 @@ def xfer_rack(parser_node, __, is_across: Optional[str] = None, dist_exp: Option
     :return: xfer pass racking
     """
     return Xfer_Pass_Racking(parser_node, is_across is not None, dist_exp, side_id)
+
+
+@action
+def rack_statement(parser_node, __, rack_value: Xfer_Pass_Racking) -> Variable_Declaration:
+    return Variable_Declaration(parser_node, Assignment(parser_node, "Rack", rack_value))
 
 
 @action
@@ -870,7 +891,8 @@ def push_dir(_, __, amount: Expression, direction: str) -> Tuple[Expression, str
 
 
 @action
-def push_statement(parser_node, __, needles: List[Expression], push_val: Union[str, Expression, Tuple[Expression, str]]) -> Push_Statement:
+def push_statement(parser_node, __, needles: List[Expression],
+                   push_val: Union[str, Expression, Tuple[Expression, str]]) -> Push_Statement:
     """
 
     :param parser_node: The parser element that created this value

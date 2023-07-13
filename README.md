@@ -171,6 +171,32 @@ for r in range(0, height):{
 
 Reverse switches back and forth between Leftward and Rightward with each pass even though we have the transfer pass. This might introduce some necessary no-operation carriage passes, knit script handles those for you. 
 
+## Racking outside of xfer statements
+You can see the racking value at the current scope in a number of ways.
+
+In the scope of a specific xfer statement the racking is set by expressing a racking direction.
+
+More generally, as in when racking to split, racks can be set by the variable `Rack`.
+
+```KnitScript
+with Rack as 1:{
+ ...do some work with a rack of 1...
+} //rack resets to 0
+
+Rack = 1; // Rack will be 1 untill explicitly changed
+```
+
+You can also calculate a racking value with the same notation as in xfer statements but with the keyword `racking`:
+
+```KnitScript
+racking f1 to b2; \\ rack to align f1 to b2
+
+racking across; \\sets to 0
+
+racking 1 to Left;
+
+```
+
 ## Carriers and Yarn Management
 Of course, you can't knit with air and our examples so far say nothing about the yarn being knit with.
 

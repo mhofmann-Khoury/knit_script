@@ -189,3 +189,6 @@ class Header_ID_Value(_Context_Free_Value):
 
     def _context_free_evaluation(self) -> Header_ID:
         return Header_ID[self._hid_str]
+
+    def __str__(self):
+        return self._hid_str

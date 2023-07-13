@@ -51,6 +51,7 @@ return_statement: "return" exp=expression eol;
 
 exp_statement: exp=expression eol;
 
+rack_statement: "racking" rack_value=xfer_rack eol;
 
 xfer_rack: is_across="across" | dist_exp=expression "to" side_id=expression;
 
@@ -86,6 +87,7 @@ statement: assertion {10}
             | with_statement {10}
             | carriage_pass {10}
             | xfer_pass {10}
+            | rack_statement {10}
             | drop_pass {10}
             | push_statement {10}
             | swap_statement {10}

@@ -7,6 +7,7 @@ from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Position
+from knit_script.knitting_machine.machine_components.needles import Needle
 
 
 class Xfer_Pass_Racking(Expression):
@@ -38,19 +39,31 @@ class Xfer_Pass_Racking(Expression):
         if self._is_across:
             return 0
         else:
-            distance = int(self._distance_expression.evaluate(context))
+            distance = self._distance_expression.evaluate(context)
             direction = self._side.evaluate(context)
-            if isinstance(direction, Pass_Direction):
-                if direction is Pass_Direction.Leftward:
-                    direction = Machine_Position.Left
+            if isinstance(distance, Needle):
+                assert isinstance(direction, Needle), \
+                    f"Cannot determine racking wit needle {distance} and direction {direction}"
+                start = distance
+                target = direction
+                assert start.is_front != target.is_front, \
+                    f"Cannot determine racking with two needles on same bed {start} -> {target}"
+                if start.is_front:
+                    return Machine_State.get_rack(start.position, target.position)
                 else:
-                    direction = Machine_Position.Right
-            assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right], \
-                f"KS:{self.line_number}: Expected Left or Right Direction but got {direction}"
-            if direction is Machine_Position.Left:
-                return Machine_State.get_rack(front_pos=0, back_pos=-1 * distance)
+                    return Machine_State.get_rack(target.position, start.position)
             else:
-                return Machine_State.get_rack(front_pos=0, back_pos=distance)
+                if isinstance(direction, Pass_Direction):
+                    if direction is Pass_Direction.Leftward:
+                        direction = Machine_Position.Left
+                    else:
+                        direction = Machine_Position.Right
+                assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right], \
+                    f"KS:{self.line_number}: Expected Left or Right Direction but got {direction}"
+                if direction is Machine_Position.Left:
+                    return Machine_State.get_rack(front_pos=context.machine_state.racking, back_pos=-1 * distance)
+                else:
+                    return Machine_State.get_rack(front_pos=context.machine_state.racking, back_pos=distance)
 
     def __str__(self):
         if self._is_across:

@@ -300,7 +300,7 @@ class Machine_State:
         return self.racking, original == self.racking
 
     @staticmethod
-    def get_rack(front_pos: int, back_pos: int) -> int:
+    def get_rack(front_pos: float, back_pos: int) -> float:
         """
         Return racking between front and back position
         :param front_pos: front aligned needle
