@@ -9,6 +9,13 @@ class Machine_Position(Enum):
     Center = "Center"
     Keep = "Keep"
 
+    @property
+    def is_direction(self) -> bool:
+        """
+        :return: True, if is left or right
+        """
+        return self in [Machine_Position.Left, Machine_Position.Right]
+
     def __str__(self):
         return self.value
 

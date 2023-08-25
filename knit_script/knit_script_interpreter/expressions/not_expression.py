@@ -16,7 +16,7 @@ class Not_Expression(Expression):
         :param negated_expression: the expression to negate
         """
         super().__init__(parser_node)
-        self._negated_expression:Expression = negated_expression
+        self._negated_expression: Expression = negated_expression
 
     def evaluate(self, context: Knit_Script_Context) -> bool:
         """

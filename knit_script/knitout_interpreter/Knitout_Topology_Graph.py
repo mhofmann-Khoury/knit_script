@@ -1,35 +1,85 @@
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 import networkx
 from networkx import DiGraph
 
 from knit_script.knitout_interpreter.Knitout_Context import Knitout_Context
-from knit_script.knitout_interpreter.knitout_structures.Carraige_Pass_Collection import Carriage_Pass_Collection
-from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitout_interpreter.knitout_structures.Carraige_Pass_Collection import Carriage_Pass_Instruction_Collection
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.carrier_instructions import Inhook_Instruction, Releasehook_Instruction, Carrier_Instruction, Hook_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.needle_instructions import Knitout_Needle_Instruction, Loop_Making_Instruction, Xfer_Instruction, Split_Instruction
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
+from knit_script.knitting_machine.machine_components.needles import Needle
 
 
 class Knitout_Topology_Graph:
+    """
+        Structures knitout as a topology graph which can be optimized by topological sort
+    """
 
-    def __init__(self, context: Knitout_Context, min_loops_before_release_hook=10):
+    def __init__(self, context: Knitout_Context, min_loops_before_release_hook=10, hook_size=4):
+        self._hook_size = hook_size
         self._min_loops_before_release_hook = min_loops_before_release_hook
         self.context = context
         self.instruction_graph: DiGraph = DiGraph()
         self.carriage_pass_graph: DiGraph = DiGraph()
+        self._injected_releases: list[Releasehook_Instruction] = []
+        self.instruction_to_carriage_pass: dict[Knitout_Needle_Instruction, Carriage_Pass_Instruction_Collection] = {}
+        for cp in self.context.carriage_passes:
+            for instruction in cp:
+                self.instruction_to_carriage_pass[instruction] = cp
         for cp1, cp2 in zip(self.context.carriage_passes[:-1], self.context.carriage_passes[1:]):
             self.carriage_pass_graph.add_edge(cp1, cp2)
-        self._inhook_releasehook_pairs: Dict[Inhook_Instruction: Releasehook_Instruction] = {}
-        self._inhook_directions: Dict[Inhook_Instruction: Pass_Direction] = {}
-        self._inhook_next_pass: Dict[Inhook_Instruction: Carriage_Pass_Collection] = {}
+        self._inhook_releasehook_pairs: dict[Inhook_Instruction: Releasehook_Instruction] = {}
+        self._inhook_blocked_needles: dict[Inhook_Instruction, list[Needle]] = {}
+        self._inhook_directions: dict[Inhook_Instruction: Pass_Direction] = {}
+        self._inhook_next_pass: dict[Inhook_Instruction: Carriage_Pass_Instruction_Collection] = {}
+        self._add_version_line()
+        self._add_header_line()
+        self._add_between_pass_instructions()
         self.add_loop_connections()
         self.add_yarn_connections()
-        self.add_between_pass_instructions()
         self.connect_releasehook_instructions()
         self.update_carriage_pass_directions()
+        self.add_comment_edges()
 
-    def add_between_pass_instructions(self):
+    def add_comment_edges(self):
+        """
+            Forces comments into the topo graph
+        """
+        for instruction in [*self.instruction_graph.nodes]:
+            if len(instruction.follow_comments) > 0:
+                self.instruction_graph.add_edge(instruction, instruction.follow_comments[0])
+            if len(instruction.follow_comments) > 1:
+                for last_comment, next_comment in zip(instruction.follow_comments[:-1], instruction.follow_comments[1:]):
+                    self.instruction_graph.add_edge(last_comment, next_comment)
+
+    def _add_header_line(self):
+        """
+            Forces header into the topo graph
+        """
+        for header in self.context.executed_header:
+            for instruction in self.context.executed_instructions:
+                self.instruction_graph.add_edge(header, instruction, is_header_edge=True)
+
+    def _add_version_line(self):
+        """
+            Forces version line to be first
+        """
+        version_line = Version_Line(self.context.version)
+        for instruction in self.context.executed_header:
+            self.instruction_graph.add_edge(version_line, instruction, is_version_edge=True)
+        for instruction in self.context.executed_instructions:
+            self.instruction_graph.add_edge(version_line, instruction, is_version_edge=True)
+
+    def _add_between_pass_instructions(self):
+        """
+            Makes edges between operations in carriage passes
+        """
+        # for carriage_pass in self.context.carriage_passes:
+        #     injected_release_hook = Releasehook_Instruction(None, "Injected Releasehook")
+        #     self.instruction_graph.add_edge(injected_release_hook, carriage_pass[0], is_releasehook_edge=True)
+        #     self._injected_releases.append(injected_release_hook)
         last_non_cp_instructions = []
         current_passes = {}  # used as a set
         started_pass = False
@@ -55,7 +105,7 @@ class Knitout_Topology_Graph:
                 started_pass = False
                 last_non_cp_instructions.append(instruction)
 
-    def get_next_carriage_pass(self, carriage_pass: Knitout_Needle_Instruction | Carriage_Pass_Collection) -> Optional[Carriage_Pass_Collection]:
+    def get_next_carriage_pass(self, carriage_pass: Knitout_Needle_Instruction | Carriage_Pass_Instruction_Collection) -> Optional[Carriage_Pass_Instruction_Collection]:
         """
         :param carriage_pass: carriage pass or an instruction in a carriage passes
         :return: the following carriage pass or None if last pass
@@ -66,7 +116,7 @@ class Knitout_Topology_Graph:
             return cp
         return None
 
-    def get_prior_carriage_pass(self, carriage_pass: Knitout_Needle_Instruction | Carriage_Pass_Collection) -> Optional[Carriage_Pass_Collection]:
+    def get_prior_carriage_pass(self, carriage_pass: Knitout_Needle_Instruction | Carriage_Pass_Instruction_Collection) -> Optional[Carriage_Pass_Instruction_Collection]:
         """
         :param carriage_pass: carriage pass or an instruction in a carriage passes
         :return: the following carriage pass or None if last pass
@@ -78,24 +128,13 @@ class Knitout_Topology_Graph:
         return None
 
     def connect_releasehook_instructions(self):
-        releasehook_directions = {}
+        self.connect_release_hook_by_minimum_loops()
         for inhook, releasehook in self._inhook_releasehook_pairs.items():
-            releasehook_directions[releasehook] = self._inhook_directions[inhook]
-            loops_since_inhook = 0
-            next_instruction_with_yarn = self.next_needle_instruction_with_carrier(inhook)
-            assert next_instruction_with_yarn is not None, f"{inhook.carrier_set} inhooked but never knit."
-            while next_instruction_with_yarn is not None and loops_since_inhook < self._min_loops_before_release_hook:
-                self.instruction_graph.add_edge(next_instruction_with_yarn, releasehook, is_releasehook_edge=True, carrier_set=releasehook.carrier_set)
-                if isinstance(next_instruction_with_yarn, Loop_Making_Instruction):
-                    loops_since_inhook += 1
-                next_instruction_with_yarn = self.next_needle_instruction_with_carrier(next_instruction_with_yarn)
-
-        for inhook, releasehook in self._inhook_releasehook_pairs.items():
-            direction = self._inhook_directions[inhook]
+            inhook_direction = self._inhook_directions[inhook]
             found_next_pass = False
             next_carriage_pass = self.get_next_carriage_pass(self.next_needle_instruction_with_carrier(inhook))
             while next_carriage_pass is not None:
-                if next_carriage_pass.direction is None or next_carriage_pass.direction == direction:  # could be the next pass
+                if next_carriage_pass.direction is None or next_carriage_pass.direction == inhook_direction:  # could be the next pass
                     first_in_pass = next_carriage_pass[0]
                     if not self.instruction_graph.has_edge(first_in_pass, releasehook):  # pass does not need hook in place
                         self.instruction_graph.add_edge(releasehook, first_in_pass, is_releasehook_edge=True)
@@ -105,17 +144,33 @@ class Knitout_Topology_Graph:
                         self.instruction_graph.add_edge(last_in_pass, releasehook, is_release_hook_edge=True)
                         found_next_pass = True
                         if next_carriage_pass.direction is None:
-                            next_carriage_pass.direction = direction  # direction is implied by releasehook direction
+                            next_carriage_pass.direction = inhook_direction  # direction is implied by releasehook direction
                         break
                 next_carriage_pass = self.get_next_carriage_pass(next_carriage_pass)
             if not found_next_pass:
                 self.instruction_graph.add_edge(self.context.carriage_passes[-1][-1], releasehook, is_release_hook_edge=True)  # no carriage pass meets requirements
 
+    def connect_release_hook_by_minimum_loops(self):
+        """
+            Makes edges to first N loop operations from inhook to ensure releasehook does not come on too early.
+        """
+        releasehook_directions = {}
+        for inhook, releasehook in self._inhook_releasehook_pairs.items():
+            releasehook_directions[releasehook] = self._inhook_directions[inhook]
+            loops_since_inhook = 0
+            next_instruction_with_yarn = self.next_needle_instruction_with_carrier(inhook)
+            # todo: remove inhook releasehook pairs with no knitting
+            # assert next_instruction_with_yarn is not None, f"{inhook.carrier_set} inhooked but never knit."
+            while next_instruction_with_yarn is not None and loops_since_inhook < self._min_loops_before_release_hook:
+                self.instruction_graph.add_edge(next_instruction_with_yarn, releasehook, is_releasehook_edge=True, carrier_set=releasehook.carrier_set)
+                if isinstance(next_instruction_with_yarn, Loop_Making_Instruction):
+                    loops_since_inhook += 1
+                next_instruction_with_yarn = self.next_needle_instruction_with_carrier(next_instruction_with_yarn)
+
     def add_yarn_connections(self):
         for carrier, instructions in self.context.carrier_instructions.items():
             for instruction_1, instruction_2 in zip(instructions[:-1], instructions[1:]):
-                self.instruction_graph.add_edge(instruction_1, instruction_2,
-                                                is_carrier_edge=True, carrier=carrier)
+                self.instruction_graph.add_edge(instruction_1, instruction_2, is_carrier_edge=True, carrier=carrier)
         for carrier, instructions in self.context.carrier_management_instructions.items():
             for instruction_1, instruction_2 in zip(instructions[:-1], instructions[1:]):
                 self.instruction_graph.add_edge(instruction_1, instruction_2,
@@ -128,6 +183,7 @@ class Knitout_Topology_Graph:
                     next_needle_instruction = self.next_needle_instruction_with_carrier(inhook)
                     assert isinstance(next_needle_instruction, Knitout_Needle_Instruction), \
                         f"Inhook followed by carrier instruction {next_needle_instruction} without knitting."
+                    self._inhook_blocked_needles[inhook] = [next_needle_instruction.needle + i for i in range(0, self._hook_size)]
                     self._inhook_directions[inhook] = next_needle_instruction.direction
                     self._inhook_next_pass[inhook] = next_needle_instruction.carriage_pass
                 elif isinstance(instruction, Releasehook_Instruction):

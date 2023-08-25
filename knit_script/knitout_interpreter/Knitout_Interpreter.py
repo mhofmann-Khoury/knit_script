@@ -56,6 +56,12 @@ class Knitout_Interpreter:
         return organized_knitout
 
     def organize_knitout(self, pattern: str, out_file: str, pattern_is_file: bool = True, reset_context: bool = True):
+        """
+        :param pattern: pattern to organize
+        :param out_file: file to output organized knitout
+        :param pattern_is_file: true if the pattern is a filename
+        :param reset_context: True if interpreter should reset
+        """
         organized_knitout = self.interpret_knitout(pattern, pattern_is_file, reset_context)
         knitout_lines = [str(kl) for kl in organized_knitout]
         with open(out_file, "w") as out:
@@ -71,12 +77,12 @@ class Knitout_Interpreter:
         v, header, instructions, codes_by_line, comments = self.parse_knitout(pattern, pattern_is_file)
         lines = []
         for line, instruction in enumerate(codes_by_line):
-            if not isinstance(instruction, int):
+            if not isinstance(instruction, Comment_Line):
                 line = str(instruction)
-            index_last_semi = line.rfind(";")
-            if index_last_semi >= 1:
-                line = line[:index_last_semi]
-            lines.append(line.strip() + "\n")
+                if instruction.has_comment:
+                    index_last_semi = line.rfind(";")
+                    line = line[:index_last_semi]
+                lines.append(line.strip() + "\n")
 
         with open(out_file, "w") as out:
             out.writelines(lines)

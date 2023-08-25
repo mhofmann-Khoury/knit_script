@@ -16,8 +16,8 @@ class Push_Statement(Statement):
         """
         Instantiate
         :param parser_node:
-        :param needles: needles to change layering
-        :param push_val: direction, set to value, or direction with a given value
+        :param needles: Needles to change layering.
+        :param push_val: Direction, set to value, or direction with a given value
         """
         super().__init__(parser_node)
         self._needles: List[Expression] = needles

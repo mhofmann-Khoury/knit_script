@@ -1,11 +1,10 @@
 """
     Representation of a Yarn Carrier on the machine
 """
-from typing import Union, List
+from typing import Union, List, Optional
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Loop import Loop
-from knit_script.knit_script_interpreter.knit_script_errors.yarn_management_errors import Duplicate_Carrier_Error, Non_Existent_Carrier_Error
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier import Carrier
 
 
@@ -18,7 +17,7 @@ class Carrier_Set:
     ----------
     """
 
-    def __init__(self, carrier_ids: Union[int, List[Union[int]]] = 3):
+    def __init__(self, carrier_ids: Union[int, list[Union[int]]] = 3):
         """
         Represents the state of the yarn_carriage
         :param carrier_ids: The carrier_id for this yarn
@@ -33,21 +32,28 @@ class Carrier_Set:
             for c in carrier_ids:
                 if isinstance(c, int):
                     if c in duplicates:
-                        raise Duplicate_Carrier_Error(c)
-                    duplicates.add(c)
-                    self._carrier_ids.append(c)
+                        print(f"KnitScript Warning: Ignoring duplicate carrier in carrier set {c}")
+                    else:
+                        duplicates.add(c)
+                        self._carrier_ids.append(c)
                 else:
                     assert isinstance(c, Carrier_Set)
                     for c_id in c._carrier_ids:
                         if c_id in duplicates:
-                            raise Duplicate_Carrier_Error(c_id)
-                        duplicates.add(c_id)
-                        self._carrier_ids.append(c_id)
-        for carrier in self.carrier_ids:
-            if not (1 <= carrier <= 10):
-                raise Non_Existent_Carrier_Error(carrier)
-            assert 1 <= carrier <= 10, f"Carriers must between 1 and 10, but got {carrier}"  # todo parameter carrier spacing by machine type
+                            print(f"KnitScript Warning: Ignoring duplicate carrier in carrier set {c}")
+                        else:
+                            duplicates.add(c_id)
+                            self._carrier_ids.append(c_id)
+        # todo parameter carrier spacing by machine type
 
+    def set_position(self, carrier_system, position: Optional[int]):
+        """
+        Sets the position of each carrier in the set
+        :param carrier_system: the carrier system to get carriers from
+        :param position: the position to set to
+        """
+        for carrier in self.get_carriers(carrier_system):
+            carrier.position = position
     def get_carriers(self, carrier_system) -> List[Carrier]:
         """
         :param carrier_system: carrier system referenced by set

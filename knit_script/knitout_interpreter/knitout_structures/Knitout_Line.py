@@ -1,4 +1,5 @@
-from typing import Optional, List
+"""Base class for Knitout Lines of code"""
+from typing import Optional
 
 
 class Knitout_Line:
@@ -9,9 +10,13 @@ class Knitout_Line:
     def __init__(self, comment: Optional[str]):
         self.comment = comment
         self.original_line_number: Optional[int] = None
-        self.follow_comments: List[Comment_Line] = []
+        self.follow_comments: list[Comment_Line] = []
 
     def add_follow_comment(self, comment_line):
+        """
+        Adds comment line to comments that follow this line
+        :param comment_line:
+        """
         self.follow_comments.append(comment_line)
 
     @property
@@ -30,6 +35,14 @@ class Knitout_Line:
             return "\n"
         else:
             return f";{self.comment}\n"
+
+    def execute(self, machine_state) -> bool:
+        """
+        Executes the instruction on the machine state.
+        :param machine_state: The machine state to update.
+        :return: True if the process completes an update.
+        """
+        return False
 
     def __str__(self):
         return self.comment_str

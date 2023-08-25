@@ -36,7 +36,7 @@ class Needle:
         self._is_front: bool = is_front
         self._position: int = int(position)
         assert self.position is not None
-        self.held_loops: Set[Loop] = set()
+        self.held_loops: list[Loop] = []
 
     @property
     def is_front(self) -> bool:
@@ -64,7 +64,7 @@ class Needle:
         puts the loop in the set of currently held loops
         :param loop:
         """
-        self.held_loops.add(loop)
+        self.held_loops.append(loop)
 
     def add_loops(self, loops: Iterable[Loop]):
         """
@@ -81,12 +81,12 @@ class Needle:
         """
         for l in self.held_loops:
             l.drop_from_needle()
-        self.held_loops = set()
+        self.held_loops = []
 
     @property
     def is_back(self) -> bool:
         """
-        :return: True if needle is a back needle
+        :return: True if a needle is a back needle
         """
         return not self.is_front
 
@@ -449,4 +449,3 @@ class Slider_Needle(Needle):
         if isinstance(power, Needle):
             position = power.position
         return Slider_Needle(self.is_front, position ** self.position)
-

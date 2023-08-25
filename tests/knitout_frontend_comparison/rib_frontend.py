@@ -1,6 +1,6 @@
 from knit_script.interpret import knit_script_to_knitout
 from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
-from knitout_frontend_comparison.knitout import Writer
+from knitout import Writer
 
 name = "rib"
 knit_script_to_knitout(f"{name}.ks", f"{name}.k", pattern_is_filename=True)

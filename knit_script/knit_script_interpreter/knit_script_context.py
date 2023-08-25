@@ -1,10 +1,11 @@
 """Manages variable scope and machine state of knit pass during execution"""
 from typing import Optional, List, Union, Dict
 
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Comment_Line
 from knit_script.knitting_machine.machine_specification.Header import Header
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knitting_machine.Machine_State import Machine_State
-from knit_script.knitting_machine.knitout_instructions import inhook, bring_in, rack, releasehook
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import inhook, bring_in, rack, releasehook
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle, Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Position
@@ -21,10 +22,10 @@ class Knit_Script_Context:
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
         self._header: Header = Header(bed_width, machine_position)
         self.machine_state: Machine_State = self._header.machine_state()
-        self.knitout: List[str] = self._header.header_lines()
+        self.knitout: list[Knitout_Line] = self._header.header_lines()
         self.ks_file: Optional[str] = ks_file
         self.parser = parser
-        self.last_carriage_pass_result: Union[List[Needle], Dict[Needle, Optional[Needle]]] = {}
+        self.last_carriage_pass_result: Union[list[Needle], dict[Needle, Optional[Needle]]] = {}
 
     @property
     def header(self) -> Header:
@@ -79,26 +80,25 @@ class Knit_Script_Context:
         self.variable_scope.direction = value
 
     @property
-    def carrier(self) -> Optional[Carrier_Set]:
+    def carrier_set(self) -> Optional[Carrier_Set]:
         """
         :return: Carrier in use at scope
         """
-        return self.variable_scope.carrier
+        return self.variable_scope.carrier_set
 
-    @carrier.setter
-    def carrier(self, carrier: Optional[Carrier_Set]):
-        if self.carrier != carrier:
-            self.variable_scope.carrier = carrier
-            if self.carrier is not None \
-                    and not self.machine_state.carrier_system.is_active(self.carrier):  # if yarn is not active, bring it in by inhook operation
-                if self.machine_state.carrier_system.yarn_is_loose(self.carrier):  # inhook loose yarns
-                    if not self.machine_state.carrier_system.inserting_hook_available:
-                        releasehook_op = releasehook(self.machine_state, f"Releasehook to activate carrier {self.carrier}")
-                        self.knitout.append(releasehook_op)
-                    inhook_op = inhook(self.machine_state, self.carrier, f"Activating carrier {self.carrier}")
+    @carrier_set.setter
+    def carrier_set(self, carrier: Optional[Carrier_Set]):
+        if self.carrier_set != carrier:
+            self.variable_scope.carrier_set = carrier
+            if self.carrier_set is not None \
+                    and not self.machine_state.carrier_system.is_active(self.carrier_set):  # if yarn is not active, bring it in by inhook operation
+                if self.machine_state.carrier_system.yarn_is_loose(self.carrier_set):  # inhook loose yarns
+                    inhook_op = inhook(self.machine_state, self.carrier_set, f"Activating carrier {self.carrier_set}")
                     self.knitout.append(inhook_op)
+                    releasehook_op = releasehook(self.machine_state, "Release after inhook must be optimized")
+                    self.knitout.append(releasehook_op)
                 else:  # bring connected yarns out from grippers
-                    in_op = bring_in(self.machine_state, self.carrier, f"Bring in {self.carrier} that is not loose")
+                    in_op = bring_in(self.machine_state, self.carrier_set, f"Bring in {self.carrier_set} that is not loose")
                     self.knitout.append(in_op)
 
     @property
@@ -127,7 +127,7 @@ class Knit_Script_Context:
     @sheet.setter
     def sheet(self, value: Optional[Union[Sheet_Identifier, int]]):
         self.variable_scope.sheet = value
-        self.knitout.append(f";Resetting to sheet {self.sheet} of {self.gauge}\n")
+        self.knitout.append(Comment_Line(f"Resetting to sheet {self.sheet} of {self.gauge}"))
         self.knitout.extend(self.machine_state.reset_sheet(self.sheet.sheet))
         self.machine_state.sheet = value
         # Resets machine to the needed sheet, peeling other layers out of the way

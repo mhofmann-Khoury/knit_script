@@ -5,7 +5,7 @@ from typing import List, Optional, Union, Tuple, Iterable, Any
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.knit_script_errors.Knit_Script_Error import Knit_Script_Error
+from Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.needles import Needle
 

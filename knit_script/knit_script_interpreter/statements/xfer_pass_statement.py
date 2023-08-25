@@ -4,10 +4,10 @@ Statement for executing a xfer pass
 from typing import List, Optional
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Carriage_Pass import Carriage_Pass
 from knit_script.knit_script_interpreter.statements.Statement import Statement
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position
 from knit_script.knitting_machine.machine_components.needles import Needle
 
@@ -21,10 +21,10 @@ class Xfer_Pass_Statement(Statement):
         """
         Instantiate
         :param parser_node:
-        :param racking: racking for xfers
+        :param racking: Racking for xfers
         :param needles: needles to start xfer from
         :param bed: beds to land on. Exclude needles already on bed
-        :param is_sliders: True if transferring to sliders
+        :param is_sliders: True if transferred to sliders
         """
         super().__init__(parser_node)
         self._is_sliders = is_sliders
@@ -54,29 +54,29 @@ class Xfer_Pass_Statement(Statement):
             else:
                 needles.append(n)
         for n in needles:
-            assert isinstance(n, Needle), \
-                f"Expected xfer from needles but got {n}"
+            if not isinstance(n, Needle):
+                raise TypeError(f"Expected xfer from needles but got {n}")
 
         target_bed = None
         if self._bed is not None:  # throw out needles that are on target bed already
             target_bed = self._bed.evaluate(context)
-            assert isinstance(target_bed, Machine_Bed_Position), \
-                f"Expected xfer to Front or Back Bed but got {target_bed}"
+            if not isinstance(target_bed, Machine_Bed_Position):
+                raise TypeError(f"Expected xfer to Front or Back Bed but got {target_bed}")
 
-        needles_to_instruction = {n: Needle_Instruction.xfer for n in needles}
+        needles_to_instruction = {n: Instruction_Type.Xfer for n in needles}
 
         racking = self._racking.evaluate(context)
         if racking != 0:  # rack for left or right transfers
             results = {}
             front_needles_to_instruction = {n: i for n, i in needles_to_instruction.items() if n.is_front}
             if len(front_needles_to_instruction) > 0:
-                machine_pass = Carriage_Pass(front_needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking)
+                machine_pass = Carriage_Pass(front_needles_to_instruction, target_bed=target_bed, racking=racking, to_sliders=self._is_sliders)
                 results.update(machine_pass.write_knitout(context))
             back_needles_to_instruction = {n: i for n, i in needles_to_instruction.items() if n.is_back}
             if len(back_needles_to_instruction) > 0:
-                machine_pass = Carriage_Pass(back_needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking * -1)  # racking is reversed for back bed xfers
+                machine_pass = Carriage_Pass(back_needles_to_instruction, target_bed=target_bed, racking=racking * -1, to_sliders=self._is_sliders)  # racking is reversed for back bed xfers
                 results.update(machine_pass.write_knitout(context))
             context.last_carriage_pass_result = results
         else:
-            machine_pass = Carriage_Pass(needles_to_instruction, target_bed=target_bed, to_sliders=self._is_sliders, rack=racking)
+            machine_pass = Carriage_Pass(needles_to_instruction, target_bed=target_bed, racking=racking, to_sliders=self._is_sliders)
             context.last_carriage_pass_result = machine_pass.write_knitout(context)

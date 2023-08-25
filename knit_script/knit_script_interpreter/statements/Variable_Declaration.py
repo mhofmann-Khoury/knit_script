@@ -13,7 +13,7 @@ class Variable_Declaration(Statement):
         """
         Instantiate
         :param parser_node:
-        :param assignment: assignment to make on execution
+        :param assignment: Assignment to make on execution
         """
         super().__init__(parser_node)
         self._is_global = is_global

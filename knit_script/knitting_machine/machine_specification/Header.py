@@ -2,6 +2,7 @@
 from typing import List, Dict, Optional
 
 from knit_script.knit_graphs.Yarn import Yarn
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Carriers_Declaration import Carriers_Declaration
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Gauge_Declaration import Gauge_Declaration
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
@@ -102,12 +103,12 @@ class Header:
                 machine_state.carrier_system[cid].yarn = yarn
         return machine_state
 
-    def header_lines(self) -> List[str]:
+    def header_lines(self) -> list[Knitout_Line]:
         """
         :return: Lines of the knitout header
         """
-        lines = [";!knitout-2\n"]
-        lines.extend([str(hl) for hl in self.header_declarations()])
+        lines = [Version_Line(2)]
+        lines.extend(self.header_declarations())
         return lines
 
     def header_declarations(self) -> List[Header_Declaration]:

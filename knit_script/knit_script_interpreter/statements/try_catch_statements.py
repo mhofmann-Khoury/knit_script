@@ -16,8 +16,8 @@ class Try_Catch_Statement(Statement):
         """
         Instantiate
         :param parser_node:
-        :param try_statement: statement to try to execute
-        :param catch_statement: statement to execute on failure
+        :param try_statement: Statement to try to execute.
+        :param catch_statement: Statement to execute on failure
         """
         super().__init__(parser_node)
         self._errors = errors
@@ -45,7 +45,7 @@ class Try_Catch_Statement(Statement):
                         self._catch_statement.execute(context)
                         context.exit_current_scope()
                         break
-            else: # accept all errors
+            else:  # accept all errors
                 self._catch_statement.execute(context)
 
     def __str__(self):

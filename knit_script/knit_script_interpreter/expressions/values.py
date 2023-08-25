@@ -186,7 +186,7 @@ class Header_ID_Value(_Context_Free_Value):
 
     def __init__(self, parser_node, hid_str: str):
         super().__init__(parser_node)
-        self._hid_str = hid_str
+        self.hid_str = hid_str
 
     def _context_free_evaluation(self) -> Header_ID:
-        return Header_ID[self._hid_str]
+        return Header_ID[self.hid_str]

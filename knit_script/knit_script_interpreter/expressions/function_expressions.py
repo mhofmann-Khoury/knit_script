@@ -27,7 +27,7 @@ class Function_Call(Expression):
         """
         Instantiate
         :param parser_node:
-        :param func_name: name of the function
+        :param func_name: Name of the function
         :param args: the list of argument expressions to fill in
         :param kwargs: the list of assignments to fill in by keywords
         """

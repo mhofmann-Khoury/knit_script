@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional, Union, Any
 
-from knit_script.knit_script_interpreter.knit_script_errors.gauge_errors import Gauge_Value_Error, Sheet_Value_Error
+from Knit_Errors.gauge_errors import Gauge_Value_Error, Sheet_Value_Error
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
@@ -12,10 +12,10 @@ from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set
 
 class Machine_Variables(Enum):
     """
-    Tracks Knitscript names for global machine variables
+    Tracks Knit-script names for global machine variables
     """
     Gauge = "gauge"
-    Carrier = "carrier"
+    Carrier = "carrier_set"
     Rack = "racking"
     Sheet = "sheet"
 
@@ -85,7 +85,8 @@ class Machine_Scope:
 
     @direction.setter
     def direction(self, value: Pass_Direction):
-        assert isinstance(value, Pass_Direction), f"Direction has been set to non-direction {value}"
+        if not isinstance(value, Pass_Direction):
+            raise TypeError(f"Direction has been set to non-direction {value}")
         self._direction = value
 
     @property

@@ -1,5 +1,6 @@
 """Actions for converting parglare elements into useful code"""
-from typing import List, Tuple, Union, Optional
+import os
+from typing import Union, Optional
 
 from parglare import get_collector
 
@@ -10,7 +11,7 @@ from knit_script.knit_script_interpreter.expressions.direction import Pass_Direc
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.formatted_string import Formatted_String_Value
 from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
-from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp, Needle_Instruction
+from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp
 from knit_script.knit_script_interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, List_Comp, Dictionary_Comprehension, Unpack, Sliced_List
 from knit_script.knit_script_interpreter.expressions.machine_accessor import Machine_Accessor, Sheet_Expression
 from knit_script.knit_script_interpreter.expressions.needle_expression import Needle_Expression
@@ -21,8 +22,6 @@ from knit_script.knit_script_interpreter.expressions.values import Boolean_Value
     Machine_Type_Value, Header_ID_Value
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
-from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type
-from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
 from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
@@ -45,13 +44,16 @@ from knit_script.knit_script_interpreter.statements.return_statement import Retu
 from knit_script.knit_script_interpreter.statements.try_catch_statements import Try_Catch_Statement
 # some boiler plate parglare code
 from knit_script.knit_script_interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
+from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type
 
 action = get_collector()
 
 
 @action
-def program(_, __, head: List[Header_Statement], statements: List[Statement]):
+def program(_, __, head: list[Header_Statement], statements: list[Statement]) -> tuple[list[Header_Statement], list[Statement]]:
     """
     :param _: The parser element that created this value
     :param __:
@@ -63,7 +65,7 @@ def program(_, __, head: List[Header_Statement], statements: List[Statement]):
 
 
 @action
-def header(parser_node, __, type_id: Header_ID_Value, value: Expression):
+def header(parser_node, __, type_id: Header_ID_Value, value: Expression) -> Header_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -153,20 +155,20 @@ def assertion(parser_node, __, exp: Expression, error: Optional[Expression] = No
 @action
 def print_statement(parser_node, __, exp: Expression) -> Print:
     """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :param exp: expression to print
+    :param parser_node: The parser element that created this value ignored parglare context.
+    :param __: Ignored nodes.
+    :param exp: Expression to print.
     :return: Print Statement
     """
     return Print(parser_node, exp)
 
 
 @action
-def try_catch(parser_node, __, try_block: Statement, catch_block: Statement, errors: List[Expression]) -> Try_Catch_Statement:
+def try_catch(parser_node, __, try_block: Statement, catch_block: Statement, errors: list[Expression]) -> Try_Catch_Statement:
     """
     :param errors: errors to accept
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
+    :param parser_node: The parser element that created this value ignored parglare context.
+    :param __: ignored nodes.
     :param try_block: statements to execute in try branch
     :param catch_block: statements to execute in catch branch
     :return: Try Catch
@@ -261,17 +263,17 @@ def f_string_section(parser_node, __, exp: Optional[Expression] = None, string_v
     :param exp: expression in formatting
     :param string_value: string in formatting
     :param parser_node: The parser element that created this value ignored parglare context
-    :return: Expression of string value of section of a formatted string
+    :return: Expression of string value of a section of a formatted string
     """
     if exp is not None:
         return exp
     else:
-        string_value = string_value.replace("\\n", "\n")
+        string_value = string_value.replace("\\n", os.linesep)
         return String_Value(parser_node, string_value)
 
 
 @action
-def formatted_string(parser_node, __, sections: List[Expression]) -> Formatted_String_Value:
+def formatted_string(parser_node, __, sections: list[Expression]) -> Formatted_String_Value:
     """
     :param __:
     :param sections: f string sections parsed as expressions
@@ -281,22 +283,9 @@ def formatted_string(parser_node, __, sections: List[Expression]) -> Formatted_S
     return Formatted_String_Value(parser_node, sections)
 
 
-# @action
-# def param_kwargs_list(parser_node, __,
-#                       args: Optional[List[Expression]],
-#                       kwargs: Optional[Tuple[str, List[Assignment]]]) -> Tuple[List[Expression], List[Assignment]]:
-#     if args is None:
-#         args = []
-#     if kwargs is None:
-#         kwargs = []
-#     else:
-#         kwargs = kwargs[1]
-#     return args, kwargs
-
-
 @action
-def call_list(_, __, params: Optional[List[Expression]] = None,
-              kwargs: Optional[List[Assignment]] = None) -> Tuple[List[Expression], List[Assignment]]:
+def call_list(_, __, params: Optional[list[Expression]] = None,
+              kwargs: Optional[list[Assignment]] = None) -> tuple[list[Expression], list[Assignment]]:
     """
     :param _: The parser element that created this value
     :param __:
@@ -313,7 +302,7 @@ def call_list(_, __, params: Optional[List[Expression]] = None,
 
 @action
 def function_call(parser_node, __, func_name: Variable_Expression,
-                  args: Tuple[List[Expression], List[Assignment]]) -> Function_Call:
+                  args: tuple[list[Expression], list[Assignment]]) -> Function_Call:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -331,25 +320,25 @@ def function_call(parser_node, __, func_name: Variable_Expression,
 
 
 @action
-def list_expression(parser_node, __, exps: List[Expression]):
+def list_expression(parser_node, __, exps: list[Expression]):
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param exps: expressions in the list
-    :return: the list expression
+    :param exps: Expressions in the list.
+    :return: The list expression
     """
     return Knit_Script_List(parser_node, exps)
 
 
 @action
-def list_comp(parser_node, __, fill_exp: Expression, variables: List[Variable_Expression], iter_exp: Expression,
+def list_comp(parser_node, __, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression,
               spacer: Optional[Union[str, Expression]] = None, comp_cond: Expression = None) -> List_Comp:
     """
     :param parser_node: The parser element that created this value
     :param __:
     :param fill_exp: Expression that fills the list
     :param spacer: the spacer value across the variables.
-    :param variables: variables to fill from iterable
+    :param variables: Variables to fill from iterable
     :param iter_exp: the iterable to pass over
     :param comp_cond: condition to evaluate for adding a value
     :return: List comprehension
@@ -360,12 +349,12 @@ def list_comp(parser_node, __, fill_exp: Expression, variables: List[Variable_Ex
 @action
 def started_slice(_, __, start: Expression,
                   end: Optional[Expression],
-                  spacer: Optional[Expression]) -> Tuple[Expression, Optional[Expression], Optional[Expression]]:
+                  spacer: Optional[Expression]) -> tuple[Expression, Optional[Expression], Optional[Expression]]:
     """
     :param _: The parser element that created this value
     :param __:
-    :param start: first value in slide
-    :param end: end of slice value
+    :param start: First value in slice.
+    :param end: End of slice value
     :param spacer: spacing value
     :return: (start expression), (end expression), (spacer expression). End and spacer can be none
     """
@@ -374,30 +363,30 @@ def started_slice(_, __, start: Expression,
 
 @action
 def ended_slice(_, __, end: Expression,
-                spacer: Optional[Expression]) -> Tuple[Optional[Expression], Expression, Optional[Expression]]:
+                spacer: Optional[Expression]) -> tuple[Optional[Expression], Expression, Optional[Expression]]:
     """
     :param _: The parser element that created this value
     :param __:
-    :param end: end of slice value
+    :param end: End of slice value
     :param spacer: spacing value
-    :return: (start expression), (end expression), (spacer expression). Start is None. spacer can be none.
+    :return: (start expression), (end expression), (spacer expression). Start is None. Spacer can be none.
     """
     return None, end, spacer
 
 
 @action
-def spacer_slice(_, __, spacer: Expression) -> Tuple[Optional[Expression], Optional[Expression], Expression]:
+def spacer_slice(_, __, spacer: Expression) -> tuple[Optional[Expression], Optional[Expression], Expression]:
     """
     :param _: The parser element that created this value
     :param __:
-    :param spacer: spacing value
+    :param spacer: Spacing value
     :return: (start expression), (end expression), (spacer expression). Start and end are none. Spacer cannot be None
     """
     return None, None, spacer
 
 
 @action
-def slice_data(_, nodes: list) -> Union[Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]:
+def slice_data(_, nodes: list) -> Union[Expression, tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]:
     """
     :param _: The parser element that created this value
     :param nodes: data from different slicing configurations
@@ -411,7 +400,8 @@ def slice_data(_, nodes: list) -> Union[Expression, Tuple[Optional[Expression], 
 
 
 @action
-def sliced_list(parser_node, __, iter_exp: Expression, slices: Union[Expression, Tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]) -> Sliced_List:
+def sliced_list(parser_node, __, iter_exp: Expression,
+                slices: Union[Expression, tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]) -> Sliced_List:
     """
     :param parser_node: The parser element that created this value ignored parser context
     :param __: ignored nodes
@@ -425,7 +415,7 @@ def sliced_list(parser_node, __, iter_exp: Expression, slices: Union[Expression,
 
 
 @action
-def dict_assign(_, __, key: Expression, exp: Expression) -> Tuple[Expression, Expression]:
+def dict_assign(_, __, key: Expression, exp: Expression) -> tuple[Expression, Expression]:
     """
     collect key value pair
     :param _: The parser element that created this value
@@ -438,7 +428,7 @@ def dict_assign(_, __, key: Expression, exp: Expression) -> Tuple[Expression, Ex
 
 
 @action
-def dict_expression(parser_node, __, kwargs: List[Tuple[Expression, Expression]]):
+def dict_expression(parser_node, __, kwargs: list[tuple[Expression, Expression]]):
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -450,7 +440,7 @@ def dict_expression(parser_node, __, kwargs: List[Tuple[Expression, Expression]]
 
 @action
 def dict_comp(parser_node, __, key: Expression, value: Expression,
-              variables: List[Variable_Expression], iter_exp: Expression,
+              variables: list[Variable_Expression], iter_exp: Expression,
               spacer: Optional[Union[str, Expression]] = None, comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
     """
     :param spacer: spacing to jump over list
@@ -471,41 +461,30 @@ def unpack(parser_node, __, exp: Expression) -> Unpack:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param exp: expression to unpack
+    :param exp: Expression to unpack.
     :return: Unpacking expression
     """
     return Unpack(parser_node, exp)
 
 
 @action
-def code_block(parser_node, __, statements: List[Statement]) -> Code_Block:
+def code_block(parser_node, __, statements: list[Statement]) -> Code_Block:
     """
     :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :param statements: statements to execute in sub scope
+    :param __: ignored nodes.
+    :param statements: Statements to execute in sub scope
     :return: scoping block
     """
     return Code_Block(parser_node, statements)
 
 
-# @action
-# def else_statement(parser_node, __, stmnt: Statement) -> Statement:
-#     """
-#     :param parser_node: The parser element that created this value ignored parglare context
-#     :param __: ignored nodes
-#     :param stmnt: statement to execute on else
-#     :return: statement to execute
-#     """
-#     return stmnt
-
-
 @action
-def elif_statement(_, __, exp: Expression, stmnt: Statement) -> Tuple[Expression, Statement]:
+def elif_statement(_, __, exp: Expression, stmnt: Statement) -> tuple[Expression, Statement]:
     """
     components of an elif statement
     :param _: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :param exp: expression to test on elif
+    :param __: ignored nodes.
+    :param exp: expression to test on elif.
     :param stmnt: statement to execute on true result
     :return: expression and statement to execute when true
     """
@@ -526,7 +505,7 @@ def else_statement(_, __, false_statement: Code_Block) -> Code_Block:
 @action
 def if_statement(parser_node, __,
                  condition: Expression, true_statement: Code_Block,
-                 elifs: List[Tuple[Expression, Statement]],
+                 elifs: list[tuple[Expression, Statement]],
                  else_stmt: Optional[Code_Block]) -> If_Statement:
     """
 
@@ -534,7 +513,7 @@ def if_statement(parser_node, __,
     :param parser_node: The parser element that created this value
     :param __:
     :param condition: branching condition
-    :param true_statement: statement to execute on true
+    :param true_statement: statement to execute on true.
     :param else_stmt: statement to execute on false
     :return: if statement
     """
@@ -557,24 +536,14 @@ def while_statement(parser_node, __, condition: Expression, while_block: Code_Bl
     return While_Statement(parser_node, condition, while_block)
 
 
-# @action
-# def on_bed(parser_node, __, bed: Union[str, Expression], s: Optional[str]) -> Tuple[Union[str, Expression], bool]:
-#     return bed, s is not None
-
-
-# @action
-# def every_n(parser_node, __, n: Union[str, Expression]) -> Union[str, Expression]:
-#     return n
-
-
 @action
-def for_each_statement(parser_node, __, variables: List[Variable_Expression], iters: List[Expression], block: Code_Block) -> For_Each_Statement:
+def for_each_statement(parser_node, __, variables: list[Variable_Expression], iters: list[Expression], block: Code_Block) -> For_Each_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param variables: to assign on each iteration of iterable
-    :param iters: iterable to iterate over
-    :param block: statement to execute with each iteration
+    :param variables: To assign on each iteration of iterable.
+    :param iters: Iterable to iterate over.
+    :param block: Statement to execute with each iteration
     :return: For each statement
     """
     if len(iters) == 1:
@@ -592,52 +561,54 @@ def as_assignment(parser_node, __, variable: Variable_Expression, exp: Expressio
     :param exp: expression to assign
     :return: Assignment value
     """
+    if isinstance(variable, Header_ID_Value):
+        variable = Variable_Expression(parser_node, variable.hid_str)
     return Assignment(parser_node, var_name=variable.variable_name, value_expression=exp)
 
 
 @action
-def with_statement(parser_node, __, assigns: List[Assignment], block: Code_Block) -> With_Statement:
+def with_statement(parser_node, __, assigns: list[Assignment], block: Code_Block) -> With_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param assigns: assignments for block
-    :param block: block to execute
-    :return: with statement
+    :param assigns: Assignments for block.
+    :param block: Block to execute.
+    :return: With statement
     """
     return With_Statement(parser_node, block, assigns)
 
 
 @action
-def needle_instruction(_, __, inst: str) -> Needle_Instruction:
+def needle_instruction(_, __, inst: str) -> Instruction_Type:
     """
     :param _: The parser element that created this value
     :param __:
     :param inst: instruction keyword
     :return: needle instruction
     """
-    return Needle_Instruction.get_instruction(inst)
+    return Instruction_Type.get_instruction(inst)
 
 
 @action
-def instruction_assignment(parser_node, __, inst: Expression, needles: List[Expression]) -> Needle_Instruction_Exp:
+def instruction_assignment(parser_node, __, inst: Expression, needles: list[Expression]) -> Needle_Instruction_Exp:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param inst: instruction to apply to needles
-    :param needles: needles to apply instruction to
+    :param inst: Instruction to apply to needles.
+    :param needles: Needles to apply instruction to
     :return: Needle instruction expression
     """
     return Needle_Instruction_Exp(parser_node, inst, needles)
 
 
 @action
-def carriage_pass(parser_node, __, pass_dir: Expression, instructions: List[Needle_Instruction_Exp]) -> In_Direction_Statement:
+def carriage_pass(parser_node, __, pass_dir: Expression, instructions: list[Needle_Instruction_Exp]) -> In_Direction_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
     :param pass_dir: direction to apply instructions in
     :param instructions: instructions to apply
-    :return: in direction statement
+    :return: in direction statement.
     """
     return In_Direction_Statement(parser_node, pass_dir, instructions)
 
@@ -646,7 +617,7 @@ def carriage_pass(parser_node, __, pass_dir: Expression, instructions: List[Need
 def needle_id(parser_node, needle_node: str) -> Needle_Expression:
     """
     :param parser_node: The parser element that created this value
-    :param needle_node: node representing needle
+    :param needle_node: node representing needle.
     :return: Needle expression
     """
     return Needle_Expression(parser_node, needle_node)
@@ -684,13 +655,13 @@ def return_statement(parser_node, __, exp: Expression) -> Return_Statement:
 
 
 @action
-def param_list(_, __, args: Optional[List[Variable_Expression]] = None,
-               kwargs: Optional[List[Assignment]] = None) -> Tuple[List[Variable_Expression], List[Assignment]]:
+def param_list(_, __, args: Optional[list[Variable_Expression]] = None,
+               kwargs: Optional[list[Assignment]] = None) -> tuple[list[Variable_Expression], list[Assignment]]:
     """
     :param _: The parser element that created this value
     :param __:
-    :param args: list of argument identifiers
-    :param kwargs: list of keyword assignments
+    :param args: List of argument identifiers.
+    :param kwargs: List of keyword assignments
     :return: arguments and keyword assignments
     """
     if args is None:
@@ -702,13 +673,13 @@ def param_list(_, __, args: Optional[List[Variable_Expression]] = None,
 
 @action
 def function_declaration(parser_node, __, func_name: Variable_Expression,
-                         params: Optional[Tuple[List[Variable_Expression], List[Assignment]]],
+                         params: Optional[tuple[list[Variable_Expression], list[Assignment]]],
                          block: Statement) -> Function_Declaration:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param func_name: name of function
-    :param params: list of variables for arguments, list of key word assignments
+    :param func_name: Name of the function.
+    :param params: List of variables for arguments, list of key word assignments
     :param block: body to execute
     :return: the function declaration
     """
@@ -723,8 +694,8 @@ def function_declaration(parser_node, __, func_name: Variable_Expression,
 def expression(parser_node, nodes: list) -> Expression:
     """
     :param parser_node: The parser element that created this value ignored parglare context
-    :param nodes: nodes to parse into expression
-    :return: expression
+    :param nodes: nodes to parse into expression.
+    :return: Expression
     """
     if len(nodes) == 1:
         return nodes[0]
@@ -746,20 +717,21 @@ def negation(parser_node, __, exp: Expression) -> Not_Expression:
 
 
 @action
-def xfer_rack(parser_node, __, is_across: Optional[str] = None, dist_exp: Optional[Expression] = None, side_id: Optional[Expression] = None) -> Xfer_Pass_Racking:
+def xfer_rack(parser_node, __, is_across: Optional[str] = None,
+              dist_exp: Optional[Expression] = None, side_id: Optional[Expression] = None) -> Xfer_Pass_Racking:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param is_across: true if xfer is directly across beds
-    :param dist_exp: the needle offset for xfer
-    :param side_id: offset direction
-    :return: xfer pass racking
+    :param is_across: True, if xfer is directly across beds.
+    :param dist_exp: The needle offset for xfer.
+    :param side_id: Offset direction.
+    :return: Xfer pass racking
     """
     return Xfer_Pass_Racking(parser_node, is_across is not None, dist_exp, side_id)
 
 
 @action
-def xfer_pass(parser_node, __, needles: List[Expression],
+def xfer_pass(parser_node, __, needles: list[Expression],
               rack_val: Xfer_Pass_Racking,
               bed: Optional[Expression] = None,
               slider: Optional[str] = None) -> Xfer_Pass_Statement:
@@ -767,7 +739,7 @@ def xfer_pass(parser_node, __, needles: List[Expression],
 
     :param parser_node: The parser element that created this value
     :param __:
-    :param rack_val: racking for xfers
+    :param rack_val: Racking for xfers
     :param needles: needles to start xfer from
     :param bed: beds to land on. Exclude needles already on bed
     :param slider: True if transferring to sliders
@@ -800,7 +772,7 @@ def exp_statement(parser_node, __, exp: Expression) -> Expression_Statement:
 
 
 @action
-def cut_statement(parser_node, __, exps: List[Expression]) -> Cut_Statement:
+def cut_statement(parser_node, __, exps: list[Expression]) -> Cut_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -811,7 +783,7 @@ def cut_statement(parser_node, __, exps: List[Expression]) -> Cut_Statement:
 
 
 @action
-def remove_statement(parser_node, __, exps: List[Expression]) -> Remove_Statement:
+def remove_statement(parser_node, __, exps: list[Expression]) -> Remove_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -835,7 +807,7 @@ def gauge_exp(parser_node, __, sheet_exp: Expression, gauge: Expression) -> Gaug
 
 
 @action
-def drop_pass(parser_node, __, needles: List[Expression]) -> Drop_Pass:
+def drop_pass(parser_node, __, needles: list[Expression]) -> Drop_Pass:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -859,37 +831,37 @@ def push_to(_, __, push_val: Union[str, list]) -> Union[str, Expression]:
 
 
 @action
-def push_dir(_, __, amount: Expression, direction: str) -> Tuple[Expression, str]:
+def push_dir(_, __, amount: Expression, direction: str) -> tuple[Expression, str]:
     """
     :param _: The parser element that created this value
     :param __:
-    :param amount: value to push
-    :param direction: direction to push
+    :param amount: Value to push.
+    :param direction: Direction to push
     :return: amount, direction
     """
     return amount, direction
 
 
 @action
-def push_statement(parser_node, __, needles: List[Expression], push_val: Union[str, Expression, Tuple[Expression, str]]) -> Push_Statement:
+def push_statement(parser_node, __, needles: list[Expression], push_val: Union[str, Expression, tuple[Expression, str]]) -> Push_Statement:
     """
 
     :param parser_node: The parser element that created this value
     :param __:
-    :param needles: needles to push layer value
-    :param push_val: specification of push value
+    :param needles: Needles to push layer value
+    :param push_val: specification of push value.
     :return: Push statement
     """
     return Push_Statement(parser_node, needles, push_val)
 
 
 @action
-def swap_statement(parser_node, __, needles: List[Expression], swap_type: str, value: Expression) -> Swap_Statement:
+def swap_statement(parser_node, __, needles: list[Expression], swap_type: str, value: Expression) -> Swap_Statement:
     """
     :param parser_node: The parser element that created this value
     :param __:
-    :param needles: the needles to do this swap with
-    :param swap_type: type of value to swap with
+    :param needles: The needles to do this swap with.
+    :param swap_type: Type of value to swap with
     :param value: the value to swap with
     :return: swap statement
     """

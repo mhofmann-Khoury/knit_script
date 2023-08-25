@@ -45,8 +45,8 @@ class Xfer_Pass_Racking(Expression):
                     direction = Machine_Position.Left
                 else:
                     direction = Machine_Position.Right
-            assert isinstance(direction, Machine_Position) and direction in [Machine_Position.Left, Machine_Position.Right], \
-                f"KS:{self.line_number}: Expected Left or Right Direction but got {direction}"
+            if not isinstance(direction, Machine_Position) or not direction.is_direction:
+                raise TypeError(f"KS:{self.line_number}: Expected Left or Right Direction but got {direction}")
             if direction is Machine_Position.Left:
                 return Machine_State.get_rack(front_pos=0, back_pos=-1 * distance)
             else:

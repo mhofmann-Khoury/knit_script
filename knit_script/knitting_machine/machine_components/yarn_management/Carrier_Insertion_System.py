@@ -4,6 +4,8 @@ from typing import Dict, Optional, List
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Loop import Loop
 from knit_script.knit_graphs.Yarn import Yarn
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import releasehook, outhook
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier import Carrier
@@ -21,10 +23,6 @@ class Carrier_Insertion_System:
         the needle position of the yarn inserting hook. None if the hook is not active
     hooked_carriers: Carrier_Set
         The yarn carrier that is on the yarn inserting hook. None, if the hook is not active
-    passes_since_releasehook: int
-        The number of machine passes with carrier operations since the last releasehook operation.
-        Will not tick up if the hook is not active
-
     """
 
     def __init__(self, carrier_count: int = 10, hook_size: int = 5):
@@ -38,7 +36,14 @@ class Carrier_Insertion_System:
         self._searching_for_position: bool = False
         self.hooked_carriers: Optional[Carrier_Set] = None
         self._hook_size: int = hook_size
-        self.passes_since_releasehook: int = 0
+
+    def position_carrier(self, carrier_id: int, position: int | Needle):
+        """
+        Update the position of the carrier.
+        :param carrier_id: The carrier to update
+        :param position: the position of the carrier
+        """
+        self.carriers[carrier_id].position = position
 
     @property
     def hook_size(self) -> int:
@@ -47,12 +52,12 @@ class Carrier_Insertion_System:
         """
         return self._hook_size
 
-    def count_machine_pass(self):
-        """
-        Records a machine pass with yarn inserting hook still active.
-        """
-        if not self.inserting_hook_available:
-            self.passes_since_releasehook += 1
+    # def count_machine_pass(self):
+    #     """
+    #     Records a machine pass with yarn inserting hook still active.
+    #     """
+    #     if not self.inserting_hook_available:
+    #         self.passes_since_releasehook += 1
 
     @property
     def inserting_hook_available(self) -> bool:
@@ -62,11 +67,11 @@ class Carrier_Insertion_System:
         return self.hooked_carriers is None
 
     @property
-    def active_carriers(self) -> List[int]:
+    def active_carriers(self) -> Carrier_Set:
         """
         :return: List of carrier id of carriers that are currently active (off the grippers)
         """
-        return [cid for cid, c in self.carriers.items() if c.is_active]
+        return Carrier_Set([cid for cid, c in self.carriers.items() if c.is_active])
 
     def conflicts_with_inserting_hook(self, needle: Needle, direction: Pass_Direction) -> bool:
         """
@@ -83,22 +88,29 @@ class Carrier_Insertion_System:
         else:  # no conflicts if hook is not active
             return False
 
-    def on_grippers(self, carrier: Carrier_Set) -> bool:
+    def on_grippers(self, carrier_set: Carrier_Set) -> bool:
         """
-        :param carrier: carrier set to check for grippers
+        :param carrier_set: carrier set to check for grippers
         :return: true if any carrier in carrier set is on the grippers
         """
-        for cid in carrier.carrier_ids:
+        for cid in carrier_set.carrier_ids:
             if self[cid].on_gripper:
                 return True
         return False
 
-    def is_active(self, carrier: Carrier_Set) -> bool:
+    def missing_carriers(self, carrier_set: Carrier_Set) -> List[int]:
         """
-        :param carrier:
+        :param carrier_set: the carrier set to check for the inactive carriers.
+        :return: list of carrier ids that are not active (i.e., on grippers).
+        """
+        return [cid for cid in carrier_set.carrier_ids if not self[cid].on_gripper]
+
+    def is_active(self, carrier_set: Carrier_Set) -> bool:
+        """
+        :param carrier_set:
         :return: True if the carrier (all carriers in set) are active (not-on the gripper)
         """
-        return not self.on_grippers(carrier)
+        return not self.on_grippers(carrier_set)
 
     def yarn_is_loose(self, carrier: Carrier_Set) -> bool:
         """
@@ -125,8 +137,6 @@ class Carrier_Insertion_System:
         Brings a yarn in with insertion hook. Yarn is not loose
         :param carrier_set:
         """
-        assert self.inserting_hook_available, \
-            f"Cannot inhook {carrier_set} while {self.hooked_carriers} is on yarn inserting hook"
         self.hooked_carriers = carrier_set
         self._searching_for_position = True
         self.hook_position = None
@@ -142,25 +152,25 @@ class Carrier_Insertion_System:
         self.hooked_carriers = None
         self._searching_for_position = False
         self.hook_position = None
-        self.passes_since_releasehook = 0
+        # self.passes_since_releasehook = 0
 
-    def try_releasehook(self, recommended_passes_since_inhook: int = 2,
-                        recommended_loops_since_release: int = 10) -> bool:
-        """
-        Checks if held yarns are ready to be released to bed needles, then releases insertion hook if criteria is met
-        :param recommended_loops_since_release:
-        :param recommended_passes_since_inhook: Number of knitting passes since inhook operation recommended for holding yarn
-        :return:  True, if releasehook is recommended
-        """
-        if self.hooked_carriers is None:
-            return False
-        elif self.passes_since_releasehook >= recommended_passes_since_inhook:
-            return True
-        else:
-            for carrier in self.hooked_carriers.get_carriers(self):
-                if carrier.loops_since_release < recommended_loops_since_release:
-                    return False
-            return True
+    # def try_releasehook(self, recommended_passes_since_inhook: int = 2,
+    #                     recommended_loops_since_release: int = 10) -> bool:
+    #     """
+    #     Checks if held yarns are ready to be released to bed needles, then releases insertion hook if criteria is met
+    #     :param recommended_loops_since_release:
+    #     :param recommended_passes_since_inhook: Number of knitting passes since inhook operation recommended for holding yarn
+    #     :return:  True, if releasehook is recommended
+    #     """
+    #     if self.hooked_carriers is None:
+    #         return False
+    #     elif self.passes_since_releasehook >= recommended_passes_since_inhook:
+    #         return True
+    #     else:
+    #         for carrier in self.hooked_carriers.get_carriers(self):
+    #             if carrier.loops_since_release < recommended_loops_since_release:
+    #                 return False
+    #         return True
 
     def out(self, carrier_set: Carrier_Set):
         """
@@ -176,22 +186,19 @@ class Carrier_Insertion_System:
         The Carrier will no longer be active and is now loose
         :param carrier_set:
         """
-        assert self.inserting_hook_available, f"Cannot outhook {carrier_set} because inserting hook is holding {self.hooked_carriers}"
         for carrier in carrier_set.get_carriers(self):
             carrier.outhook()
 
-    def cut_all_yarns(self) -> List[str]:
+    def cut_all_yarns(self, machine_state) -> List[Knitout_Line]:
         """
             Out hooks all active yarns, disconnecting piece from yarn carriers
         """
         carrier_operations = []
         if not self.inserting_hook_available:
-            carrier_operations.append(f"releasehook {self.hooked_carriers}; Release inserting hook before outhooks\n")  # todo, unify knitout operation writing
-            self.releasehook()
-        for cid, carrier in self.carriers.items():
-            if carrier.is_active:
-                carrier.outhook()
-                carrier_operations.append(f"outhook {cid}; Cut yarn {cid}, disconnecting knitted piece\n")  # todo, unify knitout operations
+            releasehook_op = releasehook(machine_state, "Release inserting hook before cutting all yarns")
+            carrier_operations.append(releasehook_op)
+        outhook_op = outhook(machine_state, self.active_carriers, "Cutting all active yarns")
+        carrier_operations.append(outhook_op)
         return carrier_operations
 
     def make_loops(self, carrier_set: Carrier_Set, needle: Needle, knit_graph: Knit_Graph) -> List[Loop]:

@@ -154,7 +154,7 @@ spacer_slice: ":" spacer=colon_data;
 @pass_second
 colon_data: ":" expression;
 
-needle_instruction: inst=("knit" | "tuck" | "miss" | "split");
+needle_instruction: inst=("knit" | "tuck" | "miss" | "split" | "drop");
 
 instruction_assignment: inst=expression needles=needle_list eol;
 

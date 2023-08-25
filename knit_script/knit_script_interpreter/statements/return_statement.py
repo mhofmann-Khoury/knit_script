@@ -13,7 +13,7 @@ class Return_Statement(Statement):
         """
         Instantiate
         :param parser_node:
-        :param exp: expression to return
+        :param exp: Expression to return
         """
         super().__init__(parser_node)
         self._exp: Expression = exp

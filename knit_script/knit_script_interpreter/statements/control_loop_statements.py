@@ -59,7 +59,7 @@ class For_Each_Statement(Statement):
         if len(self._variables) == 1:
             self.var_name: Optional[str] = self._variables[0].variable_name
         else:
-            self.var_name: Optional[str] = None # todo var name may be able to be removed
+            self.var_name: Optional[str] = None  # todo var name may be able to be removed
         self._iter_expression: Union[Expression, List[Expression]] = iter_expression
         self._statement = statement
 

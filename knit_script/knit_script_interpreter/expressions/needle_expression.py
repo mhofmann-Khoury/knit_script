@@ -37,5 +37,3 @@ class Needle_Expression(Expression):
 
     def __repr__(self):
         return str(self)
-
-

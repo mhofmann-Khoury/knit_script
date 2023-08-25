@@ -51,6 +51,19 @@ class TestKnitout_Interpreter(TestCase):
                 inhook 1; again
                         """
         interpreter.organize_knitout(pattern, out_file="test.k", pattern_is_file=False)
+
+    def test_xfer_cleaning(self):
+        interpreter = Knitout_Interpreter(False, False)
+        pattern = r"""
+                ;!knitout-2
+                ;;Machine: SWG091N2
+                xfer f1 b1;
+                xfer f2 b2;
+                xfer b1 f1;
+                xfer f1 b1;
+                xfer f2 b2;
+                        """
+        interpreter.organize_knitout(pattern, out_file="test.k", pattern_is_file=False)
     def test_sample(self):
         interpreter = Knitout_Interpreter(False, False)
         pattern = r"""

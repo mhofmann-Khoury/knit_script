@@ -4,12 +4,13 @@ from typing import Optional, List, Tuple, Iterable, Dict, Union
 
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph, Pull_Direction
 from knit_script.knit_graphs.Loop import Loop
-from knit_script.knitting_machine.knitout_instructions import xfer
-from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Insertion_System import Carrier_Insertion_System
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Comment_Line
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import xfer
 from knit_script.knitting_machine.machine_components.Sheet_Needle import get_sheet_needle, Sheet_Needle, Slider_Sheet_Needle
 from knit_script.knitting_machine.machine_components.machine_bed import Machine_Bed
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle, Slider_Needle
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Insertion_System import Carrier_Insertion_System
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
@@ -34,15 +35,18 @@ class Machine_State:
         The knit graph that has been made by operations on the machine
     """
     MAX_GAUGE = 10
+    MAX_FLOAT = 5
 
-    def __init__(self, needle_count: int = 250, max_rack: float = 4.25, carrier_count: int = 10, hook_size: int = 5):
+    def __init__(self, needle_count: int = 250, max_rack: float = 4.25, carrier_count: int = 10, hook_size: int = 5, max_float: int = 5):
         """
         Maintains the state of the machine
-        :param needle_count:the number of needles that are on this bed
+        :param max_float: the maximum size of a float.
+        :param needle_count:The number of needles that are on this bed
         :param max_rack: Maximum allowed racking on machine
         :param carrier_count: Number of carriers available on the machine
         :param hook_size: the number of needles blocked by the yarn inserting hook
         """
+        self.max_float = max_float
         self._max_rack = max_rack
         self.racking: float = 0.0
         self.front_bed: Machine_Bed = Machine_Bed(is_front=True, needle_count=needle_count)
@@ -118,16 +122,16 @@ class Machine_State:
 
     def sliders_are_clear(self) -> bool:
         """
-        :return: True if no loops are on a slider needle and knitting can be executed
+        :return: True, if no loops are on a slider needle and knitting can be executed
         """
         return self.front_bed.sliders_are_clear() and self.back_bed.sliders_are_clear()
 
-    def in_hook(self, yarn_carrier: Carrier_Set):
+    def in_hook(self, carrier_set: Carrier_Set):
         """
         Declares that the in_hook for this yarn carrier is in use
-        :param yarn_carrier: the yarn_carrier to bring in
+        :param carrier_set: the yarn_carrier to bring in
         """
-        self.carrier_system.inhook(yarn_carrier)
+        self.carrier_system.inhook(carrier_set)
 
     def release_hook(self):
         """
@@ -135,26 +139,26 @@ class Machine_State:
         """
         self.carrier_system.releasehook()
 
-    def out_hook(self, yarn_carrier: Carrier_Set):
+    def out_hook(self, carrier_set: Carrier_Set):
         """
         Declares that the yarn is no longer in service, will need to be in-hooked to use
-        :param yarn_carrier: the yarn carrier to remove from service
+        :param carrier_set: the yarn carrier to remove from service
         """
-        self.carrier_system.outhook(yarn_carrier)
+        self.carrier_system.outhook(carrier_set)
 
-    def bring_in(self, yarn_carrier: Carrier_Set):
+    def bring_in(self, carrier_set: Carrier_Set):
         """
         Brings the yarn carrier into action
-        :param yarn_carrier:
+        :param carrier_set:
         """
-        self.carrier_system.bring_in(yarn_carrier)
+        self.carrier_system.bring_in(carrier_set)
 
-    def out(self, yarn_carrier: Carrier_Set):
+    def out(self, carrier_set: Carrier_Set):
         """
         Moves the yarn_carrier out of action
-        :param yarn_carrier:
+        :param carrier_set:
         """
-        self.carrier_system.out(yarn_carrier)
+        self.carrier_system.out(carrier_set)
 
     def switch_carriage_direction(self):
         """
@@ -191,7 +195,7 @@ class Machine_State:
         :param needle: The needle to add loops to
         :param carrier_set: the set of yarns making this loop
         :param drop_prior_loops: If true, drops prior loops on the needle.
-        :return the set of loops added to the needle
+        :Return the set of loops added to the needle
         """
         new_loops = loops is None
         bed = self.front_bed if needle.is_front else self.back_bed
@@ -210,7 +214,7 @@ class Machine_State:
             self.record_needle_position(needle.position)
         return loops
 
-    def knit(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
+    def knit(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> list[Loop]:
         """
         Create a new loop with the carrier set on needle. Pull through held needles,
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets.
@@ -218,25 +222,23 @@ class Machine_State:
         :param carrier_set: carrier set to use to make loop (multiple loops when plating with multiple carriers.
         :return: List of loops created
         """
-        assert not needle.is_slider, f"Cannot Knit on slider {needle}"
-        assert self.sliders_are_clear(), "Cannot knit when sliders are in use"
         loops = self.add_loops(needle, carrier_set, drop_prior_loops=True, record_needle=record_needle)
+        carrier_set.set_position(self.carrier_system, int(needle))
         return loops
 
-    def tuck(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
+    def tuck(self, needle: Needle, carrier_set: Carrier_Set, record_needle=True) -> list[Loop]:
         """
         Create a new loop with a carrier set on needle. Do not pull through held loops
-        :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
-        :param needle: needle to tuck with
+        :param record_needle: If true, records locations of loops at this position. Used for resetting the sheets.
+        :param needle: Needle to tuck with
         :param carrier_set: carrier set to make loops from.
         :return: List of loops created
         """
-        assert not needle.is_slider, f"Cannot tuck on slider {needle}"
-        assert self.sliders_are_clear(), "Cannot tuck when sliders are in use"
         loops = self.add_loops(needle, carrier_set, drop_prior_loops=False, record_needle=record_needle)
+        carrier_set.set_position(self.carrier_system, int(needle))
         return loops
 
-    def drop(self, needle: Needle, record_needle=True) -> List[Loop]:
+    def drop(self, needle: Needle, record_needle=True) -> list[Loop]:
         """
         Clears the loops held at this position as though a drop operation has been done.
         Also drops loop on sliders
@@ -244,8 +246,6 @@ class Machine_State:
         :param needle: The needle to drop loops from
         :return list of loops that are dropped
         """
-        assert not needle.is_slider, f"Cannot drop on slider needles: {needle}"
-        assert self.sliders_are_clear(), f"Cannot drop when sliders are not clear"
         if needle.is_front:
             loops = self.front_bed.drop(needle)
         else:
@@ -254,39 +254,31 @@ class Machine_State:
             self.record_needle_position(needle.position)
         return loops
 
-    def xfer(self, start: Needle, target: Needle, record_needle=True):
+    def xfer(self, start: Needle, target: Needle, record_needle=True) -> list[Loop]:
         """
-        Xfer's the loop from the starting position to the ending position. Must transfer front to back or back to front
+        Transfers the loop from the starting position to the ending position. Must transfer front to back or back to front
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
         :param start: needle to start xfer from
         :param target: needle to end xfer at
         """
-        start = self[start]
-        target = self[target]
-        assert target.is_clear(self), f"{target} is not clear for transfer"
-        assert start.is_clear(self), f"{start} is not clear for transfer"
-        if start.is_front and target.is_back:
-            assert self.valid_rack(start.position, target.position), \
-                f"racking {self.racking} does not match f{start.position} to b{target.position}"
-        else:
-            assert self.valid_rack(target.position, start.position), \
-                f"racking {self.racking} does not match b{start.position} to f{target.position}"
         loops = start.held_loops
         if len(loops) > 0:
             self.add_loops(target, loops=loops, drop_prior_loops=False, record_needle=record_needle)
             self.drop(start, record_needle=record_needle)
+        return loops
 
-    def split(self, start: Needle, target: Needle, carrier_set: Carrier_Set, record_needle=True) -> List[Loop]:
+    def split(self, start: Needle, target: Needle, carrier_set: Carrier_Set, record_needle=True) -> tuple[list[Loop], list[Loop]]:
         """
-        Xfers needle from start to target and makes new loop with carrier set on start needle
+        Xfers needle from start to target and makes new loop with the carrier set on start needle.
         :param record_needle: If true, records locations of loops at this position. Used for resetting sheets
         :param start:
         :param target:
         :param carrier_set:
         :return: Loops created by split
         """
-        self.xfer(start, target, record_needle=record_needle)
-        return self.knit(start, carrier_set, record_needle=record_needle)
+        moved_loops = self.xfer(start, target, record_needle=record_needle)
+        carrier_set.set_position(self.carrier_system, int(start))
+        return self.knit(start, carrier_set, record_needle=record_needle), moved_loops
 
     def update_rack(self, front_pos: int, back_pos: int) -> Tuple[int, bool]:
         """
@@ -321,7 +313,7 @@ class Machine_State:
 
     def xfer_needle_at_racking(self, needle: Needle, slider: bool = False) -> Needle:
         """
-        Get teh needle to xfer to at current racking
+        Get the needle to xfer to at current racking
         :param needle: the needle that will start a xfer or split
         :param slider: if true, returns a slider needle to return to
         :return: The needle that can be transferred to from needle at the current racking of the machine
@@ -566,7 +558,7 @@ class Machine_State:
         """
         return
 
-    def peel_sheet_relative_to_active_sheet(self, active_sheet: int) -> Tuple[List[str], List[int]]:
+    def peel_sheet_relative_to_active_sheet(self, active_sheet: int) -> tuple[list[Knitout_Line], list[int]]:
         """
         Moves loops out of the way of the active sheet based on needle layer positions
         :param active_sheet: the sheet to activate
@@ -592,13 +584,13 @@ class Machine_State:
 
         xfers = []
         for sheet, peel_needles in peel_order_to_needles.items():
-            xfers.append(f"; Peel sheet {sheet} relative to {active_sheet}\n")
+            xfers.append(Comment_Line(f"Peel sheet {sheet} relative to {active_sheet}"))
             for peel_needle in peel_needles:
-                xfer_instruction = xfer(self, peel_needle, peel_needle.opposite(), record_needle=False)
+                xfer_instruction = xfer(self, peel_needle, peel_needle.opposite(), comment=f"peel loops {peel_needle.held_loops} from s{sheet} relative to s{active_sheet}", record_needle=False)
                 xfers.append(xfer_instruction)
         return xfers, same_layer_needles
 
-    def peel_sheet_relative_to_active_sheets(self, active_sheets: list[int]) -> List[str]:
+    def peel_sheet_relative_to_active_sheets(self, active_sheets: list[int]) -> List[Knitout_Line]:
         """
         Moves loops out of the way of the active sheet based on needle layer positions
         :param active_sheets: the sheets to activate
@@ -622,20 +614,20 @@ class Machine_State:
                         active_sheet_layer = other_layer
                     assert active_sheet_layer != needle_layer, \
                         f"Cannot separate sheets {sheet_needle.sheet_pos} and sheets {active_sheets} with same layer position at {needle_pos}"
-                    if needle_layer < active_sheet_layer and back.has_loops:  # needle is in front of sheet
+                    if needle_layer < active_sheet_layer and back.has_loops:  # the needle is in front of the sheet
                         peel_order_to_needles[sheet_needle.sheet].append(back)
-                    elif needle_layer > active_sheet_layer and front.has_loops:  # needle is in back of sheet
+                    elif needle_layer > active_sheet_layer and front.has_loops:  # the needle is in the back of the sheet
                         peel_order_to_needles[sheet_needle.sheet].append(front)
 
         xfers = []
         for sheet, peel_needles in peel_order_to_needles.items():
-            xfers.append(f"; Peel sheet {sheet} relative to {active_sheets}\n")
+            xfers.append(Comment_Line(f"Peel sheet {sheet} relative to {active_sheets}"))
             for peel_needle in peel_needles:
-                xfer_instruction = xfer(self, peel_needle, peel_needle.opposite(), record_needle=False)
+                xfer_instruction = xfer(self, peel_needle, peel_needle.opposite(), comment=f"peel loops {peel_needle.held_loops} from s{sheet} relative to s{active_sheets}", record_needle=False)
                 xfers.append(xfer_instruction)
         return xfers
 
-    def reset_sheet(self, sheet: int) -> List[str]:
+    def reset_sheet(self, sheet: int) -> List[Knitout_Line]:
         """
         Returns loops to a recorded location in a layer gauging schema
         :param sheet: the sheet to reset to
@@ -654,16 +646,16 @@ class Machine_State:
                         assert not b.has_loops, f"Cannot return loops from {b} because loops are on {f}"
                     else:
                         assert b.has_loops, f"Loops recorded on {f} have been lost"
-                        knitout.append(xfer(self, b, f, f"Return loops {b.held_loops} on {b} to {f}"))
+                        knitout.append(xfer(self, b, f, f"return loops {b.held_loops}", record_needle=False))
                 elif back_had_loops:
                     if b.has_loops:
                         assert not f.has_loops, f"Cannot return loops from {f} because loops are on {f}"
                     else:
                         assert f.has_loops, f"Loops recorded on {b} have been lost"
-                        knitout.append(xfer(self, f, b, f"return loops {f.held_loops} on {f} to {b}"))
+                        knitout.append(xfer(self, f, b, f"return loops {f.held_loops}", record_needle=False))
         return knitout
 
-    def reset_sheets(self, sheets: List[int]) -> List[str]:
+    def reset_sheets(self, sheets: List[int]) -> List[Knitout_Line]:
         """
         Returns loops to a recorded location in a layer gauging schema
         :param sheets: the sheets to reset to
@@ -682,13 +674,13 @@ class Machine_State:
                         assert not b.has_loops, f"Cannot return loops from {b} because loops are on {f}"
                     else:
                         assert b.has_loops, f"Loops recorded on {f} have been lost"
-                        knitout.append(xfer(self, b, f, f"Return loops {b.held_loops} on {b} to {f}"))
+                        knitout.append(xfer(self, b, f, f"Return loops {b.held_loops}", record_needle=False))
                 elif back_had_loops:
                     if b.has_loops:
                         assert not f.has_loops, f"Cannot return loops from {f} because loops are on {f}"
                     else:
                         assert f.has_loops, f"Loops recorded on {b} have been lost"
-                        knitout.append(xfer(self, f, b, f"return loops {f.held_loops} on {f} to {b}"))
+                        knitout.append(xfer(self, f, b, f"return loops {f.held_loops}", record_needle=False))
         return knitout
 
     def get_layer_at_position(self, needle_pos: int) -> int:

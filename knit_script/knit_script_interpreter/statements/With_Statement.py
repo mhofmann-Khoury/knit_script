@@ -5,7 +5,7 @@ from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Variables
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
-from knit_script.knitting_machine.knitout_instructions import rack
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import rack
 
 
 class With_Statement(Statement):

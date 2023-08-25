@@ -78,7 +78,6 @@ class Needle_Set_Expression(Expression):
         elif kp_set is Needle_Sets.Last_Pass:
             return context.last_carriage_pass_result
 
-
     def __str__(self):
         return self._set_str
 

@@ -2,8 +2,8 @@
 from unittest import TestCase
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
-from knit_script.knit_script_interpreter.knit_script_errors.parse_errors import Knit_Script_Parse_Error
-from knit_script.knit_script_interpreter.knit_script_errors.yarn_management_errors import Duplicate_Carrier_Error, Non_Existent_Carrier_Error
+from Knit_Errors.parse_errors import Knit_Script_Parse_Error
+from Knit_Errors.yarn_management_errors import Duplicate_Carrier_Error, Non_Existent_Carrier_Error
 
 
 class Test_Errors(TestCase):

@@ -23,6 +23,7 @@ class Formatted_String_Value(Expression):
         :param context: The current context of the knit_script_interpreter
         :return: Evaluates series of string expressions and concatenates them
         """
+        # todo: Why are formatted strings messing up spacing
         string = ""
         for exp in self.expressions:
             string += str(exp.evaluate(context))

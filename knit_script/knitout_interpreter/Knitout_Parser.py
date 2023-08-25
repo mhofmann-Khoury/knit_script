@@ -1,6 +1,7 @@
 """Parser code for accessing Parglare language support"""
 import re
 
+import parglare.exceptions
 from parglare import Parser, Grammar
 from pkg_resources import resource_stream
 
@@ -44,12 +45,16 @@ class Knitout_Parser:
             self._set_parser(debug_parser, debug_parser_layout)
         if pattern_is_file:
             with open(pattern, "r") as pattern_file:
-                lines = pattern_file.readline()
+                lines = pattern_file.readlines()
         else:
             lines = pattern.splitlines()
         for i, line in enumerate(lines):
             if not re.match(r'^\s*$', line):
-                code = self._parser.parse(line)
+                try:
+                    code = self._parser.parse(line)
+                except parglare.exceptions.ParseError as e:
+                    print(f"Parser Error on {i}: {line}")
+                    raise e
                 if code is None:
                     continue
                 else:

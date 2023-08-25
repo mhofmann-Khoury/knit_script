@@ -87,9 +87,6 @@ class Machine_Bed:
         for loop in needle.held_loops:
             self.loops_to_needle[loop] = None
         needle.drop()
-        if needle.is_slider:
-            assert isinstance(needle, Slider_Needle)
-            self._active_sliders.remove(needle)
         return loops
 
     def __getitem__(self, item: Needle) -> Needle:

@@ -14,7 +14,7 @@ class Variable_Expression(Expression):
         """
         Instantiate
         :param parser_node:
-        :param variable_name: name of variable
+        :param variable_name: Name of variable
         """
         super().__init__(parser_node)
         self._variable_name: str = variable_name

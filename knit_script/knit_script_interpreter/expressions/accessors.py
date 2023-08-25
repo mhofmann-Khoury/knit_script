@@ -1,10 +1,10 @@
 """Used to access attributes from instances in code"""
-from typing import Any, List, Union
+from typing import Any, Union
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
+from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Signature
 from knit_script.knitting_machine.Machine_State import Machine_State
@@ -14,22 +14,22 @@ from knit_script.knitting_machine.machine_components.needles import Needle
 
 class Attribute_Accessor_Expression(Expression):
     """
-        Accesses attributes of expression either from knitscript or underlying python
+        Accesses attributes of expression either from knit-script or underlying python
     """
 
-    def __init__(self, parser_node, parent_path: Union[List[Expression], Expression], attribute: Expression):
+    def __init__(self, parser_node, parent_path: Union[list[Expression], Expression], attribute: Expression):
         """
-        instantiate
+        Instantiate
         :param parser_node:
-        :param parent_path: the expression to access and attribute from
+        :param parent_path: The expression to access and attribute from
         :param attribute: the attribute of the parent expression. May produce more accessors
         """
         super().__init__(parser_node)
         self.is_method_call = False
         if isinstance(parent_path, list):
-            self.parent: List[Expression] = parent_path
+            self.parent: list[Expression] = parent_path
         else:
-            self.parent: List[Expression] = [parent_path]
+            self.parent: list[Expression] = [parent_path]
         if isinstance(attribute, Attribute_Accessor_Expression):
             self.attribute: Expression = attribute.attribute
             self.parent.extend(attribute.parent)

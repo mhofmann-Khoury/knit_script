@@ -1,7 +1,7 @@
 from typing import Optional
 
 from knit_script.knit_graphs.Yarn import Yarn
-from knit_script.knitout_interpreter.knitout_errors.carrier_operation_errors import In_Active_Carrier_Error, Releasehook_Unhooked_Carrier, Out_Inactive_Carrier_Error
+from knit_script.knitting_machine.machine_components.needles import Needle
 
 
 class Carrier:
@@ -17,7 +17,22 @@ class Carrier:
             self.yarn: Yarn = yarn
         self._is_active: bool = False
         self._is_hooked: bool = False
+        self._position: Optional[int] = None
         self._loops_since_release: int = 0
+
+    @property
+    def position(self) -> Optional[int]:
+        """
+        :return: The needle position that the carrier sits at or None if the carrier is not active
+        """
+        return self._position
+
+    @position.setter
+    def position(self, new_position: Optional[Needle | int]):
+        if new_position is None:
+            self._position = None
+        else:
+            self._position = int(new_position)
 
     @property
     def loops_since_release(self) -> int:
@@ -36,6 +51,16 @@ class Carrier:
         """
         return self._is_active
 
+    @is_active.setter
+    def is_active(self, active_state: bool):
+        if active_state is True:
+            self._is_active = True
+        else:
+            self._is_active = False
+            self.is_hooked = False
+            self.position = None
+            self._loops_since_release = 0
+
     @property
     def on_gripper(self) -> bool:
         """
@@ -50,53 +75,46 @@ class Carrier:
         """
         return self._is_hooked
 
+    @is_hooked.setter
+    def is_hooked(self, hook_state: bool):
+        if self.is_hooked != hook_state:  # change hook state
+            self._loops_since_release = 0
+        if hook_state is True:
+            self._is_hooked = True
+        else:
+            self._is_hooked = False
+
     def bring_in(self):
         """
             Record in operation
         """
-        if self.is_active:
-            raise In_Active_Carrier_Error(self.carrier_id)
-        self._is_active = True
+        self.is_active = True
 
     def inhook(self):
         """
             Record inhook operation
         """
-        if self.is_active:
-            raise In_Active_Carrier_Error(self.carrier_id)
-        self._is_active = True
-        assert not self.is_hooked, f"Cannot hooked {self} because it is already on the yarn inserting hook"
-        self._is_hooked = True
-        self._loops_since_release = 0
+        self.is_active = True
+        self.is_hooked = True
 
     def releasehook(self):
         """
             Record release hook operation
         """
-        if not self.is_hooked:
-            raise Releasehook_Unhooked_Carrier(self.carrier_id)
-        self._is_hooked = False
-        self._loops_since_release = 0
+        self.is_hooked = False
 
     def out(self):
         """
             Record out operation
         """
-        if not self.is_active:
-            raise Out_Inactive_Carrier_Error(self.carrier_id)
-        assert not self.is_hooked, f"Cannot take {self} out because it is on the yarn inserting hook"
-        self._is_active = False
+        self.is_active = False
 
     def outhook(self):
         """
             Record outhook operation
         """
-        if not self.is_active:
-            raise Out_Inactive_Carrier_Error(self.carrier_id)
-        assert not self.is_hooked, f"Cannot cut {self} because it is on the yarn inserting hook"
-        self._is_active = False
+        self.is_active = False
         self.yarn = self.yarn.cut_yarn()
-        self._loops_since_release = 0
 
     @property
     def carrier_id(self) -> int:

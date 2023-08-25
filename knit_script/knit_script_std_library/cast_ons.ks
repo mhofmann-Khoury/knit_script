@@ -1,3 +1,4 @@
+import needles;
 
 def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward):{
 	side = Back_Needles;
@@ -21,6 +22,7 @@ def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward):{
 }
 
 def alt_tuck_needle_set(co_needles, co_dir=Leftward):{
+	co_needles= needles.direction_sorted_needles(co_needles, co_dir);
     if co_dir == Leftward:{
         in co_dir direction:{
             tuck co_needles[1::2];
