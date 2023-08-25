@@ -10,7 +10,7 @@ from knit_script.knitting_machine.machine_components.machine_position import Mac
 
 
 class TestKnit_Pass_Interpreter(TestCase):
-    parser = Knit_Script_Interpreter(debug_grammar=True, debug_parser=True, debug_parser_layout=False)
+    parser = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
 
     def test_parser(self):
         program = r"""

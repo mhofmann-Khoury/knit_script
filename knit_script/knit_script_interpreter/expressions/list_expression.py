@@ -1,11 +1,11 @@
 """Used for container structures (tuples, lists, dicts, comprehensions)"""
 
-from typing import List, Optional, Union, Tuple, Iterable, Any
+from typing import List, Optional, Tuple, Iterable, Any
 
+from Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.needles import Needle
 
@@ -51,7 +51,7 @@ class Knit_Script_List(Expression):
         :param expressions: expressions to fill list with
         """
         super().__init__(parser_node)
-        self._expressions: List[Expression] = expressions
+        self.expressions: List[Expression] = expressions
 
     def evaluate(self, context: Knit_Script_Context) -> list:
         """
@@ -60,7 +60,7 @@ class Knit_Script_List(Expression):
         :return: List of expression evaluations at current context
         """
         values = []
-        for exp in self._expressions:
+        for exp in self.expressions:
             if isinstance(exp, Unpack):
                 values.extend(exp.evaluate(context))
             else:
@@ -69,7 +69,7 @@ class Knit_Script_List(Expression):
 
     def __str__(self):
         values = ""
-        for exp in self._expressions:
+        for exp in self.expressions:
             values += f"{exp}, "
         values = values[:-2]
         return f"[{values}]"
@@ -161,19 +161,18 @@ class List_Comp(Expression):
         Runs a list comprehension over an iterator
     """
 
-    def __init__(self, parser_node, fill_exp: Expression, spacer: Optional[Union[str, Expression]], variables: List[Variable_Expression], iter_exp: Expression, comp_cond: Optional[Expression]):
+    def __init__(self, parser_node, fill_exp: Expression, variables: List[Variable_Expression], iter_exp: Expression, comp_cond: Optional[Expression]):
         """
         Instantiate
         :param parser_node:
         :param fill_exp: Expression that fills the list
-        :param spacer: the spacer value across the variables.
         :param variables: variables to fill from iterable
         :param iter_exp: the iterable to pass over
         :param comp_cond: condition to evaluate for adding a value
         """
         super().__init__(parser_node)
         self._comp_cond: Optional[Expression] = comp_cond
-        self._spacer: Optional[Union[str, Expression]] = spacer
+        self._spacer= None
         self._fill_exp: Expression = fill_exp
         self._vars: List[Variable_Expression] = variables
         if len(self._vars) == 1:
@@ -270,7 +269,7 @@ class Dictionary_Comprehension(Expression):
         Used for supporting dictionary comprehension
     """
 
-    def __init__(self, parser_node, key: Expression, value: Expression, variables: List[Variable_Expression], iter_exp: Expression, spacer: Optional[Union[str, Expression]] = None,
+    def __init__(self, parser_node, key: Expression, value: Expression, variables: List[Variable_Expression], iter_exp: Expression,
                  comp_cond: Optional[Expression] = None):
         """
         Instantiate
@@ -282,7 +281,7 @@ class Dictionary_Comprehension(Expression):
         todo add conditions to comprehension
         """
         super().__init__(parser_node)
-        self._spacer = spacer
+        self._spacer = None
         self._comp_cond = comp_cond
         self._key: Expression = key
         self._value: Expression = value
@@ -297,7 +296,6 @@ class Dictionary_Comprehension(Expression):
         """
         :param context:
         :return: result of list comprehension inside list
-        Todo: test comprehension with conditions and spacing
         """
         iterable = self._iter_exp.evaluate(context)
         assert isinstance(iterable, Iterable), f'Cannot iterate over non-iterable value {iterable}'

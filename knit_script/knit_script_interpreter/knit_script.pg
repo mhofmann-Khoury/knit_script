@@ -2,7 +2,7 @@ S: program;
 
 program: head=header* statements=statement+;
 
-header: eol eol type_id=identifier ":" value=expression eol;
+header: eol eol type_id=identifier colon value=expression eol;
 
 declare_variable: assign=assignment eol;
 declare_global: "global" assign=assignment eol;
@@ -11,7 +11,7 @@ assertion: "assert" exp=expression error=assert_error? eol;
 @pass_second
 assert_error: comma expression;
 
-try_catch: "try" ":" try_block=code_block "catch" errors=exception*[comma] ":" catch_block=code_block;
+try_catch: "try" colon try_block=code_block "catch" errors=exception*[comma] colon catch_block=code_block;
 @pass_single
 exception: exception_assignment {2} | expression {1};
 exception_assignment: except_val=expression "as" var_name=identifier;
@@ -22,29 +22,29 @@ pause_statement: "pause" eol;
 
 code_block: "{" statements=statement+ "}";
 
-if_statement: "if" condition=expression ":" true_statement=code_block
+if_statement: "if" condition=expression colon true_statement=code_block
                 elifs=elif_statement*
                 else_stmt=else_statement?;
 
-else_statement: "else" ":" false_statement=code_block;
+else_statement: "else" colon false_statement=code_block;
 
-elif_statement: "elif" exp=expression ":" stmnt=code_block;
+elif_statement: "elif" exp=expression colon stmnt=code_block;
 
-while_statement: "while" condition=expression ":" while_block=code_block;
+while_statement: "while" condition=expression colon while_block=code_block;
 
-for_each_statement: "for" variables=identifier+[comma] "in" iters=expression+[comma] ":" block=code_block;
+for_each_statement: "for" variables=identifier+[comma] "in" iters=expression+[comma] colon block=code_block;
 
-with_statement: "with" assigns=as_assignment+[comma] ":" block=code_block;
+with_statement: "with" assigns=as_assignment+[comma] colon block=code_block;
 as_assignment: variable=identifier "as" exp=expression;
 
-carriage_pass: "in" pass_dir=expression "direction" ":" "{" instructions=instruction_assignment+ "}";
+carriage_pass: "in" pass_dir=expression "direction" colon "{" instructions=instruction_assignment+ "}";
 
 param_list: args=identifier+[comma] comma kwargs=assignment+[comma] {3, right} |
 				kwargs= assignment+[comma] {2} |
 				args= identifier+[comma] {1};
 
 
-function_declaration: "def" func_name=identifier "(" params=param_list? ")" ":" block=code_block;
+function_declaration: "def" func_name=identifier "(" params=param_list? ")" colon block=code_block;
 
 
 return_statement: "return" exp=expression eol;
@@ -122,44 +122,38 @@ call_list: params=param_fill_list comma kwargs=assignment+[comma] {3, right} |
 
 function_call: func_name=identifier "(" args=call_list? ")";
 
-list_expression: "[" exps=expression*[comma] "]";
+list_expression: "[" exps = expression*[comma] "]" ;
 
 list_comp: "[" fill_exp=expression "for"
-	spacer=every_spacer?
 	variables=identifier+[comma] "in" iter_exp=expression
 	comp_cond=if_comp?
 	"]";
 
 @pass_second
-every_spacer: "every" ("even"|"odd"|"other"|expression);
-@pass_second
 if_comp: "if" expression;
 
-dict_assign: key=expression ":" exp=expression;
+dict_assign: key=expression colon exp=expression;
 dict_expression: "{" kwargs=dict_assign*[comma] "}";
-dict_comp: "{" key=expression ":" value=expression
-				"for" spacer=every_spacer?  variables=identifier+[comma] "in" iter_exp=expression
+dict_comp: "{" key=expression colon value=expression
+				"for" variables=identifier+[comma] "in" iter_exp=expression
  				comp_cond=if_comp?
  				"}";
 
-sliced_list: iter_exp=expression "[" slices= slice_data "]";
-slice_data: expression {1}
- 			| started_slice {2}
- 			| ended_slice {2}
- 			| spacer_slice {2};
-started_slice: start=expression ":" end=expression? spacer=colon_data?;
-ended_slice: end=colon_data  spacer=colon_data?;
-spacer_slice: ":" spacer=colon_data;
+indexed_value: item=expression key=(index | list_expression) assign=index_assignment?;
 
 @pass_second
-colon_data: ":" expression;
+index: "[" slice "]";
+slice: start= slice_section end=end_slice;
+end_slice: expression | slice_section expression;
+@pass_single
+slice_section: expression? colon;
+
+@pass_second
+index_assignment: "=" expression;
 
 needle_instruction: inst=("knit" | "tuck" | "miss" | "split" | "drop");
 
-instruction_assignment: inst=expression needles=needle_list eol;
-
-@collect_sep
-needle_list: needle_list comma expression | expression;
+instruction_assignment: inst=expression needles=expression+[comma] eol;
 
 accessor: exp=expression dot attribute=expression;
 unpack: "*" exp=expression;
@@ -187,6 +181,7 @@ expression: expression "^" expression {right, 6}
             | negation {1}
             | gauge_exp {1}
             | "(" expression ")" {7}
+            | indexed_value {14}
             | unpack {13}
             | float_exp {13}
             | int_exp {13}
@@ -203,7 +198,6 @@ expression: expression "^" expression {right, 6}
             | sheet_id {12}
             | function_call {11}
             | accessor {10}
-            | sliced_list {9}
             | identifier {8};
 
 
@@ -215,6 +209,7 @@ terminals
 float_exp: /-?[0-9]*(\.?[0-9]+)?/;
 int_exp: /-?[0-9]+/ {prefer};
 comma: ",";
+colon: ":";
 dot: /\./;
 eol: ";";
 left_right: /(Left)|(Right)/{10};

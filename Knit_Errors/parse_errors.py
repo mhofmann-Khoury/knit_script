@@ -1,5 +1,4 @@
 """Errors associated with knit script parsing"""
-from typing import List, Tuple
 
 from parglare import ParseError, Terminal
 
@@ -10,6 +9,7 @@ class Knit_Script_Parse_Error(Knit_Script_Error):
     """
         General error reporting for knit script parser errors
     """
+
     def __init__(self, parse_error: ParseError):
         self.parse_error = parse_error
         super().__init__(self.parse_message())
@@ -21,7 +21,7 @@ class Knit_Script_Parse_Error(Knit_Script_Error):
         """
         return self.parse_error.args[0]
 
-    def _split_parse_error(self) -> Tuple[str, str]:
+    def _split_parse_error(self) -> tuple[str, str]:
         before_expected = self.parse_error_str.split('=>')[0]
         quote_split = before_expected.split("\"")
         quote = quote_split[1]
@@ -31,16 +31,18 @@ class Knit_Script_Parse_Error(Knit_Script_Error):
     def _is_incomplete_line(self) -> bool:
         return len(self.parse_error.tokens_ahead) == 0
 
-    def _next_tokens(self) -> List[str]:
+    def _next_tokens(self) -> list[str]:
         return [token.value for token in self.parse_error.tokens_ahead]
 
-    def _expected_terminals(self) -> List[str]:
+    def _expected_terminals(self) -> list[str]:
         return [t.name for t in self.parse_error.symbols_expected if isinstance(t, Terminal)]
+
     def _block_next(self) -> bool:
         return "{" in self._next_tokens() and ":" in self._expected_terminals()
 
     def _missing_rh_paren(self) -> bool:
         return ")" in self._expected_terminals()
+
     def parse_message(self):
         """
         :return: Message to report to exception

@@ -4,7 +4,9 @@ from typing import Union, Optional
 
 from parglare import get_collector
 
+from Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
+from knit_script.knit_script_interpreter.expressions.Indexed_Expression import Slice_Index, Indexed_Expression
 from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.carrier import Carrier_Expression
 from knit_script.knit_script_interpreter.expressions.direction import Pass_Direction_Expression
@@ -320,7 +322,7 @@ def function_call(parser_node, __, func_name: Variable_Expression,
 
 
 @action
-def list_expression(parser_node, __, exps: list[Expression]):
+def list_expression(parser_node, __, exps: list[Expression]) -> Knit_Script_List:
     """
     :param parser_node: The parser element that created this value
     :param __:
@@ -331,87 +333,49 @@ def list_expression(parser_node, __, exps: list[Expression]):
 
 
 @action
-def list_comp(parser_node, __, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression,
-              spacer: Optional[Union[str, Expression]] = None, comp_cond: Expression = None) -> List_Comp:
+def list_comp(parser_node, __, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression = None) -> List_Comp:
     """
     :param parser_node: The parser element that created this value
     :param __:
     :param fill_exp: Expression that fills the list
-    :param spacer: the spacer value across the variables.
     :param variables: Variables to fill from iterable
     :param iter_exp: the iterable to pass over
     :param comp_cond: condition to evaluate for adding a value
     :return: List comprehension
     """
-    return List_Comp(parser_node, fill_exp, spacer, variables, iter_exp, comp_cond)
+    return List_Comp(parser_node, fill_exp, variables, iter_exp, comp_cond)
 
 
 @action
-def started_slice(_, __, start: Expression,
-                  end: Optional[Expression],
-                  spacer: Optional[Expression]) -> tuple[Expression, Optional[Expression], Optional[Expression]]:
+def indexed_value(parser_node, __, item: Expression, key: Slice_Index | Knit_Script_List, assign: Expression) -> Indexed_Expression:
     """
-    :param _: The parser element that created this value
+    :param parser_node:
     :param __:
-    :param start: First value in slice.
-    :param end: End of slice value
-    :param spacer: spacing value
-    :return: (start expression), (end expression), (spacer expression). End and spacer can be none
+    :param item: item to index
+    :param key: key to index by
+    :param assign: optional assignment
+    :return: expression that evaluations assignment
     """
-    return start, end, spacer
+    if isinstance(key, Knit_Script_List):
+        key = key.expressions[0]
+    return Indexed_Expression(parser_node, item, key, assign)
 
 
 @action
-def ended_slice(_, __, end: Expression,
-                spacer: Optional[Expression]) -> tuple[Optional[Expression], Expression, Optional[Expression]]:
+def slice(parser_node, __, start: Expression | None, end: Expression | list[Expression | None]) -> Slice_Index:
     """
-    :param _: The parser element that created this value
+    :param parser_node:
     :param __:
-    :param end: End of slice value
-    :param spacer: spacing value
-    :return: (start expression), (end expression), (spacer expression). Start is None. Spacer can be none.
+    :param start:
+    :param end:
+    :return:
     """
-    return None, end, spacer
-
-
-@action
-def spacer_slice(_, __, spacer: Expression) -> tuple[Optional[Expression], Optional[Expression], Expression]:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param spacer: Spacing value
-    :return: (start expression), (end expression), (spacer expression). Start and end are none. Spacer cannot be None
-    """
-    return None, None, spacer
-
-
-@action
-def slice_data(_, nodes: list) -> Union[Expression, tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]:
-    """
-    :param _: The parser element that created this value
-    :param nodes: data from different slicing configurations
-    :return: slice values
-    """
-    slice_values = nodes[0]
-    if isinstance(slice_values, Expression):  # index passed
-        return slice_values
-    else:
-        return slice_values[0], slice_values[1] is not None, slice_values[1], slice_values[2] is not None, slice_values[2]
-
-
-@action
-def sliced_list(parser_node, __, iter_exp: Expression,
-                slices: Union[Expression, tuple[Optional[Expression], bool, Optional[Expression], bool, Optional[Expression]]]) -> Sliced_List:
-    """
-    :param parser_node: The parser element that created this value ignored parser context
-    :param __: ignored nodes
-    :param iter_exp: The iterator to gather the slice from
-    :param slices: data about how to form an index or slice
-    :return: the slicer statement
-    """
-    if isinstance(slices, Expression):
-        return Sliced_List(parser_node, iter_exp, start=slices, is_index=True)
-    return Sliced_List(parser_node, iter_exp, slices[0], slices[1], slices[2], slices[3], slices[4])
+    spacer = None
+    if isinstance(end, list):
+        if len(end) > 1:
+            spacer = end[1]
+        end = end[0]
+    return Slice_Index(start, end, spacer, parser_node)
 
 
 @action
@@ -440,8 +404,7 @@ def dict_expression(parser_node, __, kwargs: list[tuple[Expression, Expression]]
 
 @action
 def dict_comp(parser_node, __, key: Expression, value: Expression,
-              variables: list[Variable_Expression], iter_exp: Expression,
-              spacer: Optional[Union[str, Expression]] = None, comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
+              variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
     """
     :param spacer: spacing to jump over list
     :param comp_cond: conditional on variables to skip specific designs
@@ -453,7 +416,7 @@ def dict_comp(parser_node, __, key: Expression, value: Expression,
     :param iter_exp: the iterable to parse over
     :return: Dictionary comprehension
     """
-    return Dictionary_Comprehension(parser_node, key, value, variables, iter_exp, spacer, comp_cond)
+    return Dictionary_Comprehension(parser_node, key, value, variables, iter_exp, comp_cond)
 
 
 @action
