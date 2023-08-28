@@ -1,7 +1,6 @@
 from typing import Optional
 
-from Knit_Errors.carrier_operation_errors import In_Active_Carrier_Error, Inserting_Hook_In_Use_Error, Out_Inactive_Carrier_Error, Out_Hooked_Carrier_Error, \
-    Cut_Hooked_Carrier_Error
+from knit_script.Knit_Errors.carrier_operation_errors import In_Active_Carrier_Error, Inserting_Hook_In_Use_Error, Out_Inactive_Carrier_Error, Out_Hooked_Carrier_Error, Cut_Hooked_Carrier_Error
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction, Instruction_Type
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 

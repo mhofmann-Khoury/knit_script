@@ -64,10 +64,10 @@ def offset_new_loops(course):{
 		depth = get_stitch_depth(loop_id);
 		if not(offset is None):{
 			if offset != 0:{
-				if not (depth in depth_to_offsets_to_current_needle):{
+				if depth not in depth_to_offsets_to_current_needle:{
 					depth_to_offsets_to_current_needle[depth] = {};
 				}
-				if not (offset in depth_to_offsets_to_current_needle[depth]):{
+				if offset not in depth_to_offsets_to_current_needle[depth]:{
 					depth_to_offsets_to_current_needle[depth][offset]= [];
 				}
 				depth_to_offsets_to_current_needle[depth][offset].append(current_needle);
@@ -109,7 +109,7 @@ with Carrier as c1:{
 		if r > 0:{
 			yos = [];
 			for i in range(0, len(first_course)):{
-				if (not (needles.needle(True, i) in Loops)) and (not (needles.needle(False, i) in Loops)):{
+				if (needles.needle(True, i) not in Loops) and (needles.needle(False, i) not in Loops):{
 					yos.append(needles.needle(True, i));
 				}
 			}

@@ -4,7 +4,6 @@ from typing import Union, Optional
 
 from parglare import get_collector
 
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
 from knit_script.knit_script_interpreter.expressions.Indexed_Expression import Slice_Index, Indexed_Expression
 from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
@@ -14,7 +13,7 @@ from knit_script.knit_script_interpreter.expressions.expressions import Expressi
 from knit_script.knit_script_interpreter.expressions.formatted_string import Formatted_String_Value
 from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
 from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp
-from knit_script.knit_script_interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, List_Comp, Dictionary_Comprehension, Unpack, Sliced_List
+from knit_script.knit_script_interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, List_Comp, Dictionary_Comprehension, Unpack
 from knit_script.knit_script_interpreter.expressions.machine_accessor import Machine_Accessor, Sheet_Expression
 from knit_script.knit_script_interpreter.expressions.needle_expression import Needle_Expression
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets, Needle_Set_Expression
@@ -362,7 +361,7 @@ def indexed_value(parser_node, __, item: Expression, key: Slice_Index | Knit_Scr
 
 
 @action
-def slice(parser_node, __, start: Expression | None, end: Expression | list[Expression | None]) -> Slice_Index:
+def slice_index(parser_node, __, start: Expression | None, end: Expression | list[Expression | None]) -> Slice_Index:
     """
     :param parser_node:
     :param __:
@@ -406,7 +405,6 @@ def dict_expression(parser_node, __, kwargs: list[tuple[Expression, Expression]]
 def dict_comp(parser_node, __, key: Expression, value: Expression,
               variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Optional[Expression] = None) -> Dictionary_Comprehension:
     """
-    :param spacer: spacing to jump over list
     :param comp_cond: conditional on variables to skip specific designs
     :param parser_node: The parser element that created this value
     :param __:
@@ -664,6 +662,15 @@ def expression(parser_node, nodes: list) -> Expression:
         return nodes[0]
     if nodes[0] == "(":
         return nodes[1]
+    elif len(nodes) == 4:
+        if nodes[1] == "is":
+            is_op = Operator_Expression(parser_node, nodes[0], nodes[1], nodes[3])
+            if nodes[2] is not None:
+                return Not_Expression(parser_node, is_op)
+            else:
+                return is_op
+        else:  # not in operation
+            return Not_Expression(parser_node, Operator_Expression(parser_node, nodes[0], nodes[2], nodes[3]))
     else:
         return Operator_Expression(parser_node, nodes[0], nodes[1], nodes[2])
 

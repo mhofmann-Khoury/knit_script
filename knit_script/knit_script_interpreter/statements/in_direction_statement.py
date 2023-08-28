@@ -1,10 +1,10 @@
 """Used to translate lists of knitting instructions in a single carriage pass"""
 from typing import List, Dict
 
+from knit_script.Knit_Errors.yarn_management_errors import No_Declared_Carrier_Error
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from Knit_Errors.yarn_management_errors import No_Declared_Carrier_Error
 from knit_script.knit_script_interpreter.statements.Carriage_Pass import Carriage_Pass
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type

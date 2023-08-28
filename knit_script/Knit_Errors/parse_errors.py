@@ -2,7 +2,7 @@
 
 from parglare import ParseError, Terminal
 
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
 
 
 class Knit_Script_Parse_Error(Knit_Script_Error):

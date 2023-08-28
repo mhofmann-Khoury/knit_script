@@ -1,6 +1,6 @@
 from typing import Optional
 
-from Knit_Errors.Knitout_Error import Ignorable_Knitout_Error
+from knit_script.Knit_Errors.Knitout_Error import Ignorable_Knitout_Error
 from knit_script.knitout_interpreter.knitout_structures.Carraige_Pass_Collection import Carriage_Pass_Instruction_Collection
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Version_Line, Comment_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration

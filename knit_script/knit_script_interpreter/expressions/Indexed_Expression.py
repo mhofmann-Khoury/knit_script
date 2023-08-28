@@ -1,6 +1,6 @@
 from parglare.parser import LRStackNode
 
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.Knit_Errors import Knit_Script_Error
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 

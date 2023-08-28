@@ -1,4 +1,4 @@
-from Knit_Errors.Knitout_Error import Ignorable_Knitout_Error, Knitout_Error
+from knit_script.Knit_Errors.Knitout_Error import Ignorable_Knitout_Error, Knitout_Error
 
 
 class In_Active_Carrier_Error(Ignorable_Knitout_Error):

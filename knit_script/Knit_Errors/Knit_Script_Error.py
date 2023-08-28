@@ -1,6 +1,6 @@
 import os
 
-from Knit_Errors.Knitout_Error import Knitout_Error
+from knit_script.Knit_Errors.Knitout_Error import Knitout_Error
 
 
 class Knit_Script_Error(Exception):

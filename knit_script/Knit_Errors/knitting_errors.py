@@ -1,5 +1,5 @@
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
-from Knit_Errors.Knitout_Error import Knitout_Error
+from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.Knit_Errors.Knitout_Error import Knitout_Error
 from knit_script.knitting_machine.machine_components.needles import Needle
 
 

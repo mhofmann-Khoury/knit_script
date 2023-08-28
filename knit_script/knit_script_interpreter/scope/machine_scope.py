@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional, Union, Any
 
-from Knit_Errors.gauge_errors import Gauge_Value_Error, Sheet_Value_Error
+from knit_script.Knit_Errors.gauge_errors import Gauge_Value_Error, Sheet_Value_Error
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction

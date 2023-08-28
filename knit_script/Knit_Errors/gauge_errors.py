@@ -1,6 +1,6 @@
 """Errors associated with gauging schema"""
 
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knitting_machine.Machine_State import Machine_State
 
 

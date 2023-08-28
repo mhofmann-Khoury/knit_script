@@ -142,8 +142,8 @@ dict_comp: "{" key=expression colon value=expression
 indexed_value: item=expression key=(index | list_expression) assign=index_assignment?;
 
 @pass_second
-index: "[" slice "]";
-slice: start= slice_section end=end_slice;
+index: "[" slice_index "]";
+slice_index: start= slice_section end=end_slice;
 end_slice: expression | slice_section expression;
 @pass_single
 slice_section: expression? colon;
@@ -174,8 +174,9 @@ expression: expression "^" expression {right, 6}
             | expression ">=" expression  {left, 1}
             | expression "==" expression  {left, 1}
             | expression "!=" expression  {left, 1}
-            | expression "is" expression  {left, 1}
+            | expression "is" "not"? expression  {left, 1}
             | expression "in" expression  {left, 1}
+            | expression "not" "in" expression {left, 1}
             | expression "and" expression {left, 1}
             | expression "or" expression  {left, 1}
             | negation {1}

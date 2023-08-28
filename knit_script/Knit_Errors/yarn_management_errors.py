@@ -1,6 +1,6 @@
 from typing import List
 
-from Knit_Errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 

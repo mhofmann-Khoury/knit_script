@@ -1,7 +1,7 @@
 """Used to manage all instruction sets written for a single carriage pass in a given direction"""
 from typing import Optional, Dict
 
-from Knit_Errors.knitting_errors import Incompatible_Carriage_Pass_Operations, Instructions_Require_Direction, Repeated_Needle_In_Pass, All_Needle_Operation_Error
+from knit_script.Knit_Errors.knitting_errors import Incompatible_Carriage_Pass_Operations, Instructions_Require_Direction, Repeated_Needle_In_Pass, All_Needle_Operation_Error
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import build_instruction, rack

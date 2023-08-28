@@ -1,9 +1,9 @@
 """Needle operations"""
 from typing import Optional
 
-from Knit_Errors.knitting_errors import Long_Float_Error, Slider_Use_Error, Blocked_Sliders_Error, Slider_Clear_Error, Valid_Rack_Error, \
+from knit_script.Knit_Errors.knitting_errors import Long_Float_Error, Slider_Use_Error, Blocked_Sliders_Error, Slider_Clear_Error, Valid_Rack_Error, \
     Same_Bed_Transfer_Error
-from Knit_Errors.yarn_management_errors import Inactive_Carrier_Error
+from knit_script.Knit_Errors.yarn_management_errors import Inactive_Carrier_Error
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction, Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
