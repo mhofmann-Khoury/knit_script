@@ -105,23 +105,24 @@ class Knitout_Optimizer:
                 self.needle_instruction_graph.add_edge(instruction_1, instruction_2, is_stitch_edge=True, loop=loop)
 
     def _add_carriage_pass_edges(self):
-        prior_instruction = None
         prior_pass = None
+        prior_rack = Rack_Instruction(0, f"Starting Rack")
         for i, carriage_pass in enumerate(self.context.carriage_passes):
             self._carriage_pass_to_prior_pass[carriage_pass] = prior_pass
-            prior_pass = carriage_pass
             rack_instruction = carriage_pass.rack_instruction()
-            rack_instruction.comment = f"injected rack for cp {i}"
-            self.carriage_pass_graph.add_edge(rack_instruction, carriage_pass[0], rack_before_cp=True, carriage_pass=carriage_pass, in_cp_edge=False, between_cp_edge=True)
-            if prior_instruction is not None:
-                self.carriage_pass_graph.add_edge(prior_instruction, rack_instruction, cp_before_rack=True, carriage_pass=self._needle_instructions_to_carriage_passes[prior_instruction],
-                                                  in_cp_edge=False, between_cp_edge=True)
-            prior_instruction = carriage_pass[0]
-            self._needle_instructions_to_carriage_passes[prior_instruction] = carriage_pass
-            for instruction in carriage_pass[1:]:
-                self.carriage_pass_graph.add_edge(prior_instruction, instruction, in_cp_edge=True, between_cp_edge=False)
-                prior_instruction = instruction
-                self._needle_instructions_to_carriage_passes[instruction] = carriage_pass
+            if rack_instruction.rack != prior_rack.rack:
+                rack_instruction.comment = f"injected rack for cp {i}"
+                prior_rack = rack_instruction
+                if prior_pass is not None:
+                    self.carriage_pass_graph.add_edge(prior_pass[-1], prior_rack, rack_after_cp=True, in_cp_edge=False, between_cp_edge=True)
+            self.carriage_pass_graph.add_edge(prior_rack, carriage_pass[0], rack_before_cp=True, in_cp_edge=False, between_cp_edge=True)
+            if prior_pass is not None:
+                self.carriage_pass_graph.add_edge(prior_pass[-1], carriage_pass[0], between_cp_edge=True, in_cp_edge=False)
+            self._needle_instructions_to_carriage_passes[carriage_pass[0]] = carriage_pass
+            for prior_instruction, current_instruction in zip(carriage_pass[:-1], carriage_pass[1:]):
+                self.carriage_pass_graph.add_edge(prior_instruction, current_instruction, in_cp_edge=True, between_cp_edge=False, carriage_pass=carriage_pass)
+                self._needle_instructions_to_carriage_passes[current_instruction] = carriage_pass
+            prior_pass = carriage_pass
 
     def _add_xfer_release_constraint(self):
         last_release = None
@@ -145,6 +146,8 @@ class Knitout_Optimizer:
         for instruction in sorted_instructions:
             if not isinstance(instruction, Rack_Instruction) or instruction.rack != current_rack:
                 clean_instructions.append(instruction)
+                if isinstance(instruction, Rack_Instruction):
+                    current_rack = instruction.rack
         return clean_instructions
 
     def visualize(self, output_name: str = "knitout_graph", needles=True, yarn=True, cp=True, merged_graphs=True):
@@ -171,7 +174,3 @@ class Knitout_Optimizer:
             nx.write_graphml(_string_graph(self.carriage_pass_graph), f"passes_{output_name}.graphml")
         if merged_graphs:
             nx.write_graphml(_string_graph(self.merge_graphs()), f"{output_name}.graphml")
-
-    # def optimize_knitout(self) -> list[Knitout_Line]:
-    #         sorted_instructions = [*nx.topological_sort(self.)]
-    #         return sorted_instructions

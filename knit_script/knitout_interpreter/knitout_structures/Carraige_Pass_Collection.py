@@ -26,6 +26,8 @@ class Carriage_Pass_Instruction_Collection:
         """
         if self.direction is not None:
             return self.direction
+        if len(self.instructions) < 2:  # default to leftward pass
+            return Pass_Direction.Leftward
         else:
             if self.instructions[0].needle < self.instructions[1].needle:  # increasing
                 return Pass_Direction.Rightward
@@ -128,7 +130,7 @@ class Carriage_Pass_Instruction_Collection:
             if len(self._instruction_type_to_needles) > 1:
                 indent = "\t"
                 string += "\n"
-        for instruction_type, needles in self._instruction_type_to_needles:
+        for instruction_type, needles in self._instruction_type_to_needles.items():
             string += f"{indent}{instruction_type.value} {needles}\n"
         return string
 

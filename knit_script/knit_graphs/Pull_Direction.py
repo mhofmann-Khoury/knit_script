@@ -4,8 +4,8 @@ from enum import Enum
 
 class Pull_Direction(Enum):
     """An enumerator of the two pull directions of a loop"""
-    BtF = "BtF"
-    FtB = "FtB"
+    BtF = "Knit"
+    FtB = "Purl"
 
     def opposite(self):
         """

@@ -1,31 +1,38 @@
 """Manages variable scope and machine state of knit pass during execution"""
-from typing import Optional, List, Union, Dict
 
-from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Comment_Line
-from knit_script.knitting_machine.machine_specification.Header import Header
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
-from knit_script.knitting_machine.Machine_State import Machine_State
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Comment_Line
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import inhook, bring_in, rack, releasehook
+from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle, Sheet_Identifier
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Position
 from knit_script.knitting_machine.machine_components.needles import Needle, Slider_Needle
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
+from knit_script.knitting_machine.machine_specification.Header import Header
 
 
 class Knit_Script_Context:
     """Manages the state of the Knitting machine during program execution"""
 
-    def __init__(self, parent_scope: Optional[Knit_Script_Scope] = None,
+    def __init__(self, parent_scope: Knit_Script_Scope | None = None,
                  bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
                  ks_file=None, parser=None):
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
         self._header: Header = Header(bed_width, machine_position)
         self.machine_state: Machine_State = self._header.machine_state()
         self.knitout: list[Knitout_Line] = self._header.header_lines()
-        self.ks_file: Optional[str] = ks_file
+        self.ks_file: str | None = ks_file
         self.parser = parser
-        self.last_carriage_pass_result: Union[list[Needle], dict[Needle, Optional[Needle]]] = {}
+        self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
+
+    def add_variable(self, key, value):
+        """
+        Adds a variable to the variable scope by the name of key.
+        :param key: Name of variable to be used in the knit script.
+        :param value: Value of variable
+        """
+        self.variable_scope.__setattr__(key, value)
 
     @property
     def header(self) -> Header:
@@ -39,13 +46,13 @@ class Knit_Script_Context:
         self._header = value
         self.machine_state = self._header.machine_state()
 
-    def enter_sub_scope(self, function_name: Optional[str] = None, module_name: Optional[str] = None, module_scope: Optional[Knit_Script_Scope] = None) -> Knit_Script_Scope:
+    def enter_sub_scope(self, function_name: str | None = None, module_name: str | None = None, module_scope: Knit_Script_Scope | None = None) -> Knit_Script_Scope:
         """
             Creates a child scope and sets it as the current variable scope
             :param module_name: the name of the module owning this scope
-            :param function_name: the name of the function owning this scope
-            :param module_scope: the scope of the function declaration
-            :return: Return the scope that was entered
+            :param function_name: the name of the function owning this scope.
+            :param module_scope: The scope of the function declaration.
+            :return: Return the scope that was entered.
         """
         if function_name is not None:
             self.variable_scope = self.variable_scope.enter_new_scope(function_name, is_function=True, module_scope=module_scope)
@@ -62,7 +69,7 @@ class Knit_Script_Context:
         self.variable_scope = self.variable_scope.exit_current_scope()
 
     @property
-    def sheet_needle_count(self, gauge: Optional[int] = None) -> int:
+    def sheet_needle_count(self, gauge: int | None = None) -> int:
         """
         :return: The needle count of the bed broken up by current gauge
         """
@@ -80,14 +87,14 @@ class Knit_Script_Context:
         self.variable_scope.direction = value
 
     @property
-    def carrier_set(self) -> Optional[Carrier_Set]:
+    def carrier_set(self) -> Carrier_Set | None:
         """
         :return: Carrier in use at scope
         """
         return self.variable_scope.carrier_set
 
     @carrier_set.setter
-    def carrier_set(self, carrier: Optional[Carrier_Set]):
+    def carrier_set(self, carrier: Carrier_Set | None):
         if self.carrier_set != carrier:
             self.variable_scope.carrier_set = carrier
             if self.carrier_set is not None \
@@ -125,7 +132,7 @@ class Knit_Script_Context:
         return self.variable_scope.sheet
 
     @sheet.setter
-    def sheet(self, value: Optional[Union[Sheet_Identifier, int]]):
+    def sheet(self, value: Sheet_Identifier | int | None):
         self.variable_scope.sheet = value
         self.knitout.append(Comment_Line(f"Resetting to sheet {self.sheet} of {self.gauge}"))
         self.knitout.extend(self.machine_state.reset_sheet(self.sheet.sheet))
@@ -141,17 +148,17 @@ class Knit_Script_Context:
         return self.variable_scope.gauge
 
     @gauge.setter
-    def gauge(self, value: Optional[int]):
+    def gauge(self, value: int | None):
         self.variable_scope.gauge = value
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False,
-                   global_needle: bool = False, sheet: Optional[int] = None, gauge: Optional[int] = None) -> Needle:
+                   global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """
-        :param gauge: specifies gauging to get needles from, defaults to current gauge
-        :param sheet: specifies the sheet to get needles from, defaults to current sheet
-        :param global_needle: If true, ignore gauging scheme
+        :param gauge: specifies gauging to get needles from, defaults to current gauge.
+        :param sheet: Specify the sheet to get needles from, defaults to the current sheet.
+        :param global_needle: If true, ignore the gauging scheme.
         :param is_front:
-        :param pos: position within current layer
+        :param pos: Position within the current layer.
         :param is_slider:
         :return: Needle based on current gauging
         """
@@ -171,7 +178,7 @@ class Knit_Script_Context:
                 return Sheet_Needle(is_front, pos, sheet, gauge)
 
     def get_machine_needle(self, is_front: bool, pos: int, is_slider: bool = False,
-                           global_needle: bool = False, sheet: Optional[int] = None, gauge: Optional[int] = None) -> Needle:
+                           global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """
         :param gauge:
         :param sheet:

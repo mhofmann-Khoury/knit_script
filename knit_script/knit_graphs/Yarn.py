@@ -24,7 +24,7 @@ class Yarn:
     """
 
     def __init__(self, yarn_id: str, last_loop: Optional[Loop] = None,
-                 size: int = 2, plies: int = 30, color: Optional[str] = None):
+                 size: int = 2, plies: int = 30, color: str | None = "green"):
         """
         A Graph structure to show the yarn-wise relationship between loops
         :param yarn_id: the identifier for this loop

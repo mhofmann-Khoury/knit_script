@@ -1,12 +1,11 @@
 """used to run js DAT compiler"""
 from importlib.resources import files
 from pathlib import Path
-from typing import Optional
 
 from Naked.toolshed.shell import execute_js
 
 
-def get_compiler_folder(folder_path: Optional[str] = None):
+def get_compiler_folder(folder_path: str | None = None):
     """
     :param folder_path: the folder of compilers or default location
     :return: The path or package that contains the dat compilers at the given folder or the default compiler folder
@@ -23,7 +22,7 @@ def get_compiler_folder(folder_path: Optional[str] = None):
             return path
 
 
-def get_dat_compiler(folder_path: Optional[str] = None, dat_compiler_name: Optional[str] = None):
+def get_dat_compiler(folder_path: str | None = None, dat_compiler_name: str | None = None):
     """
     :param folder_path: defaults to standard compiler package
     :param dat_compiler_name: the name of the compiler javascript file
@@ -38,7 +37,7 @@ def get_dat_compiler(folder_path: Optional[str] = None, dat_compiler_name: Optio
     return dat_path
 
 
-def get_kcode_compiler(folder_path: Optional[str] = None, dat_compiler_name: Optional[str] = None):
+def get_kcode_compiler(folder_path: str | None = None, dat_compiler_name: str | None = None):
     """
     :param folder_path: defaults to standard compiler package
     :param dat_compiler_name: the name of the compiler javascript file
@@ -52,7 +51,7 @@ def get_kcode_compiler(folder_path: Optional[str] = None, dat_compiler_name: Opt
     return dat_path
 
 
-def knitout_to_dat(knitout_file_name: str, dat_file_name: Optional[str] = None, compiler_folder: Optional[str] = None, compiler: Optional[str] = None) -> bool:
+def knitout_to_dat(knitout_file_name: str, dat_file_name: str | None = None, compiler_folder: str | None = None, compiler: str | None = None) -> bool:
     """
     Creates a dat file for the corresponding knitout
     :param compiler: the name of the compiler

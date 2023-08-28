@@ -1,11 +1,63 @@
 """The graph structure used to represent knitted objects"""
-from typing import Dict, Optional, List, Tuple, Union
-
 import networkx
 
 from knit_script.knit_graphs.Loop import Loop
 from knit_script.knit_graphs.Pull_Direction import Pull_Direction
 from knit_script.knit_graphs.Yarn import Yarn
+
+
+class Course:
+    """
+    Course object for organizing loops into knitting rows
+    """
+
+    def __init__(self):
+        self.loops_by_id_in_order: list[int] = []
+        self.loops_by_id: dict[int, Loop] = {}
+
+    def add_loop(self, loop: Loop, index: int | None = None):
+        """
+        Add the loop at the given index or to the end of the course
+        :param loop: loop to add
+        :param index: index to insert at or None if adding to end
+        """
+        for parent_loop in loop.parent_loops:
+            assert parent_loop not in self, f"{loop} has parent {parent_loop}, cannot be added to same course"
+        self.loops_by_id[loop.loop_id] = loop
+        if index is None:
+            self.loops_by_id_in_order.append(loop.loop_id)
+        else:
+            self.loops_by_id_in_order.insert(index, loop.loop_id)
+
+    def __getitem__(self, index: int) -> int:
+        return self.loops_by_id_in_order[index]
+
+    def index(self, loop_id: int | Loop) -> int:
+        """
+        Searches for index of given loop_id
+        :param loop_id: loop_id or loop to find
+        :return: index of the loop_id
+        """
+        if isinstance(loop_id, Loop):
+            loop_id = loop_id.loop_id
+        return self.loops_by_id_in_order.index(loop_id)
+
+    def __contains__(self, loop_id: int | Loop) -> bool:
+        if isinstance(loop_id, Loop):
+            loop_id = loop_id.loop_id
+        return loop_id in self.loops_by_id
+
+    def __iter__(self):
+        return self.loops_by_id_in_order.__iter__()
+
+    def __len__(self):
+        return len(self.loops_by_id_in_order)
+
+    def __str__(self):
+        return str(self.loops_by_id_in_order)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Knit_Graph:
@@ -25,9 +77,9 @@ class Knit_Graph:
 
     def __init__(self):
         self.graph: networkx.DiGraph = networkx.DiGraph()
-        self.loops: Dict[int, Loop] = {}
+        self.loops: dict[int, Loop] = {}
         self.last_loop_id: int = -1
-        self.yarns: Dict[str, Yarn] = {}
+        self.yarns: dict[str, Yarn] = {}
 
     def add_loop(self, loop: Loop):
         """
@@ -52,7 +104,7 @@ class Knit_Graph:
 
     def connect_loops(self, parent_loop_id: int, child_loop_id: int,
                       pull_direction: Pull_Direction = Pull_Direction.BtF,
-                      stack_position: Optional[int] = None, depth: int = 0, parent_offset: int = 0):
+                      stack_position: int | None = None, depth: int = 0, parent_offset: int = 0):
         """
         Creates a stitch-edge by connecting a parent and child loop
         :param parent_offset: The direction and distance, oriented from the front, to the parent_loop
@@ -69,36 +121,25 @@ class Knit_Graph:
         parent_loop = self[parent_loop_id]
         child_loop.add_parent_loop(parent_loop, stack_position)
 
-    def get_courses(self) -> Tuple[Dict[int, int], Dict[int, List[int]]]:
+    def get_courses(self) -> list[Course]:
         """
         :return: A dictionary of loop_ids to the course they are on,
-        a dictionary or course ids to the loops on that course in the order of creation
+        a dictionary or course ids to the loops on that course in the order of creation.
         The first set of loops in the graph is on course 0.
         A course change occurs when a loop has a parent loop that is in the last course.
         """
-        loop_ids_to_course = {}
-        course_to_loop_ids = {}
-        current_course_set = set()
-        current_course = []
-        course = 0
+        courses = []
+        course = Course()
         for loop_id in sorted([*self.graph.nodes]):
-            no_parents_in_course = True
+            loop = self[loop_id]
             for parent_id in self.graph.predecessors(loop_id):
-                if parent_id in current_course_set:
-                    no_parents_in_course = False
+                if parent_id in course:
+                    courses.append(course)
+                    course = Course()
                     break
-            if no_parents_in_course:
-                current_course_set.add(loop_id)
-                current_course.append(loop_id)
-            else:
-                course_to_loop_ids[course] = current_course
-                current_course = [loop_id]
-                current_course_set = {loop_id}
-                course += 1
-            loop_ids_to_course[loop_id] = course
-        course_to_loop_ids[course] = current_course
-        return loop_ids_to_course, course_to_loop_ids
-
+            course.add_loop(loop)
+        courses.append(course)
+        return courses
 
     def __contains__(self, item):
         """
@@ -124,9 +165,10 @@ class Knit_Graph:
         else:
             return self.graph.nodes[item]["loop"]
 
-    def get_stitch_edge(self, parent: Union[Loop, int], child: Union[Loop, int]):
+    def get_stitch_edge(self, parent: Loop | int, child: Loop | int, stitch_property: str | None = None):
         """
-        Shortcut to get stitch edge data from loops or ids
+        Shortcut to get stitch-edge data from loops or ids
+        :param stitch_property: property of edge to return
         :param parent: parent loop or id of parent loop
         :param child: child loop or id of child loop
         :return: the edge data for this stitch edge
@@ -138,8 +180,21 @@ class Knit_Graph:
         if isinstance(child, Loop):
             child_id = child.loop_id
         if self.graph.has_edge(parent_id, child_id):
-            return self.graph[parent_id][child_id]
+            if stitch_property is not None:
+                return self.graph[parent_id][child_id][stitch_property]
+            else:
+                return self.graph[parent_id][child_id]
         else:
             return None
 
-
+    def get_child_loop(self, loop_id: Loop | int) -> int | None:
+        """
+        :param loop_id: loop_id to look for child from.
+        :return: child loop_id or None if no child loop
+        """
+        if isinstance(loop_id, Loop):
+            loop_id = loop_id.loop_id
+        successors = [*self.graph.successors(loop_id)]
+        if len(successors) == 0:
+            return None
+        return successors[0]

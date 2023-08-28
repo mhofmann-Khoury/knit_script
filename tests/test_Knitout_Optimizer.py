@@ -74,5 +74,34 @@ class TestKnitout_Optimizer(TestCase):
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
 
+    def test_optimize_lace(self):
+        interpreter = Knitout_Interpreter(False, False)
+        pattern = r"""
+                    ;!knitout-2
+                    inhook 1
+                    releasehook 1
+                    knit + f1 1
+                    knit + f2 1
+                    knit + f3 1
+                    knit + f4 1
+                    rack 1
+                    xfer f2 b1
+                    rack 0
+                    rack -1
+                    xfer f3 b4
+                    rack 0
+                    xfer b4 f4
+                    xfer b1 f1
+                    knit - f4 1
+                    knit - f1 1
+                    outhook 1
+                    """
+        knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
+        context = interpreter.context
+        optimizer = Knitout_Optimizer(context, 3)
+        optimizer.visualize()
+        optimized_knitout = optimizer.optimize()
+        print(optimized_knitout)
+
     def test_rib_from_ks(self):
         knit_script_to_knitout('rib.ks', 'rib.k')
