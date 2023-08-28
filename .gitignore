@@ -196,4 +196,3 @@ fabric.properties
 !/tests/import_test.k
 *.k
 *.dat
-*.js

@@ -1,3 +1,5 @@
-networkx==3.0
-parglare==0.16.0
+networkx==3.1
+parglare==0.16.1
 Naked==0.1.32
+setuptools==68.1.2
+matplotlib~=3.7.2

@@ -1,5 +1,5 @@
 # knit_script
-Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines.
+Knit Script is a domain-specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines.
 
 # Set Up
 ## Install Development Version (from local source code)
