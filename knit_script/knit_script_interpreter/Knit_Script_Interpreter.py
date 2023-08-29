@@ -7,7 +7,7 @@ from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_P
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
-from knit_script.knitout_interpreter.knitout_optimizer.Knitout_CP_Optimizer import Knitout_Carriage_Pass_Optimizer
+from knit_script.knitout_interpreter.Knitout_Optimizer import Knitout_Optimizer
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 
 
@@ -110,7 +110,7 @@ class Knit_Script_Interpreter:
         if organized_out_name is not None:
             with open(organized_out_name, 'w') as temp:
                 temp.writelines([str(k) for k in organized_knitout])
-        optimizer = Knitout_Carriage_Pass_Optimizer(knitout_interpreter.context)
+        optimizer = Knitout_Optimizer(knitout_interpreter.context)
         if visualize:
             optimizer.visualize()
         optimized_knitout = optimizer.optimize()

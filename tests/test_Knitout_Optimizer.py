@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
-from knit_script.knitout_interpreter.knitout_optimizer.Knitout_CP_Optimizer import Knitout_Carriage_Pass_Optimizer
+from knit_script.knitout_interpreter.Knitout_CP_Optimizer import Knitout_Optimizer
 
 
 class TestKnitout_Optimizer(TestCase):
@@ -22,7 +22,7 @@ class TestKnitout_Optimizer(TestCase):
                     """
         _knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
         context = interpreter.context
-        optimizer = Knitout_Carriage_Pass_Optimizer(context, 1)
+        optimizer = Knitout_Optimizer(context, 1)
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
@@ -52,7 +52,7 @@ class TestKnitout_Optimizer(TestCase):
 
         _knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
         context = interpreter.context
-        optimizer = Knitout_Carriage_Pass_Optimizer(context, 1)
+        optimizer = Knitout_Optimizer(context, 1)
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
@@ -81,7 +81,7 @@ class TestKnitout_Optimizer(TestCase):
                     """
         _knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
         context = interpreter.context
-        optimizer = Knitout_Carriage_Pass_Optimizer(context, 1)
+        optimizer = Knitout_Optimizer(context, 1)
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
@@ -112,7 +112,7 @@ class TestKnitout_Optimizer(TestCase):
                 """
         _knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
         context = interpreter.context
-        optimizer = Knitout_Carriage_Pass_Optimizer(context, 1)
+        optimizer = Knitout_Optimizer(context, 1)
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
@@ -146,7 +146,7 @@ class TestKnitout_Optimizer(TestCase):
                         """
         _knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
         context = interpreter.context
-        optimizer = Knitout_Carriage_Pass_Optimizer(context, 1)
+        optimizer = Knitout_Optimizer(context, 1)
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
@@ -177,7 +177,7 @@ class TestKnitout_Optimizer(TestCase):
                         """
         _knitout_instructions = interpreter.interpret_knitout(pattern, False, True)
         context = interpreter.context
-        optimizer = Knitout_Carriage_Pass_Optimizer(context, 5)
+        optimizer = Knitout_Optimizer(context, 5)
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)

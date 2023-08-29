@@ -52,7 +52,7 @@ class Instruction_Prerequisite(Enum):
         return str(self)
 
 
-class Knitout_Carriage_Pass_Optimizer:
+class Knitout_Optimizer:
     """
         Optimizes Knitout from given context by relationship between instructions and whole carriage passes
     """
