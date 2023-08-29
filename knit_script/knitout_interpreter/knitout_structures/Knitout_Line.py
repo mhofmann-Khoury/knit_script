@@ -47,6 +47,15 @@ class Knitout_Line:
     def __str__(self):
         return self.comment_str
 
+    def id_str(self) -> str:
+        """
+        :return: string with original line number added if present
+        """
+        if self.original_line_number is not None:
+            return f"{self.original_line_number}:{self}"
+        else:
+            return str(self)
+
     def __repr__(self):
         return str(self)
 

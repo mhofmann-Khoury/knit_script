@@ -56,7 +56,6 @@ class Non_Existent_Carrier_Error(Knit_Script_Error):
             return f"Carriers must be 1 or greater, but got {self.carrier}"
         return f"Carrier {self.carrier} is not available on the declared machine. "
 
-
 class Inactive_Carrier_Error(Knit_Script_Error):
     """Raised when attempting to use a carrier that is not active"""
 

@@ -1,3 +1,5 @@
+"""Collection of instructions in a shared carriage pass"""
+
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Rack_Instruction import Rack_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.needle_instructions import Knitout_Needle_Instruction
@@ -5,12 +7,13 @@ from knit_script.knitting_machine.machine_components.machine_pass_direction impo
 from knit_script.knitting_machine.machine_components.needles import Needle
 
 
-class Carriage_Pass_Instruction_Collection:
+class Carriage_Pass_Instructions:
     """
         A collection of Knitout instructions associated with a carriage pass
     """
 
-    def __init__(self, first_instruction: Knitout_Needle_Instruction, racking: float):
+    def __init__(self, first_instruction: Knitout_Needle_Instruction, racking: float, index: int | None = None):
+        self.index = index
         self.racking = racking
         self.direction: Pass_Direction = first_instruction.direction
         self.carrier_set = first_instruction.carrier_set
@@ -116,7 +119,7 @@ class Carriage_Pass_Instruction_Collection:
         """
         sorted_needles = new_direction.sort_needles([*self._needles_to_instruction.keys()], self.racking)
         instructions = [self._needles_to_instruction[n] for n in sorted_needles]
-        new_pass = Carriage_Pass_Instruction_Collection(instructions[0], self.racking)
+        new_pass = Carriage_Pass_Instructions(instructions[0], self.racking)
         self.direction = new_direction
         for instruction in instructions[1:]:
             new_pass.add_to_pass(instruction)
@@ -131,8 +134,18 @@ class Carriage_Pass_Instruction_Collection:
                 indent = "\t"
                 string += "\n"
         for instruction_type, needles in self._instruction_type_to_needles.items():
-            string += f"{indent}{instruction_type.value} {needles}\n"
+            string += f"{indent}{instruction_type.value} {needles} with {self.carrier_set}\n"
         return string
+
+    def id_str(self) -> str:
+        """
+        :return: string with original line number added if present
+        """
+
+        if self.index is not None:
+            return f"{self.index}:{self}"
+        else:
+            return str(self)
 
     def __repr__(self):
         return str(self.instructions)
@@ -144,4 +157,6 @@ class Carriage_Pass_Instruction_Collection:
         return self.instructions.__getitem__(subscript)
 
     def __hash__(self):
+        if self.index is not None:
+            return self.index
         return hash(self[0])

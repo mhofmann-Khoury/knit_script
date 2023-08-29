@@ -1,7 +1,7 @@
 from typing import Optional
 
 from knit_script.Knit_Errors.Knitout_Error import Ignorable_Knitout_Error
-from knit_script.knitout_interpreter.knitout_structures.Carraige_Pass_Collection import Carriage_Pass_Instruction_Collection
+from knit_script.knitout_interpreter.knitout_structures.Carriage_Pass_Instructions import Carriage_Pass_Instructions
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Version_Line, Comment_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pause_Instruction import Pause_Instruction
@@ -23,13 +23,13 @@ class Knitout_Context:
         self.version_line: Optional[Version_Line] = None
         self.executed_header: list[Header_Declaration] = []
         self.executed_instructions: list[Instruction] = []
-        self.carriage_passes: list[Carriage_Pass_Instruction_Collection] = []
+        self.carriage_passes: list[Carriage_Pass_Instructions] = []
         self.carrier_instructions: dict[Carrier: list[Instruction]] = {}
         self.carrier_management_instructions: dict[Carrier: list[Carrier_Instruction]] = {}
         self.ignored_instructions: list[Comment_Line] = []
 
     @property
-    def last_carriage_pass(self) -> Optional[Carriage_Pass_Instruction_Collection]:
+    def last_carriage_pass(self) -> Optional[Carriage_Pass_Instructions]:
         """
         :return: The last carriage pass executed in this context or None if none have been executed.
         """
@@ -107,13 +107,13 @@ class Knitout_Context:
                     self.executed_instructions.append(instruction)
                 elif isinstance(instruction, Knitout_Needle_Instruction):
                     if active_carriage_pass is None:  # first in carriage pass
-                        active_carriage_pass = Carriage_Pass_Instruction_Collection(instruction, self.machine_state.racking)
+                        active_carriage_pass = Carriage_Pass_Instructions(instruction, self.machine_state.racking)
                     else:
                         if active_carriage_pass.can_add_to_pass(instruction):  # add to current pass
                             active_carriage_pass.add_to_pass(instruction)
                         else:  # break and make a new pass
                             self._add_carriage_pass(active_carriage_pass)
-                            active_carriage_pass = Carriage_Pass_Instruction_Collection(instruction, self.machine_state.racking)
+                            active_carriage_pass = Carriage_Pass_Instructions(instruction, self.machine_state.racking)
                     if instruction.carrier_set is not None:
                         self._add_carrier_instruction(instruction)
                 elif active_carriage_pass is not None and not isinstance(instruction, Pause_Instruction):  # another operation might stop carriage pass.  pauses don't affect carriage pass
@@ -138,7 +138,7 @@ class Knitout_Context:
 
         return first_lines_commented
 
-    def _add_carriage_pass(self, next_carriage_pass: Carriage_Pass_Instruction_Collection):
+    def _add_carriage_pass(self, next_carriage_pass: Carriage_Pass_Instructions):
         if len(self.carriage_passes) == 0:
             xfer_direction = Pass_Direction.Leftward
         else:
