@@ -1,10 +1,11 @@
 """Parser code for accessing Parglare language support"""
 import re
 
+import importlib_resources
 import parglare.exceptions
 from parglare import Parser, Grammar
-from pkg_resources import resource_stream
 
+import knit_script
 from knit_script.knitout_interpreter.knitout_actions import action
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
@@ -17,8 +18,8 @@ class Knitout_Parser:
     """
 
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):
-        pg_resource_stream = resource_stream("knit_script", "knitout_interpreter/knitout.pg")
-        self._grammar: Grammar = Grammar.from_file(pg_resource_stream.name, debug=debug_grammar, ignore_case=True)
+        pg_resource_stream = importlib_resources.files(knit_script.knitout_interpreter).joinpath('knitout.pg')
+        self._grammar: Grammar = Grammar.from_file(pg_resource_stream, debug=debug_grammar, ignore_case=True)
         self._set_parser(debug_parser, debug_parser_layout)
 
     def _set_parser(self, debug_parser: bool, debug_parser_layout: bool):

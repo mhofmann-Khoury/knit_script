@@ -355,7 +355,7 @@ class Knitout_Optimizer:
         merged_graph.remove_edges_from(stabilizing_edges)
         return merged_graph
 
-    def optimize(self) -> list[Knitout_Line]:
+    def optimize(self, visualize: bool = False) -> list[Knitout_Line]:
         """
         :return: Knitout instructions optimized with topological sorted instruction constraints
         """
@@ -366,13 +366,15 @@ class Knitout_Optimizer:
         except NetworkXUnfeasible as _e:
             print(f"Knitout Warning: Releasehook must happen before another operations. Reducing constraints on releasehook direction")
             graphs = self._reduce_release_direction_constraint(graphs)
-            self._visualize_graph(graphs, f"hook_direction_constraint_reduced")
+            if visualize:
+                self._visualize_graph(graphs, f"hook_direction_constraint_reduced")
             try:
                 sorted_instructions = [*nx.topological_sort(graphs)]
             except NetworkXUnfeasible as _e:
                 for i in range(1, self._min_loops_before_release_hook):
                     graphs = self._reduce_stable_loop_constraint(graphs, i)
-                    self._visualize_graph(graphs, f"stable_constraint_reduced_by_{i}")
+                    if visualize:
+                        self._visualize_graph(graphs, f"stable_constraint_reduced_by_{i}")
                     try:
                         sorted_instructions = [*nx.topological_sort(graphs)]
                         print(f"Knitout Warning: Releasehook must happen before last {i} stabilizing loops. Yarn may be unstable")

@@ -1,4 +1,5 @@
 """Interpreter processes knit-script into knitout instructions"""
+import os
 from inspect import stack
 from typing import Any
 
@@ -57,7 +58,7 @@ class Knit_Script_Interpreter:
         return self._parser.parse(pattern, pattern_is_file)
 
     def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, python_variables: dict[str, Any] | None = None, optimize=True,
-                      visualize_instruction_graph: bool = False) -> tuple[list[Knitout_Line], Knit_Graph]:
+                      visualize_instruction_graph: bool = False, clean_optimization: bool = True) -> tuple[list[Knitout_Line], Knit_Graph]:
         """
         Writes pattern knitout instructions to the out file
         Parameters
@@ -65,6 +66,7 @@ class Knit_Script_Interpreter:
         pattern: pattern or pattern file name to turn to knitout
         out_file_name: the output file name
         pattern_is_file: true if the pattern is a file name
+        :param clean_optimization: If true, deletes intermediate files
         :param python_variables: values from python to load into the knit script scope
         :param visualize_instruction_graph: If true, generates a visualization of the graph written
         :param optimize:If true, optimizes the knitout output
@@ -82,18 +84,21 @@ class Knit_Script_Interpreter:
         self._interpret_knit_script(pattern, pattern_is_file)
         self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.carrier_system.cut_all_yarns(self._knit_pass_context.machine_state))
         if optimize:
-            knitout = self.optimize_knitout(f"_original_{out_file_name}", f"_organized_{out_file_name}", visualize_instruction_graph)
+            knitout = self.optimize_knitout(f"_original_{out_file_name}", f"_organized_{out_file_name}",
+                                            visualize=visualize_instruction_graph, clean_original=clean_optimization, clean_organized=clean_optimization)
         else:
             knitout = self._knit_pass_context.knitout
-        with open(out_file_name, "w") as out:
+        with open(out_file_name, "w", encoding="utf-8", newline='\n') as out:
             out.writelines([str(k) for k in knitout])
         knitgraph = self._knit_pass_context.machine_state.knit_graph
         if reset_context:
             self._reset_context()
         return knitout, knitgraph
 
-    def optimize_knitout(self, original_out_name: str | None, organized_out_name: str | None, visualize: bool) -> list[Knitout_Line]:
+    def optimize_knitout(self, original_out_name: str | None, organized_out_name: str | None, visualize: bool = False, clean_original: bool = True, clean_organized: bool = True) -> list[Knitout_Line]:
         """
+        :param clean_organized:
+        :param clean_original:
         :param visualize:
         :param original_out_name:
         :param organized_out_name:
@@ -113,7 +118,11 @@ class Knit_Script_Interpreter:
         optimizer = Knitout_Optimizer(knitout_interpreter.context)
         if visualize:
             optimizer.visualize()
-        optimized_knitout = optimizer.optimize()
+        optimized_knitout = optimizer.optimize(visualize=visualize)
+        if clean_original:
+            os.remove(original_out_name)
+        if clean_organized:
+            os.remove(organized_out_name)
         return optimized_knitout
 
     def _interpret_knit_script(self, pattern, pattern_is_file):

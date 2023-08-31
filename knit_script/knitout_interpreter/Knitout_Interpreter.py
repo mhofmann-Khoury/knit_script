@@ -28,6 +28,12 @@ class Knitout_Interpreter:
         return self._parser.parse(pattern, pattern_is_file=pattern_is_file)
 
     def interpret_knitout(self, pattern: str, pattern_is_file: bool = True, reset_context: bool = True) -> List[Knitout_Line]:
+        """
+        :param pattern: A pattern as a string or the filename of the knitout file.
+        :param pattern_is_file: If true, it looks for the knitout pattern in pattern's file location.
+        :param reset_context: If true, reset the context for the file. Starts a new parse.
+        :return: List of knitout lines that make up the program
+        """
         if reset_context:
             self._reset_context()
         version_line, header_declarations, instructions, knitout_by_lines, comments = self.parse_knitout(pattern, pattern_is_file)
@@ -64,7 +70,7 @@ class Knitout_Interpreter:
         """
         organized_knitout = self.interpret_knitout(pattern, pattern_is_file, reset_context)
         knitout_lines = [str(kl) for kl in organized_knitout]
-        with open(out_file, "w") as out:
+        with open(out_file, "w", encoding="utf-8") as out:
             out.writelines(knitout_lines)
 
     def write_trimmed_knitout(self, pattern: str, out_file: str, pattern_is_file: bool = True):
@@ -84,5 +90,5 @@ class Knitout_Interpreter:
                     line = line[:index_last_semi]
                 lines.append(line.strip() + "\n")
 
-        with open(out_file, "w") as out:
+        with open(out_file, "w", encoding="utf-8") as out:
             out.writelines(lines)

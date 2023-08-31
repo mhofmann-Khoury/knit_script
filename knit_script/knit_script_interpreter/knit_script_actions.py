@@ -83,12 +83,12 @@ def _in_enum(item, enumeration) -> bool:
     :param item: item to compare against Enum
     :return:
     """
+    if isinstance(item, str):
+        return (item in [i.value for i in enumeration]) or (item in [i.name for i in enumeration])
     try:
         return item in enumeration
-    except (TypeError, KeyError) as _:
-        if isinstance(item, str):
-            return (item in [i.value for i in enumeration]) or (item in [i.name for i in enumeration])
-    return False
+    except KeyError as _:
+        return False
 
 
 # basic expressions and statements

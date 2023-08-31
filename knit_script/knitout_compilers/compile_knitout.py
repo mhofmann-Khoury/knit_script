@@ -2,7 +2,7 @@
 from importlib.resources import files
 from pathlib import Path
 
-from Naked.toolshed.shell import execute_js
+from nodejs import node
 
 
 def get_compiler_folder(folder_path: str | None = None):
@@ -60,7 +60,12 @@ def knitout_to_dat(knitout_file_name: str, dat_file_name: str | None = None, com
     :param dat_file_name:  the dat filename to compile to. Defaults to the same as knitout
     """
     js_compiler_file = get_dat_compiler(compiler_folder, compiler)
-    arguments = f"{knitout_file_name} {dat_file_name}"
     print(f"\n################Converting {knitout_file_name} to DAT file {dat_file_name} ########\n")
-    success = execute_js(str(js_compiler_file), arguments)
-    return success
+
+    # Run Node.js and return the exit code.
+    node_process = node.run([js_compiler_file, knitout_file_name, dat_file_name])
+    if node_process.stdout is not None:
+        print(f"DAT Compiler Output:\n\t{node_process.stdout}")
+    if node_process.stderr is not None:
+        print(f"DAT Compiler Error:\n\t{node_process.stderr}")
+    return node_process.stderr is None
