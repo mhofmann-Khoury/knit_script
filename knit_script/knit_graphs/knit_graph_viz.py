@@ -7,9 +7,10 @@ from knit_script.knit_graphs.Pull_Direction import Pull_Direction
 
 
 # visualization for non-tube/sheets
-def visualize_sheet(knit_graph: Knit_Graph, file_name: str = "knit_graph.png"):
+def visualize_sheet(knit_graph: Knit_Graph, file_name: str = "knit_graph.png", start_course=1):
     """
     Runs a html file in browser to visualize the given knitgraph
+    :param start_course: The course to start visualizing from
     :param file_name: name to save the figure to
     :param knit_graph: the knit graph to visualize
     """
@@ -29,55 +30,56 @@ def visualize_sheet(knit_graph: Knit_Graph, file_name: str = "knit_graph.png"):
     standard_width_between_loops = 2
     standard_height_between_courses = 2
     for r, course in enumerate(courses):
-        rightward = r % 2 == 0
-        if rightward:  # even course
-            prior_x = 0
-        else:
-            prior_x = len(course) * standard_width_between_loops
-        for loop_id in course:
-            loop = knit_graph[loop_id]
-            y = r * standard_height_between_courses
-            parent_ids = [*knit_graph.graph.predecessors(loop_id)]
-            if r == 0:  # place first course
-                x = loop_ids_to_index_in_course[loop_id] * standard_width_between_loops
-            elif len(parent_ids) > 0:  # place by parent loops on prior course
-                # balancing method
-                # parent_sum = sum(loop_id_to_x_position[p] for p in parent_ids)
-                # parent_average = parent_sum / float(len(parent_ids))
-                # x = parent_average
-                dominant_parent = loop.parent_loops[-1].loop_id
-                parent_offset = knit_graph.graph[dominant_parent][loop_id]['parent_offset']
-                if parent_offset != 0:
-                    placement_parent_course_index = courses[r - 1].index(dominant_parent)
-                    placement_index = placement_parent_course_index + parent_offset
-                    placement_loop = courses[r - 1][placement_index]
-                else:
-                    placement_loop = dominant_parent
-                x = loop_id_to_x_position[placement_loop]  # pulled to last parent on stack
-            else:  # yarn_overs
-                x = None
-            # store node position and color property
-            loop_id_to_x_position[loop_id] = x
-            loop_id_to_y_position[loop_id] = y
-            loop_id_to_color_property[loop_id] = knit_graph.graph.nodes[loop_id]["loop"].yarn.color
+        if r >= start_course:
+            rightward = r % 2 == 0
+            if rightward:  # even course
+                prior_x = 0
+            else:
+                prior_x = len(course) * standard_width_between_loops
+            for loop_id in course:
+                loop = knit_graph[loop_id]
+                y = r * standard_height_between_courses
+                parent_ids = [*knit_graph.graph.predecessors(loop_id)]
+                if r == 0:  # place first course
+                    x = loop_ids_to_index_in_course[loop_id] * standard_width_between_loops
+                elif len(parent_ids) > 0:  # place by parent loops on prior course
+                    # balancing method
+                    # parent_sum = sum(loop_id_to_x_position[p] for p in parent_ids)
+                    # parent_average = parent_sum / float(len(parent_ids))
+                    # x = parent_average
+                    dominant_parent = loop.parent_loops[-1].loop_id
+                    parent_offset = knit_graph.graph[dominant_parent][loop_id]['parent_offset']
+                    if parent_offset != 0:
+                        placement_parent_course_index = courses[r - 1].index(dominant_parent)
+                        placement_index = placement_parent_course_index + parent_offset
+                        placement_loop = courses[r - 1][placement_index]
+                    else:
+                        placement_loop = dominant_parent
+                    x = loop_id_to_x_position[placement_loop]  # pulled to last parent on stack
+                else:  # yarn_overs
+                    x = None
+                # store node position and color property
+                loop_id_to_x_position[loop_id] = x
+                loop_id_to_y_position[loop_id] = y
+                loop_id_to_color_property[loop_id] = knit_graph.graph.nodes[loop_id]["loop"].yarn.color
 
-        unplaced = []
-        for loop_id in course:
-            x = loop_id_to_x_position[loop_id]
-            if x is None:
-                unplaced.append(loop_id)
-            else:  # found next placed loop
-                if len(unplaced) > 0:
-                    dist = abs(prior_x - x)  # distance between two defined x positions
-                    spacing = dist / (1 + len(unplaced))
-                    for i, unplaced_loop in enumerate(unplaced):
-                        if rightward:
-                            loop_id_to_x_position[unplaced_loop] = prior_x + ((i + 1) * spacing)
-                        else:
-                            loop_id_to_x_position[unplaced_loop] = prior_x - ((i + 1) * spacing)
-                    unplaced = []
-                else:
-                    prior_x = x
+            unplaced = []
+            for loop_id in course:
+                x = loop_id_to_x_position[loop_id]
+                if x is None:
+                    unplaced.append(loop_id)
+                else:  # found next placed loop
+                    if len(unplaced) > 0:
+                        dist = abs(prior_x - x)  # distance between two defined x positions
+                        spacing = dist / (1 + len(unplaced))
+                        for i, unplaced_loop in enumerate(unplaced):
+                            if rightward:
+                                loop_id_to_x_position[unplaced_loop] = prior_x + ((i + 1) * spacing)
+                            else:
+                                loop_id_to_x_position[unplaced_loop] = prior_x - ((i + 1) * spacing)
+                        unplaced = []
+                    else:
+                        prior_x = x
 
     edge_color_property = {}
     edge_style_property = {}

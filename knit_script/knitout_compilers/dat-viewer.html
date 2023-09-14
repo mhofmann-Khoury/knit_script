@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>dat viewer</title>
+<style>
+body {
+	margin:0;
+	padding:0;
+	width:100vw;
+	height:100vh;
+	overflow:hidden;
+}
+#canvas, #scroller, #help {
+	position:fixed;
+	left:0;
+	bottom:0;
+	width:100%;
+	height:calc(100% - 20px); /* space for header */
+}
+
+#scroller {
+	overflow:auto;
+}
+#scrollContent {
+	width:100px;
+	height:100px;
+	/*visibility:hidden; */
+}
+#scrollWrapper {
+	width:max-content;
+	height:max-content;
+	/*visibility:hidden;*/
+
+	background:#ee9;
+	border-left:50vw solid #f00;
+	border-right:50vw solid #0f0;
+	border-bottom:50vh solid #ff0;
+	border-top:50vh solid #0ff;
+	opacity:0.0;
+}
+
+#dropTarget {
+	position:fixed;
+	left:0;
+	bottom:0;
+	width:100%;
+	height:100%;
+
+	background:#ccc;
+	outline:4px dashed #eee;
+	outline-offset:-20px;
+	z-index:100;
+	visibility:hidden;
+}
+
+#dropTarget.active {
+	visibility:visible;
+	background:#eee;
+	outline-color:#ccc;
+}
+
+#help {
+	background:rgba(0,0,0,0.6);
+}
+#helpContent {
+	background:#fff;
+	color:#000;
+	margin:0 auto 0 auto;
+	width:30em;
+	padding:1em;
+	height:100%;
+}
+
+#header {
+	position:fixed;
+	left:0;
+	top:0;
+	width:100vw;
+	z-index:100;
+	background:tan;
+	height:20px;
+	font-size:14px;
+	line-height:20px;
+}
+
+#scaler {
+	width:3em;
+	border:none;
+}
+
+#file {
+	display:none;
+}
+#headerLeft {
+	position:absolute;
+	left:0;
+	top:0;
+	height:20px;
+}
+#headerCenter {
+	position:absolute;
+	right:0;
+	left:0;
+	top:0;
+	height:20px;
+	line-height:20px;
+	text-align:center;
+}
+#headerRight {
+	position:absolute;
+	right:0;
+	top:0;
+	height:20px;
+}
+
+.button {
+	background:#eee;
+	color:#000;
+	text-decoration:none;
+	border:none;
+	border-radius:2px;
+	display:inline-block;
+	line-height:18px;
+	font-size:14px;
+	font-family:sans;
+	height:18px;
+	margin:1px 4px;
+	padding:0 4px;
+	cursor:pointer;
+	user-select:none;
+}
+
+.button:hover, .button:active, .button:focus {
+	outline:0;
+}
+
+.button:hover {
+	background:#ddd;
+}
+
+.button:active {
+	background:#fff;
+}
+
+.button:focus {
+	background:#ddd;
+}
+
+#fileInfo {
+	font-weight:bold;
+}
+
+#overlay {
+	position: fixed;
+	left:0;
+	bottom:0;
+	border-radius: 8px 8px 8px 0;
+	border: 1px solid #0008;
+	padding: 4px 8px;
+	background: #0008;
+	color:#fff;
+}
+
+#overlay span {
+	display:block;
+}
+
+
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="overlay">
+<span id="optionInfo2"></span>
+<span id="stitchInfo2"></span>
+<span id="positionInfo2"></span>
+</div>
+</div>
+<div id="scroller"><div id="scrollWrapper"><div id="scrollContent"></div></div></div>
+<div id="header">
+<div id="headerCenter">
+<span id="fileInfo">no file</span>
+<span id="statusInfo"></span>
+<button id="reloadButton" class="button" onclick="reloadFile()">Reload</a>
+</div>
+<div id="headerLeft">
+<label>scale: <input type="number" id="scaler" value="6" step="1" min="1" /></label>
+<span id="positionInfo"></span>
+<span id="optionInfo"></span>
+<span id="stitchInfo"></span>
+</div>
+<div id="headerRight">
+<input type="file" name="file" id="file" /><label id="fileButton" class="button" for="file">Load</label><button id="helpButton" class="button" onclick="toggleHelp()">?</a>
+</div>
+</div>
+<div id="help" style="display:none"><div id="helpContent">
+<h1>Helpful Information</h1>
+<p>This is a viewer for the Shima Seiki ".dat" format (uncompressed, "old version" only).
+It was developed at the CMU Textiles Lab as part of an effort to expand access to machine knitting.
+Please provide feedback, bug reports, and comments using the <a href="https://github.com/textiles-lab/dat-viewer/issues">Issues</a> page.
+</p>
+<p>To view a file, click on the "Load" button in the upper right, or drag the file to the window.</p>
+<p>To close this help text, click anywhere. To show it again, click on the "?" in the upper right.</p>
+</div>
+</div>
+<div id="dropTarget"></div>
+</body>
+
+<script>
+
+const overlay = document.getElementById("overlay");
+
+const scroller = document.getElementById("scroller");
+const scrollWrapper = document.getElementById("scrollWrapper");
+const scrollContent = document.getElementById("scrollContent");
+
+const positionInfo = document.getElementById("positionInfo");
+const optionInfo = document.getElementById("optionInfo");
+const stitchInfo = document.getElementById("stitchInfo");
+
+const positionInfo2 = document.getElementById("positionInfo2");
+const optionInfo2 = document.getElementById("optionInfo2");
+const stitchInfo2 = document.getElementById("stitchInfo2");
+
+const fileInfo = document.getElementById("fileInfo");
+const statusInfo = document.getElementById("statusInfo");
+
+var scaler = document.getElementById("scaler");
+
+var canvas = document.getElementById("canvas");
+
+var ctx = canvas.getContext('2d');
+
+//raster is the thing that we are viewing in the page:
+var raster;
+
+//scale is how many pixels of the page are used to draw one pixel of the raster:
+var scale = 6;
+
+//translate is how many pixels to move the image (post-scale, relative to centered in the window):
+var translate = {x:0, y:0}
+
+
+var rasterCanvas = document.createElement("canvas");
+var rasterCtx = rasterCanvas.getContext('2d');
+
+var file = null;
+
+function setFile(info) {
+	if (info.name) {
+		fileInfo.innerText = info.name;
+		document.title = info.name + " -- dat viewer";
+	} else {
+		fileInfo.innerText = "no file";
+		document.title = "dat viewer";
+	}
+	if (info.status) {
+		statusInfo.innerText = " [" + info.status + "]";
+	} else {
+		statusInfo.innerText = "";
+	}
+
+	if (info.file) {
+		file = info.file;
+	} else {
+		file = null;
+	}
+}
+
+setFile({});
+
+function setRaster(newRaster) {
+	raster = newRaster;
+	//TODO: set filename in header
+
+	//draw raster to rasterCanvas for faster redraws later:
+
+	rasterCanvas.width = raster.width;
+	rasterCanvas.height = raster.height;
+
+	var imageData = rasterCtx.createImageData(raster.width, raster.height);
+	for (var i = 0; i < raster.height * raster.width; ++i) {
+		imageData.data[4*i+0] = raster.paletteR[raster.data[i]];
+		imageData.data[4*i+1] = raster.paletteG[raster.data[i]];
+		imageData.data[4*i+2] = raster.paletteB[raster.data[i]];
+		imageData.data[4*i+3] = 0xff;
+	}
+
+	rasterCtx.putImageData(imageData, 0, 0);
+
+	//scale = 6;
+	//translate = {x:0.0, y:0.0};
+
+	setScroller();
+	setScaler();
+
+	redraw();
+}
+
+function setScroller() {
+	//sets scroller size/offset based on raster/scale/translate:
+
+	//the scrollContent's borders take care of making sure any pixel of raster can scroll to center of screen:
+	scrollContent.style.width = (raster.width * scale) + "px";
+	scrollContent.style.height = (raster.height * scale) + "px";
+	scrollWrapper.style.width = (raster.width * scale) + "px";
+	scrollWrapper.style.height = (raster.height * scale) + "px";
+
+	const scrollRect = scroller.getBoundingClientRect();
+	const wrapperRect = scrollWrapper.getBoundingClientRect();
+
+	//translate of 0,0 is center of image at center of screen, so:
+	scroller.scrollLeft =-translate.x - 0.5 * scrollRect.width  + 0.5 * wrapperRect.width;
+	scroller.scrollTop  = translate.y - 0.5 * scrollRect.height + 0.5 * wrapperRect.height;
+}
+
+function getScroller() {
+	//sets translate from scroller:
+
+	const scrollRect = scroller.getBoundingClientRect();
+	const wrapperRect = scrollWrapper.getBoundingClientRect();
+
+	translate = {
+		x: -(scroller.scrollLeft - (-0.5 * scrollRect.width + 0.5 * wrapperRect.width)),
+		y: scroller.scrollTop - (-0.5 * scrollRect.height + 0.5 * wrapperRect.height)
+	};
+}
+
+function setScaler() {
+	scaler.value = scale;
+}
+
+function getScaler() {
+	scale = scaler.value;
+	scale = Math.max(1, scale);
+	scale = Math.min(100, scale);
+}
+
+
+function redraw() {
+	//make sure canvas width/height match its actual size:
+	var devicePixelRatio = 1;
+	if (window.devicePixelRatio) {
+		devicePixelRatio = window.devicePixelRatio;
+	}
+	var width = canvas.clientWidth;
+	var height = canvas.clientHeight;
+	canvas.width = width * devicePixelRatio;
+	canvas.height = height * devicePixelRatio;
+
+	//clear canvas:
+	ctx.setTransform(devicePixelRatio,0, 0,devicePixelRatio, 0,0);
+	ctx.fillStyle = "#222";
+	ctx.fillRect(0,0,width,height);
+
+	//get scroll offset
+	var offsetX = translate.x + 0.5 * width - 0.5 * raster.width * scale;
+	var offsetY = -translate.y + 0.5 * height + 0.5 * raster.height * scale;
+	//console.log(offsetX, offsetY, translate);
+
+	ctx.setTransform(scale * devicePixelRatio,0, 0,-scale * devicePixelRatio, offsetX * devicePixelRatio, offsetY * devicePixelRatio);
+
+	//TODO: draw only the visible part of the raster
+	ctx.imageSmoothingEnabled = false;
+	ctx.drawImage(rasterCanvas, 0, 0, raster.width, raster.height, 0, 0, raster.width, raster.height);
+
+	ctx.lineWidth = 1.0 / (devicePixelRatio * scale);
+	var nudge = 0.5 / (devicePixelRatio * scale);
+
+	ctx.beginPath();
+	if (scale > 10) {
+		for (var y = 0; y <= raster.height; ++y) {
+			ctx.moveTo(0,y+nudge);
+			ctx.lineTo(raster.width,y+nudge);
+		}
+		for (var x = 0; x <= raster.width; ++x) {
+			ctx.moveTo(x+nudge,0);
+			ctx.lineTo(x+nudge,raster.height);
+		}
+		ctx.strokeStyle = '#888';
+		ctx.stroke();
+	}
+
+	if (scale > 2 && rasterMouse.x >= 0 && rasterMouse.x < raster.width && rasterMouse.y >= 0 && rasterMouse.y < raster.height) {
+		scrollContent.style.cursor = 'none';
+		ctx.beginPath();
+		ctx.moveTo(0,rasterMouse.y-nudge);
+		ctx.lineTo(raster.width,rasterMouse.y-nudge);
+		ctx.moveTo(0,rasterMouse.y+1+nudge);
+		ctx.lineTo(raster.width,rasterMouse.y+1+nudge);
+
+		ctx.moveTo(rasterMouse.x-nudge,0);
+		ctx.lineTo(rasterMouse.x-nudge,raster.height);
+		ctx.moveTo(rasterMouse.x+1+nudge,0);
+		ctx.lineTo(rasterMouse.x+1+nudge,raster.height);
+
+		ctx.strokeStyle = '#fff';
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(0,rasterMouse.y+nudge);
+		ctx.lineTo(raster.width,rasterMouse.y+nudge);
+		ctx.moveTo(0,rasterMouse.y+1-nudge);
+		ctx.lineTo(raster.width,rasterMouse.y+1-nudge);
+
+		ctx.moveTo(rasterMouse.x+nudge,0);
+		ctx.lineTo(rasterMouse.x+nudge,raster.height);
+		ctx.moveTo(rasterMouse.x+1-nudge,0);
+		ctx.lineTo(rasterMouse.x+1-nudge,raster.height);
+
+		ctx.strokeStyle = '#fff';
+		ctx.stroke();
+
+		//look up option lines for stroke direction arrow:
+		var base = raster.width * rasterMouse.y;
+		//assume option line position based on left margin of 10 pixels:
+		var x = 10 + 20 * 2 - 1;
+		var c = 0;
+		if (x < raster.width) {
+			c = raster.data[raster.width * rasterMouse.y + x];
+		}
+		const W = 15.0 / scale;
+		const H = 5.0 / scale;
+		if (c === 6) {
+			ctx.beginPath();
+			ctx.moveTo(rasterMouse.x + 1.0, rasterMouse.y + 0.5);
+			ctx.lineTo(rasterMouse.x + 1.0 + W, rasterMouse.y + 0.5);
+			ctx.moveTo(rasterMouse.x + 1.0 + 0.5*W, rasterMouse.y + 0.5 + H);
+			ctx.lineTo(rasterMouse.x + 1.0 + W, rasterMouse.y + 0.5);
+			ctx.lineTo(rasterMouse.x + 1.0 + 0.5*W, rasterMouse.y + 0.5 - H);
+			ctx.strokeStyle = '#fff';
+			ctx.lineWidth = 3.0 / (devicePixelRatio * scale);
+			ctx.stroke();
+		} else if (c === 7) {
+			ctx.beginPath();
+			ctx.moveTo(rasterMouse.x - 0.0, rasterMouse.y + 0.5);
+			ctx.lineTo(rasterMouse.x - 0.0 - W, rasterMouse.y + 0.5);
+			ctx.moveTo(rasterMouse.x - 0.0 - 0.5*W, rasterMouse.y + 0.5 + H);
+			ctx.lineTo(rasterMouse.x - 0.0 - W, rasterMouse.y + 0.5);
+			ctx.lineTo(rasterMouse.x - 0.0 - 0.5*W, rasterMouse.y + 0.5 - H);
+			ctx.strokeStyle = '#fff';
+			ctx.lineWidth = 3.0 / (devicePixelRatio * scale);
+			ctx.stroke();
+		}
+
+	} else {
+		scrollContent.style.cursor = '';
+	}
+}
+
+var resized = true;
+
+var mouse = {x:NaN, y:NaN};
+
+var rasterMouse = {x:NaN, y:NaN}; //highlighted in the raster
+
+var olInfo = {
+	L20:"",
+	L19:"",
+	L18:"",
+	L17:"racking adjustment",
+	L16:"",
+	L15:"",
+	L14:"elastic yarn advance",
+	L13:"transfer/holding",
+	L12:"A-miss, split-to-hook, etc.",
+	L11:"Roller speed (xfer)",
+	L10:"Roller speed (knit)",
+	L9:"DSCS",
+	L8:"",
+	L7:"reset adjust, optional stop, or stroke adjust",
+	L6:"speed (xfer)",
+	L5:"speed (knit)",
+	L4:"racking (left/right)",
+	L3:"racking (aligned/offset)",
+	L2:"racking (pitch)",
+	L1:"special process",
+	R1:"jump (inner)",
+	R2:"jump (outer)",
+	R3:"yarn carrier combination",
+	R4:"",
+	R5:"knit cancel",
+	R6:"stitch number",
+	R7:"drop failure, sinker reset",
+	R8:"yarn in/out",
+	R9:"links process ignore",
+	R10:"yarn holding hook",
+	R11:"fabric presser",
+	R12:"",
+	R13:"stitch range, xfer cam stuff",
+	R14:"",
+	R15:"yarn inserting hook",
+	R16:"cleaner, disable leading xfer",
+	R17:"",
+	R18:"",
+	R19:"",
+	R20:"",
+};
+
+const stitchNames = {
+	3:"knit frontback",
+	11:"tuck front",
+	12:"tuck back",
+	16:"miss",
+	20:"xfer to back",
+	30:"xfer to front",
+	41:"knit front,tuck back",
+	42:"tuck front,knit back",
+	51:"knit front",
+	52:"knit back",
+	88:"tuck front,tuck back",
+	101:"split to back",
+	102:"split to front",
+	106:"front split, return -1",
+	107:"front split, return +1",
+	108:"back split, return -1",
+	109:"back split, return +1",
+	126:"front split, return -2",
+	127:"front split, return +2",
+	128:"back split, return -2",
+	129:"back split, return +2",
+	146:"front split, return -4",
+	147:"front split, return +4",
+	148:"back split, return -4",
+	149:"back split, return +4",
+	216:"miss front",
+	217:"miss back",
+};
+
+function update() {
+	var oldScale = scale;
+	var oldTranslate = translate;
+
+	var needRedraw = false;
+
+	getScaler();
+	if (scale != oldScale) {
+		setScroller();
+		needRedraw = true;
+	}
+
+	getScroller();
+	if (oldTranslate.x != translate.x || oldTranslate.y != translate.y) {
+		needRedraw = true;
+	}
+
+	var oldRasterMouse = rasterMouse;
+	rasterMouse = {
+		x:Math.floor(mouse.x),
+		y:Math.floor(mouse.y)
+	};
+	if (rasterMouse.x === rasterMouse.x && (rasterMouse.x != oldRasterMouse.x || rasterMouse.y != oldRasterMouse.y)) {
+		needRedraw = true;
+	}
+	if (mouse.x == mouse.x) {
+		//var x = evt.offsetX;
+		//var y = evt.offsetY;
+
+		//x = (x - scrollContent.clientWidth * 0.5) / scale + raster.width * 0.5;
+		//y = -(y - scrollContent.clientHeight * 0.5) / scale + raster.height * 0.5;
+
+		const rect = scrollContent.getBoundingClientRect();
+
+		overlay.style.left = ((rasterMouse.x + 1) * scale + rect.x + 3) + "px";
+		overlay.style.bottom = ((rasterMouse.y + 1) * scale - (rect.y + rect.height - window.innerHeight) + 3 ) + "px";
+		overlay.style.visibility = "visible";
+	} else {
+		overlay.style.visibility = "hidden";
+	}
+
+	positionInfo.innerText = "";
+	optionInfo.innerText = "";
+	stitchInfo.innerText = "";
+	if (rasterMouse.x >= 0 && rasterMouse.x < raster.width && rasterMouse.y >= 0 && rasterMouse.y < raster.height) {
+		var base = raster.width * rasterMouse.y;
+		//assume option line position based on left margin of 10 pixels:
+		var x = 10 + 20 * 2 - 1;
+		var c = 0;
+		if (x < raster.width) {
+			c = raster.data[raster.width * rasterMouse.y + x];
+		}
+		if (c === 6) {
+			//scrollContent.style.cursor = 'e-resize';
+		} else if (c === 7) {
+			//scrollContent.style.cursor = 'w-resize';
+		} else {
+			//scrollContent.style.cursor = 'none';
+		}
+		positionInfo.innerText = "(" + rasterMouse.x + ", " + rasterMouse.y + ")";
+		if (raster.height >= 7 && raster.width > 48) {
+			let hundreds = raster.data[raster.width * (raster.height - 6) + 48];
+			let ones = raster.data[raster.width * (raster.height - 7) + 48];
+			let left = 100 * hundreds + ones;
+			if (rasterMouse.x >= 50 && rasterMouse.x < raster.width - 50 && rasterMouse.y > 4 && rasterMouse.y + 8 < raster.height) {
+				positionInfo.innerText += " n" + (left + rasterMouse.x - 50) + " p" + (rasterMouse.y - 4);
+			}
+		}
+		//Figure out option lines:
+		var ol = Math.floor((10 + 20 * 2 + 1 - rasterMouse.x) / 2);
+		var or = Math.floor((rasterMouse.x - (raster.width - 1 - 10 - 20 * 2 - 1)) / 2);
+		if (ol >= 1 && ol <= 20) {
+			optionInfo.innerText = "L" + ol + ": " + olInfo["L" + ol] ;
+		} else if (or >= 1 && or <= 20) {
+			optionInfo.innerText = "R" + or+ ": " + olInfo["R" + or];
+		} else {
+			optionInfo.innerText = "";
+		}
+		//Write stitch value:
+		let val = raster.data[raster.width * rasterMouse.y + rasterMouse.x];
+		stitchInfo.innerText = "Value: " + val;
+		if (val in stitchNames) {
+			stitchInfo.innerText += " (" + stitchNames[val] + ")";
+		}
+	} else {
+		scrollContent.style.cursor = '';
+	}
+	positionInfo2.innerText = positionInfo.innerText;
+	optionInfo2.innerText = optionInfo.innerText;
+	stitchInfo2.innerText = stitchInfo.innerText;
+
+	if (resized) {
+		needRedraw = true;
+		resized = false;
+	}
+
+	if (needRedraw) {
+		redraw();
+	}
+
+	window.requestAnimationFrame(update);
+}
+
+window.requestAnimationFrame(update);
+
+
+//make a dummy raster to start with:
+var defaultRaster = (function makeDefaultRaster() {
+	var width = 100;
+	var height = 200;
+	var data = new Uint8Array(100 * 200);
+	var palette = [];
+	var filename = "(no file)";
+
+	var paletteR = new Uint8Array(256);
+	var paletteG = new Uint8Array(256);
+	var paletteB = new Uint8Array(256);
+
+	for (var i = 0; i < 216; ++i) {
+		paletteR[i] = [0x00, 0x33, 0x66, 0x99, 0xcc, 0xff][Math.floor(i/36)];
+		paletteG[i] = [0x00, 0x33, 0x66, 0x99, 0xcc, 0xff][Math.floor(i/6)%6];
+		paletteB[i] = [0x00, 0x33, 0x66, 0x99, 0xcc, 0xff][i%6];
+		palette[i] = "#" + "0369cf"[Math.floor(i/36)] + "0369cf"[Math.floor(i/6)%6] + "0369cf"[i%6];
+	}
+	for (var y = 0; y < height; ++y) {
+		for (var x = 0; x < width; ++x) {
+			if (x == 0 || x + 1 == width || y == 0 || y + 1 == height) {
+				data[y * width + x] = (y == 0 ? 5 : 2)*36 + (x == 0 ? 5 : 2)*6 + 1;
+			} else {
+				data[y * width + x] = ((x ^ y) & 1 ? 215 : 0);
+			}
+		}
+	}
+	return {
+		width:width,
+		height:height,
+		data:data,
+		palette:palette,
+		paletteR:paletteR,
+		paletteG:paletteG,
+		paletteB:paletteB,
+		filename:filename
+	};
+})();
+
+setRaster(defaultRaster);
+
+//---------- file parsing ----------
+
+
+function parseDat(data) {
+	//header information:
+	var minX = (new Uint16Array(data, 0x000, 1))[0];
+	var minY = (new Uint16Array(data, 0x002, 1))[0];
+	var maxX = (new Uint16Array(data, 0x004, 1))[0];
+	var maxY = (new Uint16Array(data, 0x006, 1))[0];
+
+	var magicA = (new Uint16Array(data, 0x008, 1))[0];
+	var magicB = (new Uint16Array(data, 0x010, 1))[0];
+	if (magicA != 1000 || magicB != 1000) throw "Unknown magic numbers (" + magicA + ", " + magicB + ").";
+
+	var width = maxX - minX + 1;
+	var height = maxY - minY + 1; 
+
+	//palette information:
+	function byteSwap(arr) {
+		var ret = new Uint8Array(arr.length);
+		for (var i = 0; i < arr.length; i += 2) {
+			ret[i] = arr[i+1];
+			ret[i+1] = arr[i];
+		}
+		return ret;
+	}
+	var paletteR = byteSwap(new Uint8Array(data, 0x200, 0x100));
+	var paletteG = byteSwap(new Uint8Array(data, 0x300, 0x100));
+	var paletteB = byteSwap(new Uint8Array(data, 0x400, 0x100));
+
+	function byteToHex(b) { //fixed-width byte value
+		return "0123456789abcdef"[Math.floor(b/16)] + "0123456789abcdef"[b%16];
+	}
+
+	var palette = [];
+	for (var i = 0; i < 256; ++i) {
+		palette.push("#" + byteToHex(paletteR[i]) + byteToHex(paletteG[i]) + byteToHex(paletteB[i]));
+	}
+
+	//raster information:
+	var length = data.byteLength - 0x600;
+	var rasterData = new Uint8Array(data, 0x600, length);
+	var raster = new Uint8Array(width * height);
+	var x = 0;
+	var y = 0;
+	for (var i = 0; i < length; i += 2) {
+		var index = rasterData[i];
+		var repeat = rasterData[i+1];
+		for (var r = 0; r < repeat; ++r) {
+			raster[y * width + x] = index;
+			x += 1;
+			if (x >= width) {
+				x = 0;
+				y += 1;
+				if (y >= height) {
+					break; //ran out of raster to fill
+				}
+			}
+		}
+		if (y >= height) {
+			break;
+		}
+	}
+	return {
+		width:width,
+		height:height,
+		palette:palette,
+		paletteR:paletteR,
+		paletteG:paletteG,
+		paletteB:paletteB,
+		data:raster
+	};
+}
+
+function readFile(file) {
+	if (typeof(file) === 'undefined') {
+		//no files were selected, so just return
+		return;
+	}
+
+	console.log("Attempting to read file: '" + file.name + "'");
+	setFile({name: file.name, status:"pending"});
+
+	var oldSize = 0;
+	var oldCheck = 0;
+
+	//generate new data:
+	var reader = new FileReader();
+	reader.onload = function(){
+		console.log("Updated file '" + file.name + "'");
+		try {
+			let fileRaster = parseDat(reader.result);
+			let mod = new Date(file.lastModified);
+			let str = mod.toTimeString() + " " + mod.toDateString();
+			setFile({name: file.name, status:str, file:file});
+			setRaster(fileRaster);
+		} catch (e) {
+			setFile({name: file.name, status:"error: " + e});
+			setRaster(defaultRaster);
+		}
+	};
+	reader.onerror = function(){
+		setFile({name: file.name, status:"error"});
+		setRaster(defaultRaster);
+	};
+	reader.readAsArrayBuffer(file);
+}
+
+function reloadFile() {
+	if (file) readFile(file);
+}
+
+//---------- help toggle ----------
+var help = document.getElementById("help");
+
+function showHelp() {
+	help.style.display = "";
+}
+function hideHelp() {
+	help.style.display = "none";
+}
+
+function toggleHelp() {
+	if (help.style.display === "none") {
+		showHelp();
+	} else {
+		hideHelp();
+	}
+}
+
+//---------- event handling ----------
+
+//click in help to close it:
+help.addEventListener('click', hideHelp);
+
+//pay attention to file selection:
+var fileInput = document.getElementById("file");
+fileInput.addEventListener('change', function(evt){
+	hideHelp();
+	readFile(evt.target.files[0]);
+	evt.target.value = "";
+	evt.preventDefault();
+	return false;
+});
+
+var dropTarget = document.getElementById("dropTarget");
+//dragging into the window also loads files:
+dropTarget.addEventListener('dragover', function(evt){
+	dropTarget.classList.add("active");
+	evt.preventDefault();
+	return false;
+});
+dropTarget.addEventListener('dragleave', function(evt){
+	dropTarget.classList.remove("active");
+	evt.preventDefault();
+	return false;
+});
+dropTarget.addEventListener('drop', function(evt){
+	dropTarget.classList.remove("active");
+	hideHelp();
+	readFile(evt.dataTransfer.files[0]);
+	evt.preventDefault();
+	return false;
+});
+
+//dragging into the window shows the target:
+document.addEventListener('dragover', function(evt){
+	dropTarget.classList.add("active");
+	evt.preventDefault();
+	return false;
+});
+
+window.addEventListener('resize', function(evt){
+	resized = true;
+});
+
+scrollWrapper.addEventListener('mousemove', function(evt){
+	var x = evt.offsetX;
+	var y = evt.offsetY;
+
+	x = (x - scrollContent.clientWidth * 0.5) / scale + raster.width * 0.5;
+	y = -(y - scrollContent.clientHeight * 0.5) / scale + raster.height * 0.5;
+
+	mouse = {x:x, y:y};
+});
+
+
+</script>
+</html>

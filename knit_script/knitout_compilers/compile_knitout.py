@@ -1,8 +1,7 @@
 """used to run js DAT compiler"""
+import platform
 from importlib.resources import files
 from pathlib import Path
-
-from nodejs import node
 
 
 def get_compiler_folder(folder_path: str | None = None):
@@ -61,11 +60,11 @@ def knitout_to_dat(knitout_file_name: str, dat_file_name: str | None = None, com
     """
     js_compiler_file = get_dat_compiler(compiler_folder, compiler)
     print(f"\n################Converting {knitout_file_name} to DAT file {dat_file_name} ########\n")
+    if platform.system() == "Windows":
+        # Run Node.js and return the exit code.
+        from knit_script.knitout_compilers.run_js_dat_compilers_windows import run_js_compiler_windows
+        return run_js_compiler_windows(dat_file_name, js_compiler_file, knitout_file_name)
+    else:
+        from knit_script.knitout_compilers.run_js_dat_compilers_unix import run_js_compiler_unix
+        return run_js_compiler_unix(dat_file_name, js_compiler_file, knitout_file_name)
 
-    # Run Node.js and return the exit code.
-    node_process = node.run([js_compiler_file, knitout_file_name, dat_file_name])
-    if node_process.stdout is not None:
-        print(f"DAT Compiler Output:\n\t{node_process.stdout}")
-    if node_process.stderr is not None:
-        print(f"DAT Compiler Error:\n\t{node_process.stderr}")
-    return node_process.stderr is None
