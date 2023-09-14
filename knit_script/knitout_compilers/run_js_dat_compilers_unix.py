@@ -16,7 +16,8 @@ def run_js_compiler_unix(dat_file_name, js_compiler_file, knitout_file_name):
         print(f"DAT Compiler Output:\n\t{node_process.stdout}")
     if node_process.stderr is not None:
         print(f"DAT Compiler Error:\n\t{node_process.stderr}")
-    if node_process.stderr is not None or node_process.stderr.strip() != "":
-        return True
-    else:
+    if node_process.stderr is not None and node_process.stderr.strip() != "":
+        print(node_process.stderr)
         return False
+    else:
+        return True
