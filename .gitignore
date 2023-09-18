@@ -196,3 +196,9 @@ fabric.properties
 !/tests/import_test.k
 *.k
 *.dat
+
+#ignore vs code files
+.vscode/
+launch.json
+stst_10.dat
+stst.ks
