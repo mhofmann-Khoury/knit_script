@@ -54,6 +54,7 @@ class Carrier_Set:
         """
         for carrier in self.get_carriers(carrier_system):
             carrier.position = position
+
     def get_carriers(self, carrier_system) -> List[Carrier]:
         """
         :param carrier_system: carrier system referenced by set
@@ -134,6 +135,17 @@ class Carrier_Set:
         :return: number of carriers
         """
         return len(self)
+
+    def carrier_DAT_ID(self) -> int:
+        """
+        :return: Number used in DAT files to represent the carrier set
+        """
+        carrier_id = 0
+        for place, carrier in enumerate(reversed(self.carrier_ids)):
+            multiplier = 10 ** place
+            carrier_val = multiplier * carrier
+            carrier_id += carrier_val
+        return carrier_id
 
     @staticmethod
     def carrier_set_by_count(carrier_count: int = 10):

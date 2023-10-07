@@ -9,8 +9,8 @@ def _write_clean_instructions(name: str, optimize=True):
     interpreter.write_trimmed_knitout(f"{name}.k", f'{name}_clean.k', pattern_is_file=True)
 
 
-# test_name = "stst"
-# _write_clean_instructions(test_name)
+test_name = "stst"
+_write_clean_instructions(test_name)
 # test_name = "mod_stst"
 # _write_clean_instructions(test_name)
 # test_name = "rib"
@@ -21,6 +21,6 @@ def _write_clean_instructions(name: str, optimize=True):
 # _write_clean_instructions(test_name, optimize=True)
 # test_name = "stripes"
 # _write_clean_instructions(test_name, optimize=True)
-test_name = "squares"
-_write_clean_instructions(test_name, optimize=True)
+# test_name = "squares"
+# _write_clean_instructions(test_name, optimize=True)
 

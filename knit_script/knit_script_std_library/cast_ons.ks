@@ -1,6 +1,6 @@
 import needles;
 
-def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward):{
+def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward, tuck_tag_width=4):{
 	side = Back_Needles;
 	if is_front:{
 		side = Front_Needles;
@@ -13,11 +13,25 @@ def alt_tuck_cast_on(w, is_front=True, first_needle=0, co_dir=Leftward):{
 	}
 
 	print f"Cast on {w} loops from {first_pass_start} to {first_pass_start+w}";
+	tag_start =( first_needle+w )- tuck_tag_width;
+	in co_dir direction:{
+		tuck side[tag_start: first_needle+w:2];
+	}
+	in reverse direction:{
+		tuck side[tag_start+1: first_needle+w:2];
+	}
 	in co_dir direction:{
 		tuck side[first_pass_start:first_needle+w:2];
 	}
+	co_loops = Last_Pass;
 	in reverse direction:{
 		tuck side[second_pass_start:first_needle+w:2];
+	}
+	co_loops.extend(Last_Pass);
+	for _ in range(0, 4):{
+		in reverse direction:{
+			knit co_loops;
+		}
 	}
 }
 

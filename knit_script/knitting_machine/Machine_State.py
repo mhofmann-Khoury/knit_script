@@ -37,7 +37,7 @@ class Machine_State:
     MAX_GAUGE = 10
     MAX_FLOAT = 5
 
-    def __init__(self, needle_count: int = 250, max_rack: float = 4.25, carrier_count: int = 10, hook_size: int = 5, max_float: int = 5):
+    def __init__(self, needle_count: int = 500, max_rack: float = 4.25, carrier_count: int = 10, hook_size: int = 5, max_float: int = 5):
         """
         Maintains the state of the machine
         :param max_float: the maximum size of a float.

@@ -1,5 +1,5 @@
 import cast_ons;
-with Gauge as 2, Carrier as c1, width as 20, height as 20:{
+with Gauge as 2, Carrier as c5, width as 40, height as 60:{
     with Sheet as s0:{
         cast_ons.alt_tuck_cast_on(width, is_front=True);
         xfer Loops[1::2] across;
