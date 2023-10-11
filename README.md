@@ -23,7 +23,7 @@ This will clone the [repository](https://github.com/mhofmann-Khoury/knit_script)
 
 ## Install Stable Version from [PyPI](https://pypi.org/project/knit-script/)
 
-[//]: # (&#40;https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3&#41;)
+(https://towardsdatascience.com/how-to-upload-your-python-package-to-pypi-de1b363a1b3)
 
 ```
 $ pip install knit-script
@@ -76,7 +76,7 @@ To just generate a knitout file from knit_script, use the following
 ```python
 from knit_script.interpret import knit_script_to_knitout
 
-knit_graph = knit_script_to_knitout('<pattern file>', '<knitout file name>')
+knit_graph, machine_state = knit_script_to_knitout('<pattern file>', '<knitout file name>')
 ```
 
 To also generate a data file use:
@@ -84,7 +84,7 @@ To also generate a data file use:
 ```python
 from knit_script.interpret import knit_script_to_knitout_to_dat
 
-knit_graph = knit_script_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
+knit_graph, machine_state = knit_script_to_knitout_to_dat('<pattern file>', '<knitout file name>', '<dat file name>')
 ```
 
 For more information, check out the jupyter notebook in the `installation_test` package.

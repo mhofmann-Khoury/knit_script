@@ -6,9 +6,10 @@ from typing import Any
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
+from knit_script.knitting_machine.Machine_State import Machine_State
 
 
-def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True, python_variables: dict[str, Any] | None = None) -> Knit_Graph:
+def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True, python_variables: dict[str, Any] | None = None) -> tuple[Knit_Graph, Machine_State]:
     """
     Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations.
     :param pattern_is_filename: If true, the pattern is a filename.
@@ -18,12 +19,12 @@ def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename
     :return: The KnitGraph constructed during parsing on virtual machine
     """
     interpreter = Knit_Script_Interpreter()
-    _, knit_graph = interpreter.write_knitout(pattern, out_file_name, pattern_is_filename, python_variables=python_variables)
-    return knit_graph
+    _, knit_graph, machine_state = interpreter.write_knitout(pattern, out_file_name, pattern_is_filename, python_variables=python_variables)
+    return knit_graph, machine_state
 
 
 def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str | None = None, pattern_is_filename: bool = False, python_variables: dict[str, Any] | None = None, optimize=True,
-                                  visualize_instruction_graph: bool = False) -> Knit_Graph:
+                                  visualize_instruction_graph: bool = False) -> tuple[Knit_Graph, Machine_State]:
     """
     Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations.
     :param pattern_is_filename: If true, the pattern is a filename.
@@ -37,10 +38,10 @@ def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str
     :return: The KnitGraph constructed during parsing on a virtual machine
     """
     interpreter = Knit_Script_Interpreter()
-    _, knit_graph = interpreter.write_knitout(pattern, knitout_name, pattern_is_filename, python_variables=python_variables, optimize=optimize, visualize_instruction_graph=visualize_instruction_graph)
+    _, knit_graph, machine_state = interpreter.write_knitout(pattern, knitout_name, pattern_is_filename, python_variables=python_variables, optimize=optimize, visualize_instruction_graph=visualize_instruction_graph)
     success = knitout_to_dat(knitout_name, dat_name)
     assert success, f"Dat file could not be produced from {knitout_name}"
-    return knit_graph
+    return knit_graph, machine_state
 
 
 def main():
@@ -71,10 +72,10 @@ def main():
             assert not pattern_str, "Cannot make knitout file without a output name or a knit script file"
             knitout = pattern[0:pattern.index('.')] + '.k'
         if dat is not None:
-            _knit_graph = knit_script_to_knitout_to_dat(pattern, knitout, dat, pattern_is_filename=not pattern_str)
+            _knit_graph, _machine_state = knit_script_to_knitout_to_dat(pattern, knitout, dat, pattern_is_filename=not pattern_str)
             print(f"Generated Knitout to {knitout} and DAT to {dat}")
         else:
-            _knit_graph = knit_script_to_knitout(pattern, knitout, pattern_is_filename=not pattern_str)
+            _knit_graph, _machine_state = knit_script_to_knitout(pattern, knitout, pattern_is_filename=not pattern_str)
             print(f"Generated Knitout to {knitout}")
 
     except getopt.GetoptError as e:

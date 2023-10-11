@@ -10,6 +10,7 @@ from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
 from knit_script.knitout_interpreter.Knitout_Optimizer import Knitout_Optimizer
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitting_machine.Machine_State import Machine_State
 
 
 class Knit_Script_Interpreter:
@@ -58,7 +59,7 @@ class Knit_Script_Interpreter:
         return self._parser.parse(pattern, pattern_is_file)
 
     def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, python_variables: dict[str, Any] | None = None, optimize=True,
-                      visualize_instruction_graph: bool = False, clean_optimization: bool = True) -> tuple[list[Knitout_Line], Knit_Graph]:
+                      visualize_instruction_graph: bool = False, clean_optimization: bool = True) -> tuple[list[Knitout_Line], Knit_Graph, Machine_State]:
         """
         Writes pattern knitout instructions to the out file
         Parameters
@@ -90,10 +91,11 @@ class Knit_Script_Interpreter:
             knitout = self._knit_pass_context.knitout
         with open(out_file_name, "w", encoding="utf-8", newline='\n') as out:
             out.writelines([str(k) for k in knitout])
-        knitgraph = self._knit_pass_context.machine_state.knit_graph
+        machine_state = self._knit_pass_context.machine_state
+        knitgraph = machine_state.knit_graph
         if reset_context:
             self._reset_context()
-        return knitout, knitgraph
+        return knitout, knitgraph, machine_state
 
     def optimize_knitout(self, original_out_name: str | None, organized_out_name: str | None, visualize: bool = False, clean_original: bool = True, clean_organized: bool = True) -> list[Knitout_Line]:
         """

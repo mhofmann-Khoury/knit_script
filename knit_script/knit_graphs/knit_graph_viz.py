@@ -40,8 +40,11 @@ def visualize_sheet(knit_graph: Knit_Graph, file_name: str = "knit_graph.png", s
                 loop = knit_graph[loop_id]
                 y = r * standard_height_between_courses
                 parent_ids = [*knit_graph.graph.predecessors(loop_id)]
-                if r == 0:  # place first course
-                    x = loop_ids_to_index_in_course[loop_id] * standard_width_between_loops
+                if r == start_course:  # place first course
+                    if rightward:
+                        x = loop_ids_to_index_in_course[loop_id] * standard_width_between_loops
+                    else:
+                        x = prior_x - loop_ids_to_index_in_course[loop_id] * standard_width_between_loops
                 elif len(parent_ids) > 0:  # place by parent loops on prior course
                     # balancing method
                     # parent_sum = sum(loop_id_to_x_position[p] for p in parent_ids)
@@ -90,6 +93,8 @@ def visualize_sheet(knit_graph: Knit_Graph, file_name: str = "knit_graph.png", s
     # add yarn edges
     for yarn in yarns:
         for prior_loop_node_id, next_loop_node_id in yarn.yarn_graph.edges:
+            if not (prior_loop_node_id in loop_id_to_x_position and next_loop_node_id in loop_id_to_x_position):
+                continue
             edge_color_property[(prior_loop_node_id, next_loop_node_id)] = {}
             edge_color_property[(prior_loop_node_id, next_loop_node_id)]['color'] = knit_graph.graph.nodes[next_loop_node_id]["loop"].yarn.color
             edge_style_property[(prior_loop_node_id, next_loop_node_id)] = '--'
@@ -98,6 +103,8 @@ def visualize_sheet(knit_graph: Knit_Graph, file_name: str = "knit_graph.png", s
 
     # add stitch edges and create edge labels
     for parent_loop_id, child_loop_id in knit_graph.graph.edges:
+        if not (parent_loop_id in loop_id_to_x_position and child_loop_id in loop_id_to_x_position):
+            continue
         edge_color_property[(parent_loop_id, child_loop_id)] = {}
         pull_direction = knit_graph.graph[parent_loop_id][child_loop_id]["pull_direction"]
         stitch_labels[(parent_loop_id, child_loop_id)] = str(pull_direction)[0]

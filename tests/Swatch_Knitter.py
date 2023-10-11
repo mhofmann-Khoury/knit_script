@@ -136,6 +136,6 @@ def cable(width: int = 10, height: int = 10) -> Knit_Graph:
 
 def knit_swatch(knit_graph: Knit_Graph, out_put_name: str = "swatch_instructions"):
     courses = knit_graph.get_courses()
-    knit_graph_built = knit_script_to_knitout_to_dat("Swatch_Knitter.ks", f"{out_put_name}.k", dat_name=f"{out_put_name}.dat", pattern_is_filename=True,
-                                                     python_variables={"swatch": knit_graph, "courses": courses}, visualize_instruction_graph=False)
+    knit_graph_built, machine_state = knit_script_to_knitout_to_dat("Swatch_Knitter.ks", f"{out_put_name}.k", dat_name=f"{out_put_name}.dat", pattern_is_filename=True,
+                                                                    python_variables={"swatch": knit_graph, "courses": courses}, visualize_instruction_graph=False)
     return knit_graph_built
