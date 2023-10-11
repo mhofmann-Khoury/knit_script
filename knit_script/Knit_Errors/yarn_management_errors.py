@@ -1,7 +1,6 @@
 from typing import List
 
 from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
-from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
 class Duplicate_Carrier_Error(Knit_Script_Error):
@@ -56,17 +55,18 @@ class Non_Existent_Carrier_Error(Knit_Script_Error):
             return f"Carriers must be 1 or greater, but got {self.carrier}"
         return f"Carrier {self.carrier} is not available on the declared machine. "
 
+
 class Inactive_Carrier_Error(Knit_Script_Error):
     """Raised when attempting to use a carrier that is not active"""
 
-    def __init__(self, carrier_set: Carrier_Set, missing_carriers: List[int], instruction=None):
+    def __init__(self, carrier_set, missing_carriers: List[int], instruction=None):
         self.missing_carriers = missing_carriers
-        self._carrier_set: Carrier_Set = carrier_set
+        self._carrier_set = carrier_set
         self._instruction = instruction
         super().__init__(self._message())
 
     @property
-    def carrier_set(self) -> Carrier_Set:
+    def carrier_set(self):
         """
         :return: the inactive carrier set
         """
@@ -84,3 +84,14 @@ class Inactive_Carrier_Error(Knit_Script_Error):
             return f"Cannot \'{self._instruction}\' with inactive carriers {self.missing_carriers}"
         else:
             return f"Carriers {self.missing_carriers} in carrier set {self._carrier_set} are not active and cannot be used"
+
+
+class Large_Carrier_Set_Error(Knit_Script_Error):
+
+    def __init__(self, carrier_set, max_set_size: int):
+        self._carrier_set = carrier_set
+        self._max_set_size = max_set_size
+        super().__init__(self._message())
+
+    def _message(self) -> str:
+        return f"Carrier Set {self._carrier_set} has more than the allowed {self._max_set_size} carriers"

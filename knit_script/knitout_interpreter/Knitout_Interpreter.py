@@ -4,7 +4,7 @@ from knit_script.knitout_interpreter.Knitout_Context import Knitout_Context
 from knit_script.knitout_interpreter.Knitout_Parser import Knitout_Parser
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Version_Line, Knitout_Line, Comment_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Knitout_Instruction
 
 
 class Knitout_Interpreter:
@@ -19,7 +19,7 @@ class Knitout_Interpreter:
     def _reset_context(self):
         self.context = Knitout_Context()
 
-    def parse_knitout(self, pattern: str, pattern_is_file: bool = True) -> tuple[Version_Line, list[Header_Declaration], list[Instruction], list[Knitout_Line], list[Knitout_Line]]:
+    def parse_knitout(self, pattern: str, pattern_is_file: bool = True) -> tuple[Version_Line, list[Header_Declaration], list[Knitout_Instruction], list[Knitout_Line], list[Knitout_Line]]:
         """
         :param pattern: knitout pattern
         :param pattern_is_file: true if the pattern is in a file

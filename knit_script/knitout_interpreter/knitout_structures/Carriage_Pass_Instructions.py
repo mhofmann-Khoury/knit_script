@@ -1,7 +1,7 @@
 """Collection of instructions in a shared carriage pass"""
 
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Rack_Instruction import Rack_Instruction
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Instruction_Type
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.needle_instructions import Knitout_Needle_Instruction
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle

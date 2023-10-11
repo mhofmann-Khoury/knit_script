@@ -2,7 +2,7 @@
 
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pause_Instruction import Pause_Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pass_Setting_Instruction import Pause_Instruction
 
 
 class Pause_Statement(Statement):

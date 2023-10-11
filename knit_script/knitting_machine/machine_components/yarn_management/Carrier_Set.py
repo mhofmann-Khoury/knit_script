@@ -3,6 +3,7 @@
 """
 from typing import Union, List, Optional
 
+from knit_script.Knit_Errors.yarn_management_errors import Large_Carrier_Set_Error
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_graphs.Loop import Loop
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier import Carrier
@@ -16,6 +17,8 @@ class Carrier_Set:
     Attributes
     ----------
     """
+
+    Max_Set_Size = 2
 
     def __init__(self, carrier_ids: Union[int, list[Union[int]]] = 3):
         """
@@ -44,6 +47,8 @@ class Carrier_Set:
                         else:
                             duplicates.add(c_id)
                             self._carrier_ids.append(c_id)
+        # if self.carrier_count > Carrier_Set.Max_Set_Size:
+        #     raise Large_Carrier_Set_Error(self, Carrier_Set.Max_Set_Size)
         # todo parameter carrier spacing by machine type
 
     def set_position(self, carrier_system, position: Optional[int]):

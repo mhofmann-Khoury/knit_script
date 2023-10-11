@@ -16,7 +16,7 @@ class Knit_Script_Context:
     """Manages the state of the Knitting machine during program execution"""
 
     def __init__(self, parent_scope: Knit_Script_Scope | None = None,
-                 bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
+                 bed_width: int = 540, machine_position: Machine_Position = Machine_Position.Center,
                  ks_file=None, parser=None):
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
         self._header: Header = Header(bed_width, machine_position)

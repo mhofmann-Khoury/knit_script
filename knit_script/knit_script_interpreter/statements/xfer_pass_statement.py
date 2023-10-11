@@ -7,7 +7,7 @@ from knit_script.knit_script_interpreter.expressions.expressions import Expressi
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Carriage_Pass import Carriage_Pass
 from knit_script.knit_script_interpreter.statements.Statement import Statement
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position
 from knit_script.knitting_machine.machine_components.needles import Needle
 

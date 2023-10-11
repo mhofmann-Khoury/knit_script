@@ -4,9 +4,9 @@ from knit_script.Knit_Errors.Knitout_Error import Ignorable_Knitout_Error
 from knit_script.knitout_interpreter.knitout_structures.Carriage_Pass_Instructions import Carriage_Pass_Instructions
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Version_Line, Comment_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pause_Instruction import Pause_Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pass_Setting_Instruction import Pause_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.carrier_instructions import Carrier_Instruction, Releasehook_Instruction
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Knitout_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.needle_instructions import Knitout_Needle_Instruction
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
@@ -22,9 +22,9 @@ class Knitout_Context:
         self._executed_knitout: list[str] = []
         self.version_line: Optional[Version_Line] = None
         self.executed_header: list[Header_Declaration] = []
-        self.executed_instructions: list[Instruction] = []
+        self.executed_instructions: list[Knitout_Instruction] = []
         self.carriage_passes: list[Carriage_Pass_Instructions] = []
-        self.carrier_instructions: dict[Carrier: list[Instruction]] = {}
+        self.carrier_instructions: dict[Carrier: list[Knitout_Instruction]] = {}
         self.carrier_management_instructions: dict[Carrier: list[Carrier_Instruction]] = {}
         self.ignored_instructions: list[Comment_Line] = []
 
@@ -85,7 +85,7 @@ class Knitout_Context:
         for carrier in instruction.carrier_set.get_carriers(self.machine_state.carrier_system):
             self.carrier_management_instructions[carrier].append(instruction)
 
-    def execute_instructions(self, instructions: list[Instruction]) -> list[Comment_Line]:
+    def execute_instructions(self, instructions: list[Knitout_Instruction]) -> list[Comment_Line]:
         """
         Exectutes the instruction set on the machine state defined by the current header
         :param instructions:
@@ -148,7 +148,7 @@ class Knitout_Context:
             self.executed_instructions.append(instruction)
         self.carriage_passes.append(next_carriage_pass)
 
-    def execute_knitout(self, version_line: Version_Line, header_declarations: list[Header_Declaration], instructions: list[Instruction]) -> tuple[list[Comment_Line], list[Comment_Line]]:
+    def execute_knitout(self, version_line: Version_Line, header_declarations: list[Header_Declaration], instructions: list[Knitout_Instruction]) -> tuple[list[Comment_Line], list[Comment_Line]]:
         """
         Executes the given knitout organized by version, header, and instructions.
         :param version_line:

@@ -10,7 +10,7 @@ class Header_ID(Enum):
     Gauge = "Gauge"
     Carrier_Count = "Carriers"
     Position = "Position"
-    Rack = "Rack"
+    # Rack = "Rack"
     Hook = "Hook"
     Yarn = "Yarn"
     X = "X-"

@@ -57,7 +57,7 @@ class Knitout_Optimizer:
         Optimizes Knitout from given context by relationship between instructions and whole carriage passes
     """
 
-    def __init__(self, context: Knitout_Context, min_loops_before_release_hook=3, hook_size=4):
+    def __init__(self, context: Knitout_Context, min_loops_before_release_hook=10, hook_size=4):
         self._hook_size = hook_size
         self._min_loops_before_release_hook = min_loops_before_release_hook
         self.context = context

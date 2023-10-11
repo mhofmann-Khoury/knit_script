@@ -118,9 +118,9 @@ class Instruction_Type(Enum):
             return self is other_instruction
 
 
-class Instruction(Knitout_Line):
+class Knitout_Instruction(Knitout_Line):
     """
-        Super class for knitout operations
+        Superclass for knitout operations
     """
 
     def __init__(self, instruction_type: Instruction_Type, comment: Optional[str]):

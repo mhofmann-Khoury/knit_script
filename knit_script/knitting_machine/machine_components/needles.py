@@ -113,7 +113,7 @@ class Needle:
         else:
             return Needle(is_front=self.is_front, position=self.position + offset)
 
-    def racked_position_on_front(self, rack: float) -> float:
+    def racked_position_on_front(self, rack: float) -> int:
         """
         Get the position of the needle on the front bed at a given racking
         :param rack: the racking value

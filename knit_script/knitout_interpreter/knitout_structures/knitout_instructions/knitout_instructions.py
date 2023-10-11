@@ -4,11 +4,11 @@ Methods and support for writing knitout commands and updating a machine state
 from typing import Optional
 
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Comment_Line, Knitout_Line
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pause_Instruction import Pause_Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pass_Setting_Instruction import Pause_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Rack_Instruction import Rack_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.carrier_instructions import In_Instruction, Inhook_Instruction, Releasehook_Instruction, Outhook_Instruction, \
     Out_Instruction
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Instruction_Type
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.needle_instructions import Miss_Instruction, Knit_Instruction, Tuck_Instruction, Split_Instruction, Drop_Instruction, \
     Xfer_Instruction, Amiss_Instruction
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction

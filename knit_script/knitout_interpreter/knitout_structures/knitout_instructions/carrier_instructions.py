@@ -1,18 +1,43 @@
 from typing import Optional
 
 from knit_script.Knit_Errors.carrier_operation_errors import In_Active_Carrier_Error, Inserting_Hook_In_Use_Error, Out_Inactive_Carrier_Error, Out_Hooked_Carrier_Error, Cut_Hooked_Carrier_Error
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction, Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Knitout_Instruction, Instruction_Type
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
-class Carrier_Instruction(Instruction):
+class Carrier_Instruction(Knitout_Instruction):
 
     def __init__(self, instruction_type: Instruction_Type, cs: Carrier_Set, comment: Optional[str]):
         super().__init__(instruction_type, comment)
-        self.carrier_set = cs
+        self.carrier_set:Carrier_Set = cs
 
     def __str__(self):
         return f"{self.instruction_type} {self.carrier_set}{self.comment_str}"
+
+    def carrier_number(self) -> int:
+        """
+        :return: number value of carrier for DAT option lines
+        """
+        return self.carrier_set.carrier_DAT_ID()
+
+    #TODO: set these for each operation based on DAT tests
+    def yarn_holding_value(self) -> int:
+        """
+        :return: op line value for yarn_holding
+        """
+        return 0
+
+    def yarn_inserting_hook_value(self) -> int:
+        """
+        :return: op line value for yarn_inserting_hook
+        """
+        return 0
+
+    def yarn_in_out_value(self) -> int:
+        """
+        :return: op line value for in_out options
+        """
+        return 0
 
 
 class Hook_Instruction(Carrier_Instruction):

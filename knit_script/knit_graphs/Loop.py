@@ -1,7 +1,7 @@
 """The Loop data structure"""
 from typing import List, Optional
 
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Knitout_Instruction
 
 
 class Loop:
@@ -35,8 +35,8 @@ class Loop:
             (created by pulling a carrier backwards across the needle)
         """
         self._holding_needle = holding_needle
-        self.instructions: List[Instruction] = []
-        self.creating_instruction: Optional[Instruction] = None
+        self.instructions: List[Knitout_Instruction] = []
+        self.creating_instruction: Optional[Knitout_Instruction] = None
         self.is_twisted: bool = is_twisted
         assert loop_id >= 0, f"{loop_id}: Loop_id must be non-negative"
         self._loop_id: int = loop_id
@@ -70,7 +70,7 @@ class Loop:
         """
         return self.holding_needle is not None
 
-    def apply_operation(self, instruction: Instruction):
+    def apply_operation(self, instruction: Knitout_Instruction):
         self.instructions.append(instruction)
         # todo update holding needle based on operation
 

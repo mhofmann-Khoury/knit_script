@@ -1,31 +1,38 @@
 """Needle operations"""
-from typing import Optional
 
 from knit_script.Knit_Errors.knitting_errors import Long_Float_Error, Slider_Use_Error, Blocked_Sliders_Error, Slider_Clear_Error, Valid_Rack_Error, \
     Same_Bed_Transfer_Error
 from knit_script.Knit_Errors.yarn_management_errors import Inactive_Carrier_Error
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction, Instruction_Type
+from knit_script.knitout_interpreter.DAT_Compiler.Knitting_Operation import Knitting_Operation
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Knitout_Instruction, Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_pass_direction import Pass_Direction
 from knit_script.knitting_machine.machine_components.needles import Needle
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
-class Knitout_Needle_Instruction(Instruction):
+class Knitout_Needle_Instruction(Knitout_Instruction):
 
     def __init__(self, instruction_type: Instruction_Type,
-                 needle: Needle, direction: Optional[str | Pass_Direction] = None, needle_2: Optional[Needle] = None,
-                 carrier_set: Optional[Carrier_Set] = None,
-                 comment: Optional[str] = None):
+                 needle: Needle, direction: str | Pass_Direction | None = None, needle_2: Needle | None = None,
+                 carrier_set: Carrier_Set | None = None,
+                 comment: str | None = None):
         super().__init__(instruction_type, comment)
         self.carrier_set = carrier_set
         self.needle_2 = needle_2
         if direction is not None and isinstance(direction, str):
             direction = Pass_Direction.get_direction(direction)
-        self.direction: Optional[Pass_Direction] = direction
+        self.direction: Pass_Direction | None = direction
         self.needle = needle
         self.carriage_pass = None
         self.made_loops = None
         self.moved_loops = None
+
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        raise ValueError("Must be overridden")
 
     @property
     def has_second_needle(self) -> bool:
@@ -47,6 +54,14 @@ class Knitout_Needle_Instruction(Instruction):
         :return: true if it has carrier set
         """
         return self.carrier_set is not None
+
+    def carrier_number(self) -> int:
+        """
+        :return: number value of carrier for DAT option lines
+        """
+        if self.carrier_set is not None:
+            return self.carrier_set.carrier_DAT_ID()
+        return 0
 
     def _test_operation(self, machine_state, test_clear_sliders=False, test_no_slider=False):
         if self.instruction_type.directed_pass:
@@ -113,16 +128,27 @@ class Knitout_Needle_Instruction(Instruction):
 
 class Loop_Making_Instruction(Knitout_Needle_Instruction):
 
-    def __init__(self, instruction_type: Instruction_Type, needle: Needle, direction: Optional[str | Pass_Direction] = None, needle_2: Optional[Needle] = None,
-                 carrier_set: Optional[Carrier_Set] = None,
-                 comment: Optional[str] = None):
+    def __init__(self, instruction_type: Instruction_Type,
+                 needle: Needle, direction: str | Pass_Direction | None = None, needle_2: Needle | None = None,
+                 carrier_set: Carrier_Set | None = None,
+                 comment: str | None = None):
         super().__init__(instruction_type, needle, direction, needle_2, carrier_set, comment)
 
 
 class Knit_Instruction(Loop_Making_Instruction):
 
-    def __init__(self, needle: Needle, direction: str | Pass_Direction, cs: Carrier_Set, comment: Optional[str] = None):
+    def __init__(self, needle: Needle, direction: str | Pass_Direction, cs: Carrier_Set, comment: str | None = None):
         super().__init__(Instruction_Type.Knit, needle, direction=direction, carrier_set=cs, comment=comment)
+
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        if self.needle.is_front:
+            return Knitting_Operation.Knit_Front
+        else:
+            return Knitting_Operation.Knit_Back
 
     def execute(self, machine_state):
         self._test_operation(machine_state, test_clear_sliders=True, test_no_slider=True)
@@ -138,7 +164,7 @@ class Knit_Instruction(Loop_Making_Instruction):
 
 class Tuck_Instruction(Loop_Making_Instruction):
 
-    def __init__(self, needle: Needle, direction: str | Pass_Direction, cs: Carrier_Set, comment: Optional[str] = None):
+    def __init__(self, needle: Needle, direction: str | Pass_Direction, cs: Carrier_Set, comment: str | None = None):
         super().__init__(Instruction_Type.Tuck, needle, direction=direction, carrier_set=cs, comment=comment)
 
     def execute(self, machine_state):
@@ -149,10 +175,20 @@ class Tuck_Instruction(Loop_Making_Instruction):
             loop.creating_instruction = self
         return True
 
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        if self.needle.is_front:
+            return Knitting_Operation.Tuck_Front
+        else:
+            return Knitting_Operation.Tuck_Back
+
 
 class Split_Instruction(Loop_Making_Instruction):
 
-    def __init__(self, needle: Needle, direction: str | Pass_Direction, n2: Needle, cs: Carrier_Set, comment: Optional[str] = None):
+    def __init__(self, needle: Needle, direction: str | Pass_Direction, n2: Needle, cs: Carrier_Set, comment: str | None = None):
         super().__init__(Instruction_Type.Split, needle, direction=direction, needle_2=n2, carrier_set=cs, comment=comment)
 
     def execute(self, machine_state):
@@ -163,10 +199,20 @@ class Split_Instruction(Loop_Making_Instruction):
             loop.instructions.append(self)
             loop.creating_instruction = self
 
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        if self.needle.is_front:
+            return Knitting_Operation.Split_Front
+        else:
+            return Knitting_Operation.Split_Back
+
 
 class Drop_Instruction(Knitout_Needle_Instruction):
 
-    def __init__(self, needle: Needle, comment: Optional[str] = None):
+    def __init__(self, needle: Needle, comment: str | None = None):
         super().__init__(Instruction_Type.Drop, needle, comment=comment)
 
     def execute(self, machine_state):
@@ -174,10 +220,20 @@ class Drop_Instruction(Knitout_Needle_Instruction):
         self.add_instruction_to_needle_1_loops()  # add to loops before drop
         machine_state.drop(self.needle)
 
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        if self.needle.is_front:
+            return Knitting_Operation.Drop_Front
+        else:
+            return Knitting_Operation.Drop_Back
+
 
 class Amiss_Instruction(Knitout_Needle_Instruction):
 
-    def __init__(self, needle: Needle, comment: Optional[str] = None):
+    def __init__(self, needle: Needle, comment: str | None = None):
         super().__init__(Instruction_Type.Amiss, needle, comment=comment)
 
     def execute(self, machine_state):
@@ -186,9 +242,19 @@ class Amiss_Instruction(Knitout_Needle_Instruction):
 
 class Xfer_Instruction(Knitout_Needle_Instruction):
 
-    def __init__(self, needle: Needle, n2: Needle, comment: Optional[str] = None, record_location=True):
+    def __init__(self, needle: Needle, n2: Needle, comment: str | None = None, record_location=True):
         super().__init__(Instruction_Type.Xfer, needle, needle_2=n2, comment=comment)
         self.record_location = record_location
+
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        if self.needle.is_front:
+            return Knitting_Operation.Xfer_Front
+        else:
+            return Knitting_Operation.Xfer_Back
 
     def execute(self, machine_state):
         self._test_operation(machine_state)
@@ -205,8 +271,15 @@ class Xfer_Instruction(Knitout_Needle_Instruction):
 
 class Miss_Instruction(Knitout_Needle_Instruction):
 
-    def __init__(self, needle: Needle, direction: str | Pass_Direction, cs: Carrier_Set, comment: Optional[str] = None):
+    def __init__(self, needle: Needle, direction: str | Pass_Direction, cs: Carrier_Set, comment: str | None = None):
         super().__init__(Instruction_Type.Miss, needle, direction=direction, carrier_set=cs, comment=comment)
+
+    @property
+    def needle_operation_value(self) -> Knitting_Operation:
+        """
+        :return: Operation number for DAT files
+        """
+        return Knitting_Operation.Miss
 
     def execute(self, machine_state):
         """

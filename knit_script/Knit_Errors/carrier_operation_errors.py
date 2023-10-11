@@ -59,3 +59,5 @@ class Cut_Hooked_Carrier_Error(Knitout_Error):
 
     def _message(self) -> str:
         return f"Cannot cut {self._carrier} out because it is on the yarn inserting hook"
+
+

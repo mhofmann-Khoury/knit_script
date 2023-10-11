@@ -3,7 +3,7 @@ from typing import Union
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Instruction_Type
 from knit_script.knitting_machine.machine_components.needles import Needle
 
 

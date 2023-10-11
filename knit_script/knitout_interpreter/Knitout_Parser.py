@@ -9,7 +9,7 @@ import knit_script
 from knit_script.knitout_interpreter.knitout_actions import action
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Header_Declaration import Header_Declaration
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Knitout_Instruction
 
 
 class Knitout_Parser:
@@ -27,7 +27,7 @@ class Knitout_Parser:
         self._parser.knitout_parser = self  # make this structure available from actions
 
     def parse(self, pattern: str, pattern_is_file: bool = False, reset_parser: bool = True, debug_parser: bool = False, debug_parser_layout: bool = False) -> \
-            tuple[Version_Line, list[Header_Declaration], list[Instruction], list[Knitout_Line], list[Knitout_Line]]:
+            tuple[Version_Line, list[Header_Declaration], list[Knitout_Instruction], list[Knitout_Line], list[Knitout_Line]]:
         """
         Executes the parsing code for the parglare parser
         :param debug_parser_layout: prints comment debugging
@@ -67,7 +67,7 @@ class Knitout_Parser:
                     version = code
                 elif isinstance(code, Header_Declaration):
                     head.append(code)
-                elif isinstance(code, Instruction):
+                elif isinstance(code, Knitout_Instruction):
                     instructions.append(code)
                 else:
                     comments.append(code)

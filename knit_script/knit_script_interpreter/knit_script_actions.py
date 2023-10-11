@@ -45,7 +45,7 @@ from knit_script.knit_script_interpreter.statements.return_statement import Retu
 from knit_script.knit_script_interpreter.statements.try_catch_statements import Try_Catch_Statement
 # some boiler plate parglare code
 from knit_script.knit_script_interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instruction import Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
 from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type

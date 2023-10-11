@@ -25,3 +25,5 @@ class KnitScript_Knitout_Error(Knit_Script_Error):
     def __init__(self, knitout_error: Knitout_Error):
         self.knitout_error = knitout_error
         super().__init__(self.knitout_error.message)
+
+

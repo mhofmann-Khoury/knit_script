@@ -19,7 +19,7 @@ def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename
     """
     interpreter = Knit_Script_Interpreter()
     _, knit_graph = interpreter.write_knitout(pattern, out_file_name, pattern_is_filename, python_variables=python_variables)
-    return knit_graph
+    return knit_graph, machine_state
 
 
 def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str | None = None, pattern_is_filename: bool = False, python_variables: dict[str, Any] | None = None, optimize=True,

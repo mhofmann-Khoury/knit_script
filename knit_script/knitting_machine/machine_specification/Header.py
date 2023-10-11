@@ -20,7 +20,7 @@ from knit_script.knitting_machine.machine_specification.Machine_Type import Mach
 class Header:
     """A class structure for generating knitout header files"""
 
-    def __init__(self, width: int = 250,
+    def __init__(self, width: int = 540,
                  position: Machine_Position = Machine_Position.Center,
                  carrier_count: int = 10, machine_type: Machine_Type = Machine_Type.SWG091N2,
                  max_rack: float = 4.25, hook_size: int = 5, gauge: int = 15):
@@ -59,9 +59,9 @@ class Header:
             assert isinstance(value, Machine_Position), \
                 f"Expected machine position [left, right, center, keep] but got {value}"
             self.position = value
-        elif header_id is Header_ID.Rack:
-            assert isinstance(value, float) or isinstance(value, int), f"Expected racking value but got {value}"
-            self.max_rack = float(value)
+        # elif header_id is Header_ID.Rack:
+        #     assert isinstance(value, float) or isinstance(value, int), f"Expected racking value but got {value}"
+        #     self.max_rack = float(value)
         elif header_id is Header_ID.Hook:
             assert isinstance(value, int), f"Expected hook size but got {value}"
             self.hook_size = value

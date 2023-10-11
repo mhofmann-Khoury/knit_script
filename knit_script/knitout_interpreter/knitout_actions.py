@@ -12,10 +12,8 @@ from knit_script.knitout_interpreter.knitout_structures.header_operations.Machin
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Position_Declaration import Position_Declaration
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Width_Declaration import Width_Declaration
 from knit_script.knitout_interpreter.knitout_structures.header_operations.Yarn_Declaration import Yarn_Declaration
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Extension_Instruction import Extension_Instruction
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pause_Instruction import Pause_Instruction
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Pass_Setting_Instruction import Pause_Instruction, Stitch_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Rack_Instruction import Rack_Instruction
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.Stitch_Instruction import Stitch_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.carrier_instructions import In_Instruction, Inhook_Instruction, Releasehook_Instruction, Out_Instruction, \
     Outhook_Instruction
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.needle_instructions import Knit_Instruction, Tuck_Instruction, Miss_Instruction, Split_Instruction, Drop_Instruction, \
@@ -330,17 +328,6 @@ def pause_op(_, __) -> Pause_Instruction:
     :return: pause operation
     """
     return Pause_Instruction()
-
-
-@action
-def extension_op(_, __, code: str) -> Extension_Instruction:
-    """
-    :param _:
-    :param __:
-    :param code: extension code
-    :return: extension operation
-    """
-    return Extension_Instruction(code)
 
 
 @action
