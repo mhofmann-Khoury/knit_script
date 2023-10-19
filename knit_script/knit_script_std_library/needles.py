@@ -13,7 +13,7 @@ def needle(is_front: bool, index: int):
     return Needle(is_front, index)
 
 
-def direction_sorted_needles(needles: list[Needle], direction: Pass_Direction, racking: float = 0.0) -> list[Needle]:
+def direction_sorted_needles(needles: list[Needle], direction: Pass_Direction = Pass_Direction.Rightward, racking: float = 0.0) -> list[Needle]:
     """
     :param racking: racking of machine
     :param needles: the needles to sort

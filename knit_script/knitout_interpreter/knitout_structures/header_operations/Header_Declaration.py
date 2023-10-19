@@ -1,15 +1,13 @@
-from typing import Optional
-
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 
 
 class Header_Declaration(Knitout_Line):
     """
-        Super class of all header operations in knitout
+        Superclass of all header operations in knitout
     """
 
-    def __init__(self, op_name: Header_ID, comment: Optional[str]):
+    def __init__(self, op_name: Header_ID, comment: None | str):
         super().__init__(comment)
         self.operation = op_name
 

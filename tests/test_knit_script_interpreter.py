@@ -2,15 +2,20 @@ from unittest import TestCase
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 
 
 def _print_parse(parser, pattern, is_file: bool = False):
-    x, y = parser.parse(pattern, pattern_is_file=is_file)
-    print(x)
-    print(y)
+    statements = parser.parse(pattern, pattern_is_file=is_file)
+    print(statements)
 
 
-class Test_Actions(TestCase):
+def _print_knitout(knitout: list[Knitout_Line]):
+    for l in knitout:
+        print(str(l))
+
+
+class Test_KS_Interpreter(TestCase):
     def test_indexed_value(self):
         parser = Knit_Script_Parser(debug_grammar=False, debug_parser=False)
         interpreter = Knit_Script_Interpreter()
@@ -30,7 +35,7 @@ class Test_Actions(TestCase):
                 print d;
                 """
         _print_parse(parser, pattern)
-        interpreter._interpret_knit_script(pattern, pattern_is_file=False)
+        knitout = interpreter._interpret_knit_script(pattern, pattern_is_file=False)
 
     def test_not_expression(self):
         parser = Knit_Script_Parser(debug_grammar=False, debug_parser=False)
@@ -43,5 +48,13 @@ class Test_Actions(TestCase):
                 print 1 not in [2,3,4];
                 """
         _print_parse(parser, pattern)
-        interpreter._interpret_knit_script(pattern, pattern_is_file=False)
+        knitout = interpreter._interpret_knit_script(pattern, pattern_is_file=False)
 
+    def test_rack_change(self):
+        parser = Knit_Script_Parser(debug_grammar=False, debug_parser=False)
+        interpreter = Knit_Script_Interpreter()
+        pattern = r"""Rack = 2;
+                        """
+        _print_parse(parser, pattern)
+        knitout = interpreter._interpret_knit_script(pattern, pattern_is_file=False)
+        _print_knitout(knitout)

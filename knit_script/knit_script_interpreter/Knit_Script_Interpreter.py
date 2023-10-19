@@ -11,6 +11,7 @@ from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpre
 from knit_script.knitout_interpreter.Knitout_Optimizer import Knitout_Optimizer
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 from knit_script.knitting_machine.Machine_State import Machine_State
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 
 
 class Knit_Script_Interpreter:
@@ -41,6 +42,21 @@ class Knit_Script_Interpreter:
         for key, value in python_variables.items():
             self._knit_pass_context.add_variable(key, value)
 
+    def set_header_value(self, header_id: Header_ID, value):
+        """
+        Set the value for the given header id
+        :param header_id:
+        :param value:
+        """
+        self._knit_pass_context.header.set_value(header_id, value)
+
+    def get_header_value(self, header_id: Header_ID):
+        """
+        :param header_id:
+        :return: the value keyed by the header id
+        """
+        return self._knit_pass_context.header.get_value(header_id)
+
     def _reset_context(self):
         """
         Resets the context of the knit_script_interpreter to a starting state with no set variables or operations on the machine
@@ -49,17 +65,17 @@ class Knit_Script_Interpreter:
         self._knit_pass_context = Knit_Script_Context(parser=self._parser)
         self._knit_pass_context.header = header  # resets machine state as well
 
-    def parse(self, pattern: str, pattern_is_file: bool = False) -> tuple[list, list]:
+    def parse(self, pattern: str, pattern_is_file: bool = False) -> list:
         """
         Executes the parsing code for the parglare parser
-        :param pattern: either a file or the knit script  string to be parsed
+        :param pattern: either a file or the knit script string to be parsed
         :param pattern_is_file: if true, assumes that the pattern is parsed from a file
-        :return:
+        :return: list of statements parsed from file
         """
         return self._parser.parse(pattern, pattern_is_file)
 
-    def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, python_variables: dict[str, Any] | None = None, optimize=True,
-                      visualize_instruction_graph: bool = False, clean_optimization: bool = True) -> tuple[list[Knitout_Line], Knit_Graph, Machine_State]:
+    def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, optimize=True, visualize_instruction_graph: bool = False,
+                      clean_optimization: bool = True, header_values: dict[Header_ID: Any] | None = None, **python_variables: dict[str, Any]) -> tuple[list[Knitout_Line], Knit_Graph, Machine_State]:
         """
         Writes pattern knitout instructions to the out file
         Parameters
@@ -67,6 +83,7 @@ class Knit_Script_Interpreter:
         pattern: pattern or pattern file name to turn to knitout
         out_file_name: the output file name
         pattern_is_file: true if the pattern is a file name
+        :param header_values: Values to update the ehader too
         :param clean_optimization: If true, deletes intermediate files
         :param python_variables: values from python to load into the knit script scope
         :param visualize_instruction_graph: If true, generates a visualization of the graph written
@@ -76,6 +93,10 @@ class Knit_Script_Interpreter:
         :param pattern: the pattern string or file name to interpret
         :param reset_context: If true, resets context at end of program
         """
+        if header_values is not None:
+            for hid, value in header_values.items():
+                self.set_header_value(hid, value)
+            self._reset_context() # updates machine state all at once
         if pattern_is_file:
             self._knit_pass_context.ks_file = pattern
         else:
@@ -85,8 +106,12 @@ class Knit_Script_Interpreter:
         self._interpret_knit_script(pattern, pattern_is_file)
         self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.carrier_system.cut_all_yarns(self._knit_pass_context.machine_state))
         if optimize:
-            knitout = self.optimize_knitout(f"_original_{out_file_name}", f"_organized_{out_file_name}",
-                                            visualize=visualize_instruction_graph, clean_original=clean_optimization, clean_organized=clean_optimization)
+            try:
+                knitout = self.optimize_knitout(f"_original_{out_file_name}", f"_organized_{out_file_name}",
+                                                visualize=visualize_instruction_graph, clean_original=clean_optimization, clean_organized=clean_optimization)
+            except Exception as e:
+                print(e)
+                knitout = self._knit_pass_context.knitout
         else:
             knitout = self._knit_pass_context.knitout
         with open(out_file_name, "w", encoding="utf-8", newline='\n') as out:
@@ -127,14 +152,13 @@ class Knit_Script_Interpreter:
             os.remove(organized_out_name)
         return optimized_knitout
 
-    def _interpret_knit_script(self, pattern, pattern_is_file):
-        header, statements = self.parse(pattern, pattern_is_file)
+    def _interpret_knit_script(self, pattern, pattern_is_file) -> list[Knitout_Line]:
+        statements = self.parse(pattern, pattern_is_file)
         on_file = ""
         if pattern_is_file:
             on_file = f"on {pattern}"
         print(f"\n###################Start Knit Script Interpreter {on_file}###################\n")
         try:
-            self._knit_pass_context.execute_header(header)
             self._knit_pass_context.execute_statements(statements)
         except AssertionError as e:
             self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.carrier_system.cut_all_yarns(self._knit_pass_context.machine_state))
@@ -143,6 +167,7 @@ class Knit_Script_Interpreter:
             knitout_to_dat(f"error.k", f"error.dat")
             raise e
             # raise Knit_Script_Error(str(e))
+        return self._knit_pass_context.knitout
 
     def knit_script_evaluate_expression(self, exp) -> Any:
         """

@@ -251,7 +251,9 @@ class Knitout_Optimizer:
         for loop in self.context.machine_state.knit_graph.loops.values():
             loop_instructions = loop.instructions
             assert len(loop_instructions) > 0
-            assert isinstance(loop_instructions[0], Loop_Making_Instruction), f"Loop is {loop_instructions[0]} before it is made by knit, tuck, or split"
+            first_instruction = loop_instructions[0]
+            assert isinstance(first_instruction, Loop_Making_Instruction), f"Loop is {first_instruction} before it is made by knit, tuck, or split"
+            self.needle_instruction_graph.add_node(self.instructions_to_cp[first_instruction])
             for instruction_1, instruction_2 in zip(loop_instructions[:-1], loop_instructions[1:]):
                 cp_1 = self.instructions_to_cp[instruction_1]
                 cp_2 = self.instructions_to_cp[instruction_2]

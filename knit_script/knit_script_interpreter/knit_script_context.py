@@ -16,7 +16,7 @@ class Knit_Script_Context:
     """Manages the state of the Knitting machine during program execution"""
 
     def __init__(self, parent_scope: Knit_Script_Scope | None = None,
-                 bed_width: int = 250, machine_position: Machine_Position = Machine_Position.Center,
+                 bed_width: int = 540, machine_position: Machine_Position = Machine_Position.Right,
                  ks_file=None, parser=None):
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
         self._header: Header = Header(bed_width, machine_position)
@@ -186,19 +186,9 @@ class Knit_Script_Context:
         :param is_front:
         :param pos: in current layer position
         :param is_slider:
-        :return: Get the exact needle instance that is in use on the machine state
+        :return: Get the exact needle instance in use on the machine state
         """
         return self.machine_state[self.get_needle(is_front, pos, is_slider, global_needle, sheet, gauge)]
-
-    def execute_header(self, header: list):
-        """
-        Executes the header operations
-        :param header: the list of header statements to execute
-        """
-        for header_line in header:
-            header_line.execute(self)
-
-        self.knitout = self._header.header_lines()
 
     def execute_statements(self, statements: list):
         """

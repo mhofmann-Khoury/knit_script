@@ -38,7 +38,6 @@ from knit_script.knit_script_interpreter.statements.carrier_statements import Cu
 from knit_script.knit_script_interpreter.statements.code_block_statements import Code_Block
 from knit_script.knit_script_interpreter.statements.control_loop_statements import While_Statement, For_Each_Statement
 from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Declaration
-from knit_script.knit_script_interpreter.statements.header_statement import Header_Statement
 from knit_script.knit_script_interpreter.statements.in_direction_statement import In_Direction_Statement
 from knit_script.knit_script_interpreter.statements.instruction_statements import Pause_Statement
 from knit_script.knit_script_interpreter.statements.return_statement import Return_Statement
@@ -47,34 +46,20 @@ from knit_script.knit_script_interpreter.statements.try_catch_statements import 
 from knit_script.knit_script_interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
 from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.instruction import Instruction_Type
 from knit_script.knitting_machine.machine_components.machine_position import Machine_Bed_Position, Machine_Position
-from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 from knit_script.knitting_machine.machine_specification.Machine_Type import Machine_Type
 
 action = get_collector()
 
 
 @action
-def program(_, __, head: list[Header_Statement], statements: list[Statement]) -> tuple[list[Header_Statement], list[Statement]]:
+def program(_, __, statements: list[Statement]) ->  list[Statement]:
     """
     :param _: The parser element that created this value
     :param __:
-    :param head: list of header values to set the machine state
     :param statements: the list of statements to execute
-    :return: header, statements
+    :return: statements
     """
-    return head, statements
-
-
-@action
-def header(parser_node, __, type_id: Header_ID_Value, value: Expression) -> Header_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param type_id: Value of header to update
-    :param value: the value to update to
-    :return: Statement for updating header
-    """
-    return Header_Statement(parser_node, type_id, value)
+    return statements
 
 
 def _in_enum(item, enumeration) -> bool:
@@ -109,8 +94,8 @@ def identifier(parser_node, node: str) -> Expression:
         return Machine_Position_Value(parser_node, node)
     elif _in_enum(node, Machine_Type):
         return Machine_Type_Value(parser_node, node)
-    elif _in_enum(node, Header_ID):
-        return Header_ID_Value(parser_node, node)
+    # elif _in_enum(node, Header_ID):
+    #     return Header_ID_Value(parser_node, node)
     elif node == "machine":
         return Machine_Accessor(parser_node)
     elif _in_enum(node, Needle_Sets):

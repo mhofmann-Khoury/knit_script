@@ -1,7 +1,8 @@
 from unittest import TestCase
 
+from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
-from knit_script.knitout_interpreter.Knitout_CP_Optimizer import Knitout_Optimizer
+from knit_script.knitout_interpreter.Knitout_Optimizer import Knitout_Optimizer
 
 
 class TestKnitout_Optimizer(TestCase):
@@ -181,3 +182,17 @@ class TestKnitout_Optimizer(TestCase):
         optimizer.visualize()
         optimized_knitout = optimizer.optimize()
         print(optimized_knitout)
+
+    def test_small_op_set(self):
+        ks_interpreter = Knit_Script_Interpreter()
+        program = r"""
+        with Carrier as 1, s as 2, e as 6:{
+            in reverse direction:{
+                tuck Front_Needles[s:e];
+            }
+        }
+        """
+        knitout, _knit_graph, _machine_state = ks_interpreter.write_knitout(program, "small_op.k", pattern_is_file=False, optimize=False)
+        print(knitout)
+        knitout, _knit_graph, _machine_state = ks_interpreter.write_knitout(program, "small_op.k", pattern_is_file=False, optimize=True)
+        print(knitout)

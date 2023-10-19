@@ -1,8 +1,6 @@
 S: program;
 
-program: head=header* statements=statement+;
-
-header: eol eol type_id=identifier colon value=expression eol;
+program: statements=statement+;
 
 declare_variable: assign=assignment eol;
 declare_global: "global" assign=assignment eol;

@@ -1,5 +1,4 @@
 """Structures for Machine headers"""
-from typing import List, Dict, Optional
 
 from knit_script.knit_graphs.Yarn import Yarn
 from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Version_Line
@@ -20,8 +19,8 @@ from knit_script.knitting_machine.machine_specification.Machine_Type import Mach
 class Header:
     """A class structure for generating knitout header files"""
 
-    def __init__(self, width: int = 250,
-                 position: Machine_Position = Machine_Position.Center,
+    def __init__(self, width: int = 540,
+                 position: Machine_Position = Machine_Position.Right,
                  carrier_count: int = 10, machine_type: Machine_Type = Machine_Type.SWG091N2,
                  max_rack: float = 4.25, hook_size: int = 5, gauge: int = 15):
         self.gauge = gauge
@@ -30,10 +29,10 @@ class Header:
         self.machine_type = machine_type
         self.width = width
         self.carrier_count = carrier_count
-        self.carriers_to_yarns: Dict[int, Optional[Yarn]] = {i: None for i in range(1, self.carrier_count + 1)}
+        self.carriers_to_yarns: dict[int, None | Yarn] = {i: None for i in range(1, self.carrier_count + 1)}
         self.position = position
-        self.declarations: Dict[Header_ID: Optional[Header_Declaration]] = {hid: None for hid in Header_ID}
-        self.extensions: List[str] = []
+        self.declarations: dict[Header_ID: None | Header_Declaration] = {hid: None for hid in Header_ID}
+        self.extensions: list[str] = []
 
     def set_value(self, header_id: Header_ID, value):
         """
@@ -73,6 +72,27 @@ class Header:
             assert isinstance(yarn, Yarn), f"Expected a yarn but got {yarn}"
             self.carriers_to_yarns[cid] = yarn
 
+    def get_value(self, header_id: Header_ID):
+        """
+        Set the header value by id
+        :param header_id: Value to set in the header
+        """
+        if header_id is Header_ID.Machine:
+            return self.machine_type
+        elif header_id is Header_ID.Carrier_Count:
+            return self.carrier_count
+        elif header_id is Header_ID.Width:
+            return self.width
+        elif header_id is Header_ID.Gauge:
+            return self.gauge
+        elif header_id is Header_ID.Position:
+            return self.position
+        elif header_id is Header_ID.Rack:
+            return self.max_rack
+        elif header_id is Header_ID.Hook:
+            return self.hook_size
+        return None
+
     def update_by_declaration(self, code: Header_Declaration) -> bool:
         """
         Update the header or error on redundant code
@@ -111,7 +131,7 @@ class Header:
         lines.extend(self.header_declarations())
         return lines
 
-    def header_declarations(self) -> List[Header_Declaration]:
+    def header_declarations(self) -> list[Header_Declaration]:
         """
         :return: header declarations needed to make this header in knitout
         """
@@ -126,19 +146,3 @@ class Header:
             if yarn is not None:
                 header.append(Yarn_Declaration(cid, yarn.size, yarn.plies, yarn.color))
         return header
-
-    @staticmethod
-    def MIT(position: Machine_Position):
-        """
-        :param position: Position of program on bed
-        :return: A header for the MIT machine in Wojciech's lab
-        """
-        return Header(540, position, gauge=15)
-
-    @staticmethod
-    def UW(position: Machine_Position):
-        """
-        :param position: Position of program on bed
-        :return: A header for the UW CSE machine
-        """
-        return Header(250, position, gauge=7)

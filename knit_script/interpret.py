@@ -7,11 +7,17 @@ from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 from knit_script.knitting_machine.Machine_State import Machine_State
+from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 
 
-def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True, python_variables: dict[str, Any] | None = None) -> tuple[Knit_Graph, Machine_State]:
+def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True,
+                           optimize=True, visualize_instruction_graph: bool = False, header_values: dict[Header_ID: Any] | None = None,
+                           **python_variables: dict[str, Any]) -> tuple[Knit_Graph, Machine_State]:
     """
     Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations.
+
+    :param visualize_instruction_graph: If true, generates a visualization of the instruction graph.
+    :param optimize: Optimizes the output knitout.
     :param pattern_is_filename: If true, the pattern is a filename.
     :param out_file_name: The output location for knitout and dat files.
     :param pattern: The knit script pattern or a file containing it.
@@ -19,14 +25,18 @@ def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename
     :return: The KnitGraph constructed during parsing on virtual machine
     """
     interpreter = Knit_Script_Interpreter()
-    _, knit_graph, machine_state = interpreter.write_knitout(pattern, out_file_name, pattern_is_filename, python_variables=python_variables)
+    _knitout, knit_graph, machine_state = interpreter.write_knitout(pattern, out_file_name, pattern_is_filename,
+                                                                    optimize=optimize, visualize_instruction_graph=visualize_instruction_graph, header_values = header_values,
+                                                                    **python_variables)
     return knit_graph, machine_state
 
 
-def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str | None = None, pattern_is_filename: bool = False, python_variables: dict[str, Any] | None = None, optimize=True,
-                                  visualize_instruction_graph: bool = False) -> tuple[Knit_Graph, Machine_State]:
+def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str | None = None, pattern_is_filename: bool = False,
+                                  optimize=True, visualize_instruction_graph: bool = False, header_values: dict[Header_ID: Any] | None = None,
+                                  **python_variables: dict[str, Any]) -> tuple[Knit_Graph, Machine_State]:
     """
     Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations.
+    :param header_values:
     :param pattern_is_filename: If true, the pattern is a filename.
     :param dat_name: Output location for dat file.
     If none, dat file shares the name with knitout.
@@ -38,7 +48,9 @@ def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str
     :return: The KnitGraph constructed during parsing on a virtual machine
     """
     interpreter = Knit_Script_Interpreter()
-    _, knit_graph, machine_state = interpreter.write_knitout(pattern, knitout_name, pattern_is_filename, python_variables=python_variables, optimize=optimize, visualize_instruction_graph=visualize_instruction_graph)
+    _knitout, knit_graph, machine_state = interpreter.write_knitout(pattern, knitout_name, pattern_is_filename,
+                                                                    optimize=optimize, visualize_instruction_graph=visualize_instruction_graph, header_values=header_values,
+                                                                    **python_variables)
     success = knitout_to_dat(knitout_name, dat_name)
     assert success, f"Dat file could not be produced from {knitout_name}"
     return knit_graph, machine_state
