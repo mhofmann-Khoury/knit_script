@@ -12,10 +12,11 @@ from knit_script.knitting_machine.machine_specification.Header_ID import Header_
 
 def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True,
                            optimize=True, visualize_instruction_graph: bool = False, header_values: dict[Header_ID: Any] | None = None,
-                           **python_variables: dict[str, Any]) -> tuple[Knit_Graph, Machine_State]:
+                           **python_variables) -> tuple[Knit_Graph, Machine_State]:
     """
     Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations.
 
+    :param header_values: Values used to set the the type of machine state
     :param visualize_instruction_graph: If true, generates a visualization of the instruction graph.
     :param optimize: Optimizes the output knitout.
     :param pattern_is_filename: If true, the pattern is a filename.
@@ -33,7 +34,7 @@ def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename
 
 def knit_script_to_knitout_to_dat(pattern: str, knitout_name: str, dat_name: str | None = None, pattern_is_filename: bool = False,
                                   optimize=True, visualize_instruction_graph: bool = False, header_values: dict[Header_ID: Any] | None = None,
-                                  **python_variables: dict[str, Any]) -> tuple[Knit_Graph, Machine_State]:
+                                  **python_variables) -> tuple[Knit_Graph, Machine_State]:
     """
     Processes a knit script pattern into knitout and a dat file for shima seiki machines and returns the resulting knit graph from the operations.
     :param header_values:

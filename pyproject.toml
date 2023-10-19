@@ -1,3 +1,39 @@
+[project]
+name = "knit-script"
+description = "Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
+version ="0.0.19"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE.txt"}
+authors = [
+    {name = "Megan Hofmann", email = "m.hofmann@northeastern.edu"}
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3.11",
+    "Natural Language :: English",
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = [
+    "networkx==3.2",
+    "parglare==0.16.1",
+    "Naked==0.1.32",
+    "setuptools==68.2.2",
+    "matplotlib==3.8.0",
+    "nodejs~=0.1.1",
+    "node",
+    "importlib_resources==6.1.0"
+]
+[project.scripts]
+knit-script = "knit_script.interpret:main"
+[project.urls]
+"Homepage" = "https://github.com/mhofmann-Khoury/knit_script"
+[tools.setuptools.packages]
+find = {}
+exclude = ['tests']
+[tool.setuptools]
+include-package-data = true
+
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"

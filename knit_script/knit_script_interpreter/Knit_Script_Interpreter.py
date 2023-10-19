@@ -75,7 +75,7 @@ class Knit_Script_Interpreter:
         return self._parser.parse(pattern, pattern_is_file)
 
     def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, optimize=True, visualize_instruction_graph: bool = False,
-                      clean_optimization: bool = True, header_values: dict[Header_ID: Any] | None = None, **python_variables: dict[str, Any]) -> tuple[list[Knitout_Line], Knit_Graph, Machine_State]:
+                      clean_optimization: bool = True, header_values: dict[Header_ID: Any] | None = None, **python_variables) -> tuple[list[Knitout_Line], Knit_Graph, Machine_State]:
         """
         Writes pattern knitout instructions to the out file
         Parameters

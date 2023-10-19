@@ -199,10 +199,12 @@ expression: expression "^" expression {right, 6}
             | accessor {10}
             | identifier {8};
 
-
+LAYOUT: LayoutItem | LAYOUT LayoutItem | EMPTY;
+LayoutItem: WS | Comment;
 Comment: '/*' CorNCs '*/' | LineComment;
 CorNCs: CorNC | CorNCs CorNC | EMPTY;
 CorNC: Comment | NotComment | WS;
+
 
 terminals
 float_exp: /-?[0-9]*(\.?[0-9]+)?/;

@@ -65,15 +65,11 @@ class Import_Statement(Statement):
                 assert isinstance(self.src.attribute, Variable_Expression)
                 module = context.enter_sub_scope(module_name="__temp_module__")
             if local_is_file:  # try local files before checking library
-                header, statements = context.parser.parse(local_path_to_src, pattern_is_file=True)
-                if len(header) > 0:
-                    print(f"KnitScript Warning: Importing {self.src} and ignoring header")
+                statements = context.parser.parse(local_path_to_src, pattern_is_file=True)
                 context.execute_statements(statements)
                 context.exit_current_scope()
             elif library_is_file:
-                header, statements = context.parser.parse(library_path_to_src, pattern_is_file=True)
-                if len(header) > 0:
-                    print(f"KnitScript Warning: Importing {self.src} and ignoring header")
+                statements = context.parser.parse(library_path_to_src, pattern_is_file=True)
                 context.execute_statements(statements)
                 context.exit_current_scope()
             else:
