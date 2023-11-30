@@ -488,7 +488,7 @@ Note that because all the sheets will cycle layers by the same amount it usually
 to set it specifically if you are.
 
 Let's consider the following example where we are making our stockinette tube but switching the order of the layers halfway across the tube.
-This will make two connect tubes, the first with stockinette facing out and the second with reverse stockinette facing out:
+This will make two connected tubes, the first with stockinette facing out and the second with reverse stockinette facing out:
 
 ```knit_script
 import cast_ons;
