@@ -447,7 +447,7 @@ KnitScript uses the same notation as knitout to specify a needle (e.g., `f1`, `b
 
 You can access a needle from a specific sheet by accessing them with dot notation. Similar to needles, sheets can be specified as `s#` (e.g., `s2` is the sheet at index 2). So, regardless of the value of `Sheet`, we can access the front needle at index 1 of sheet 2 by writing `s2.f1`.
 
-You can access a needle on the machine bed, regardless of the sheet and gauging schema with the keyword `machine`. So to get the real `f1` we write `machine.f1`. Side note: the keyword `machine` access the machine state of the interpreter directly, so if you can take full control of that state as though you are writing python code. 
+You can access a needle on the machine bed, regardless of the sheet and gauging schema with the keyword `machine`. So to get the real `f1` we write `machine.f1`. Side note: the keyword `machine` accesses the machine state of the interpreter directly, so if you can take full control of that state as though you are writing python code. 
 
 If you want to know the sheet of a given needle, you can also get this from `machine` as follows: `machine.sheet_of(n)`
 
