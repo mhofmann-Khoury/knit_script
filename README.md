@@ -568,7 +568,7 @@ You can change the number of carriers on the machine. Note that this is likely d
 ## Set Inserting Hook Size
 You can set the expected size of the yarn-inserting hook (i.e., how many needles it blocks).
 This should be dependent on the machine, and you likely do not need to set this.
-Setting this value to zero will tell the interpreter that there is not yarn-inserting-hook and that other ways of inserting yarns must be used.
+Setting this value to zero will tell the interpreter that there is no yarn-inserting-hook and that other ways of inserting yarns must be used.
 
 ```knit_script
 ;;Hook: <hook size>;
