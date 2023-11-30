@@ -485,7 +485,7 @@ So for example, if we have 2 sheets (i.e., `Gauge=2`) and we set the layer of f1
 Knit Script handles this for you.
 In practice, the difference between the current layer of your needle and the layer you are setting it to will be applied to all other needles in the same position in each sheet.
 Note that because all the sheets will cycle layers by the same amount it usually doesn't matter what the value of `Sheet` is when you are using push statements though you may want
-to set it specifically if you are 
+to set it specifically if you are.
 
 Let's consider the following example where we are making our stockinette tube but switching the order of the layers halfway across the tube.
 This will make two connect tubes, the first with stockinette facing out and the second with reverse stockinette facing out:
