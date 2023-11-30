@@ -316,7 +316,7 @@ with Carrier as c1, width as 10:{
 }
 ```
 
-Note that this tube will knit stockinette on the front bed loop and reverse stockinette on the back bed loops. The final tube will have knits facing outwards and purls facing outwards. But what if we want to make a tube of knit-purl ribbing. The purls in the texture will take up space on the back bed. Instead, we will need to knit at half-gauge, knitting the front of the tube on even needles and the back of the tube on odd needles. This results in the cumbersome code below:
+Note that this tube will knit stockinette on the front bed loop and reverse stockinette on the back bed loops. The final tube will have knits facing outwards and purls facing inwards. But what if we want to make a tube of knit-purl ribbing? The purls in the texture will take up space on the back bed. Instead, we will need to knit at half-gauge, knitting the front of the tube on even needles and the back of the tube on odd needles. This results in the cumbersome code below:
 
 ```knit_script
 with width as 12, height as 10, Carrier as 1:{
