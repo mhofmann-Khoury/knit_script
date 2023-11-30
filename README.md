@@ -376,7 +376,7 @@ Note that you do not generally want to work at large gauges (i.e., > 4) because 
 Knit Script won't stop you though, so try it out on your machine.
 Gauge defaults to 1 (full gauge) so that we knit on every needle.
 
-So if we set the Gauge to 2 we will only b knitting on the even needles. Consider this simple KnitScript, which knits the first four front needles at half-gauge:
+So if we set the Gauge to 2 we will only be knitting on the even needles. Consider this simple KnitScript, which knits the first four front needles at half-gauge:
 
 ```knit_script
 with Gauge as 2, Carrier as 1:{
