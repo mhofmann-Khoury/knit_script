@@ -145,7 +145,7 @@ However, because knit script lets you write carriage passes in functions and jum
 No fear, we have keywords for that.
 You can knit in the `current` or `reverse` direction.
 The `current` direction will repeat the last carriage pass direction run in with a yarn carrier.
-Will apply it in the reverse direction.
+`reverse` will apply it in the reverse direction.
 So to knit our front needles back and forth, over 10 rows we can write:
 
 ```KnitScript
