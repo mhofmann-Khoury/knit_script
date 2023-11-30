@@ -145,7 +145,7 @@ However, because knit script lets you write carriage passes in functions and jum
 No fear, we have keywords for that.
 You can knit in the `current` or `reverse` direction.
 The `current` direction will repeat the last carriage pass direction run in with a yarn carrier.
-Will apply it in the reverse direction.
+`reverse` will apply it in the reverse direction.
 So to knit our front needles back and forth, over 10 rows we can write:
 
 ```KnitScript
@@ -316,7 +316,7 @@ with Carrier as c1, width as 10:{
 }
 ```
 
-Note that this tube will knit stockinette on the front bed loop and reverse stockinette on the back bed loops. The final tube will have knits facing outwards and purls facing outwards. But what if we want to make a tube of knit-purl ribbing. The purls in the texture will take up space on the back bed. Instead, we will need to knit at half-gauge, knitting the front of the tube on even needles and the back of the tube on odd needles. This results in the cumbersome code below:
+Note that this tube will knit stockinette on the front bed loop and reverse stockinette on the back bed loops. The final tube will have knits facing outwards and purls facing inwards. But what if we want to make a tube of knit-purl ribbing? The purls in the texture will take up space on the back bed. Instead, we will need to knit at half-gauge, knitting the front of the tube on even needles and the back of the tube on odd needles. This results in the cumbersome code below:
 
 ```knit_script
 with width as 12, height as 10, Carrier as 1:{
@@ -376,7 +376,7 @@ Note that you do not generally want to work at large gauges (i.e., > 4) because 
 Knit Script won't stop you though, so try it out on your machine.
 Gauge defaults to 1 (full gauge) so that we knit on every needle.
 
-So if we set the Gauge to 2 we will only b knitting on the even needles. Consider this simple KnitScript, which knits the first four front needles at half-gauge:
+So if we set the Gauge to 2 we will only be knitting on the even needles. Consider this simple KnitScript, which knits the first four front needles at half-gauge:
 
 ```knit_script
 with Gauge as 2, Carrier as 1:{
@@ -447,7 +447,7 @@ KnitScript uses the same notation as knitout to specify a needle (e.g., `f1`, `b
 
 You can access a needle from a specific sheet by accessing them with dot notation. Similar to needles, sheets can be specified as `s#` (e.g., `s2` is the sheet at index 2). So, regardless of the value of `Sheet`, we can access the front needle at index 1 of sheet 2 by writing `s2.f1`.
 
-You can access a needle on the machine bed, regardless of the sheet and gauging schema with the keyword `machine`. So to get the real `f1` we write `machine.f1`. Side note: the keyword `machine` access the machine state of the interpreter directly, so if you can take full control of that state as though you are writing python code. 
+You can access a needle on the machine bed, regardless of the sheet and gauging schema with the keyword `machine`. So to get the real `f1` we write `machine.f1`. Side note: the keyword `machine` accesses the machine state of the interpreter directly, so if you can take full control of that state as though you are writing python code. 
 
 If you want to know the sheet of a given needle, you can also get this from `machine` as follows: `machine.sheet_of(n)`
 
@@ -485,10 +485,10 @@ So for example, if we have 2 sheets (i.e., `Gauge=2`) and we set the layer of f1
 Knit Script handles this for you.
 In practice, the difference between the current layer of your needle and the layer you are setting it to will be applied to all other needles in the same position in each sheet.
 Note that because all the sheets will cycle layers by the same amount it usually doesn't matter what the value of `Sheet` is when you are using push statements though you may want
-to set it specifically if you are 
+to set it specifically if you are.
 
 Let's consider the following example where we are making our stockinette tube but switching the order of the layers halfway across the tube.
-This will make two connect tubes, the first with stockinette facing out and the second with reverse stockinette facing out:
+This will make two connected tubes, the first with stockinette facing out and the second with reverse stockinette facing out:
 
 ```knit_script
 import cast_ons;
@@ -568,7 +568,7 @@ You can change the number of carriers on the machine. Note that this is likely d
 ## Set Inserting Hook Size
 You can set the expected size of the yarn-inserting hook (i.e., how many needles it blocks).
 This should be dependent on the machine, and you likely do not need to set this.
-Setting this value to zero will tell the interpreter that there is not yarn-inserting-hook and that other ways of inserting yarns must be used.
+Setting this value to zero will tell the interpreter that there is no yarn-inserting-hook and that other ways of inserting yarns must be used.
 
 ```knit_script
 ;;Hook: <hook size>;
