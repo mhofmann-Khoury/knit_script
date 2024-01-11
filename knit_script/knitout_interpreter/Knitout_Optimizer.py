@@ -57,7 +57,7 @@ class Knitout_Optimizer:
         Optimizes Knitout from given context by relationship between instructions and whole carriage passes
     """
 
-    def __init__(self, context: Knitout_Context, min_loops_before_release_hook=3, hook_size=4):
+    def __init__(self, context: Knitout_Context, min_loops_before_release_hook=10, hook_size=4):
         self._hook_size = hook_size
         self._min_loops_before_release_hook = min_loops_before_release_hook
         self.context = context
@@ -235,14 +235,15 @@ class Knitout_Optimizer:
         for inhook, carriage_pass in inhook_to_first_carriage_passes.items():
             for predecessor in self.needle_instruction_graph.predecessors(carriage_pass):
                 if isinstance(predecessor, Carriage_Pass_Instructions):
-                    pred_inhook = carriage_pass_to_inhook[predecessor]
-                    if pred_inhook != inhook:
-                        # self._add_edge(self.yarn_instruction_graph, predecessor, inhook,
-                        #                list_attributes={"prereqs": Instruction_Prerequisite.hook_available},
-                        #                update_attributes={str(Instruction_Prerequisite.hook_available): True, "yarn": inhook.carrier_set})
-                        self._add_edge(self.yarn_instruction_graph, inhook_to_release[pred_inhook], inhook,
-                                       list_attributes={"prereqs": Instruction_Prerequisite.hook_available},
-                                       update_attributes={str(Instruction_Prerequisite.hook_available): True, "yarn": inhook.carrier_set})
+                    if predecessor in carriage_pass_to_inhook:
+                        pred_inhook = carriage_pass_to_inhook[predecessor]
+                        if pred_inhook != inhook:
+                            # self._add_edge(self.yarn_instruction_graph, predecessor, inhook,
+                            #                list_attributes={"prereqs": Instruction_Prerequisite.hook_available},
+                            #                update_attributes={str(Instruction_Prerequisite.hook_available): True, "yarn": inhook.carrier_set})
+                            self._add_edge(self.yarn_instruction_graph, inhook_to_release[pred_inhook], inhook,
+                                           list_attributes={"prereqs": Instruction_Prerequisite.hook_available},
+                                           update_attributes={str(Instruction_Prerequisite.hook_available): True, "yarn": inhook.carrier_set})
 
     def _add_stitch_edges(self):
         """
@@ -255,11 +256,12 @@ class Knitout_Optimizer:
             assert isinstance(first_instruction, Loop_Making_Instruction), f"Loop is {first_instruction} before it is made by knit, tuck, or split"
             self.needle_instruction_graph.add_node(self.instructions_to_cp[first_instruction])
             for instruction_1, instruction_2 in zip(loop_instructions[:-1], loop_instructions[1:]):
-                cp_1 = self.instructions_to_cp[instruction_1]
-                cp_2 = self.instructions_to_cp[instruction_2]
-                self._add_edge(self.needle_instruction_graph, cp_1, cp_2,
-                               list_attributes={"loops": loop, "prereqs": CP_Prerequisite.stitch_order, "prior_instructions": instruction_1, "post_instructions": instruction_2},
-                               update_attributes={str(CP_Prerequisite.stitch_order): True})
+                if instruction_1 in self.instructions_to_cp and instruction_2 in self.instructions_to_cp:
+                    cp_1 = self.instructions_to_cp[instruction_1]
+                    cp_2 = self.instructions_to_cp[instruction_2]
+                    self._add_edge(self.needle_instruction_graph, cp_1, cp_2,
+                                   list_attributes={"loops": loop, "prereqs": CP_Prerequisite.stitch_order, "prior_instructions": instruction_1, "post_instructions": instruction_2},
+                                   update_attributes={str(CP_Prerequisite.stitch_order): True})
 
     def _find_next_xfer_pass(self, start_node: Carriage_Pass_Instructions | Knitout_Line,
                              graph: DiGraph | None,
@@ -396,8 +398,9 @@ class Knitout_Optimizer:
                     if isinstance(instruction, Rack_Instruction):
                         current_rack = instruction.rack
             elif isinstance(instruction, Carriage_Pass_Instructions):
-                if instruction.is_xfer_pass:
-                    current_direction = current_direction.opposite()
-                    instruction = instruction.sort_instructions(current_direction)
-                clean_instructions.extend(instruction.instructions)
+                if len(instruction.instructions) > 0:
+                    if instruction.is_xfer_pass:
+                        current_direction = current_direction.opposite()
+                        instruction = instruction.sort_instructions(current_direction)
+                    clean_instructions.extend(instruction.instructions)
         return clean_instructions

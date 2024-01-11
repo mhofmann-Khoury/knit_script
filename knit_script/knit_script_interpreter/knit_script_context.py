@@ -87,25 +87,25 @@ class Knit_Script_Context:
         self.variable_scope.direction = value
 
     @property
-    def carrier_set(self) -> Carrier_Set | None:
+    def carrier(self) -> Carrier_Set | None:
         """
         :return: Carrier in use at scope
         """
-        return self.variable_scope.carrier_set
+        return self.variable_scope.carrier
 
-    @carrier_set.setter
-    def carrier_set(self, carrier: Carrier_Set | None):
-        if self.carrier_set != carrier:
-            self.variable_scope.carrier_set = carrier
-            if self.carrier_set is not None \
-                    and not self.machine_state.carrier_system.is_active(self.carrier_set):  # if yarn is not active, bring it in by inhook operation
-                if self.machine_state.carrier_system.yarn_is_loose(self.carrier_set):  # inhook loose yarns
-                    inhook_op = inhook(self.machine_state, self.carrier_set, f"Activating carrier {self.carrier_set}")
+    @carrier.setter
+    def carrier(self, carrier: Carrier_Set | None):
+        if self.carrier != carrier:
+            self.variable_scope.carrier = carrier
+            if self.carrier is not None \
+                    and not self.machine_state.carrier_system.is_active(self.carrier):  # if yarn is not active, bring it in by inhook operation
+                if self.machine_state.carrier_system.yarn_is_loose(self.carrier):  # inhook loose yarns
+                    inhook_op = inhook(self.machine_state, self.carrier, f"Activating carrier {self.carrier}")
                     self.knitout.append(inhook_op)
-                    releasehook_op = releasehook(self.machine_state, "Release after inhook must be optimized")
-                    self.knitout.append(releasehook_op)
+                    # releasehook_op = releasehook(self.machine_state, "Release after inhook must be optimized")
+                    # self.knitout.append(releasehook_op)
                 else:  # bring connected yarns out from grippers
-                    in_op = bring_in(self.machine_state, self.carrier_set, f"Bring in {self.carrier_set} that is not loose")
+                    in_op = bring_in(self.machine_state, self.carrier, f"Bring in {self.carrier} that is not loose")
                     self.knitout.append(in_op)
 
     @property

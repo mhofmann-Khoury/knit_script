@@ -1,7 +1,7 @@
 [project]
 name = "knit-script"
 description = "Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
-version ="0.1.20"
+version ="0.1.21"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {file = "LICENSE.txt"}

@@ -61,7 +61,7 @@ class Knitout_Needle_Instruction(Instruction):
                 if old_position is not None:  # first time used since brought in
                     float_length = abs(old_position - int(self.needle))
                     if float_length > machine_state.max_float:
-                        raise Long_Float_Error(old_position, int(self.needle), machine_state.max_float, self)
+                        raise Long_Float_Error(old_position, self.needle, carrier, machine_state.max_float, self)
         if self.needle is not None:  # update needles to be in the machine state
             self.needle = machine_state[self.needle]
             if not self.needle.is_clear(machine_state):

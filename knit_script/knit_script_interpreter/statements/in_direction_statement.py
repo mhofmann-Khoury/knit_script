@@ -34,7 +34,7 @@ class In_Direction_Statement(Statement):
         """
 
         context.enter_sub_scope()  # make sub scope with direction variable change
-        if context.carrier_set is None:
+        if context.carrier is None:
             raise No_Declared_Carrier_Error()
         direction = self._direction.evaluate(context)
         needles_to_instruction: Dict[Needle, Instruction_Type] = {}

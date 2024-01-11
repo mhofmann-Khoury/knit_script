@@ -197,8 +197,9 @@ class Carrier_Insertion_System:
         if not self.inserting_hook_available:
             releasehook_op = releasehook(machine_state, "Release inserting hook before cutting all yarns")
             carrier_operations.append(releasehook_op)
-        outhook_op = outhook(machine_state, self.active_carriers, "Cutting all active yarns")
-        carrier_operations.append(outhook_op)
+        for ac in self.active_carriers:
+            outhook_op = outhook(machine_state, Carrier_Set(ac), f"Cutting active yarn on {ac}")
+            carrier_operations.append(outhook_op)
         return carrier_operations
 
     def make_loops(self, carrier_set: Carrier_Set, needle: Needle, knit_graph: Knit_Graph) -> List[Loop]:

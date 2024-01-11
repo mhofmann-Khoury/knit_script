@@ -34,7 +34,7 @@ from knit_script.knit_script_interpreter.statements.Variable_Declaration import 
 from knit_script.knit_script_interpreter.statements.With_Statement import With_Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
 from knit_script.knit_script_interpreter.statements.branch_statements import If_Statement
-from knit_script.knit_script_interpreter.statements.carrier_statements import Cut_Statement, Remove_Statement
+from knit_script.knit_script_interpreter.statements.carrier_statements import Cut_Statement, Remove_Statement, Release_Statement
 from knit_script.knit_script_interpreter.statements.code_block_statements import Code_Block
 from knit_script.knit_script_interpreter.statements.control_loop_statements import While_Statement, For_Each_Statement
 from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Declaration
@@ -735,6 +735,15 @@ def cut_statement(parser_node, __, exps: list[Expression]) -> Cut_Statement:
     :return: cut statement
     """
     return Cut_Statement(parser_node, exps)
+
+@action
+def release_statement(parser_node, __) -> Release_Statement:
+    """
+    :param parser_node: The parser element that created this value
+    :param __:
+    :return: Release statement for current carrier
+    """
+    return Release_Statement(parser_node)
 
 
 @action

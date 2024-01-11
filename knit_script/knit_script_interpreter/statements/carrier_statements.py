@@ -3,7 +3,7 @@
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
-from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import outhook, out
+from knit_script.knitout_interpreter.knitout_structures.knitout_instructions.knitout_instructions import outhook, out, releasehook
 from knit_script.knitting_machine.machine_components.yarn_management.Carrier_Set import Carrier_Set
 
 
@@ -31,8 +31,8 @@ class Cut_Statement(Statement):
         :param context: The current context of the knit_script_interpreter
         """
         if len(self._carriers) == 0:
-            print(f"No carrier to cut specified. Cutting working carrier: {context.carrier_set}")
-            outhook_op = outhook(context.machine_state, context.carrier_set, "Cutting working carrier")
+            print(f"No carrier to cut specified. Cutting working carrier: {context.carrier}")
+            outhook_op = outhook(context.machine_state, context.carrier, "Cutting working carrier")
         else:
             carrier_set = set()
 
@@ -52,6 +52,32 @@ class Cut_Statement(Statement):
             carrier_set = Carrier_Set([*carrier_set])
             outhook_op = outhook(context.machine_state, carrier_set)
         context.knitout.append(outhook_op)
+
+
+class Release_Statement(Statement):
+    """Removes current carrier on yarn inserting hook or does nothing."""
+
+    def __init__(self, parser_node):
+        """
+        Instantiate
+        :param parser_node:
+        :param carriers: List of carriers to outhook
+        """
+        super().__init__(parser_node)
+
+    def __str__(self):
+        return f"ReleaseHook"
+
+    def __repr__(self):
+        return str(self)
+
+    def execute(self, context: Knit_Script_Context):
+        """
+        Cuts with outhook operation carrier
+        :param context: The current context of the knit_script_interpreter
+        """
+        release_op = releasehook(context.machine_state)
+        context.knitout.append(release_op)
 
 
 class Remove_Statement(Statement):
@@ -80,8 +106,8 @@ class Remove_Statement(Statement):
         :param context: The current context of the knit_script_interpreter
         """
         if len(self._carriers) == 0:
-            print(f"No carrier to bring out specified. Cutting working carrier: {context.carrier_set}")
-            out_op = outhook(context.machine_state, context.carrier_set, "Removing working carrier")
+            print(f"No carrier to bring out specified. Cutting working carrier: {context.carrier}")
+            out_op = outhook(context.machine_state, context.carrier, "Removing working carrier")
         else:
             carrier_set = set()
 

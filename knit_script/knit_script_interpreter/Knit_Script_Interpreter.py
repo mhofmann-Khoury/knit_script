@@ -3,13 +3,15 @@ import os
 from inspect import stack
 from typing import Any
 
+from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
+from knit_script.Knit_Errors.Knitout_Error import Knitout_Error
 from knit_script.knit_graphs.Knit_Graph import Knit_Graph
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knitout_compilers.compile_knitout import knitout_to_dat
 from knit_script.knitout_interpreter.Knitout_Interpreter import Knitout_Interpreter
 from knit_script.knitout_interpreter.Knitout_Optimizer import Knitout_Optimizer
-from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
+from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line, Comment_Line
 from knit_script.knitting_machine.Machine_State import Machine_State
 from knit_script.knitting_machine.machine_specification.Header_ID import Header_ID
 
@@ -96,7 +98,7 @@ class Knit_Script_Interpreter:
         if header_values is not None:
             for hid, value in header_values.items():
                 self.set_header_value(hid, value)
-            self._reset_context() # updates machine state all at once
+            self._reset_context()  # updates machine state all at once
         if pattern_is_file:
             self._knit_pass_context.ks_file = pattern
         else:
@@ -110,8 +112,8 @@ class Knit_Script_Interpreter:
                 knitout = self.optimize_knitout(f"_original_{out_file_name}", f"_organized_{out_file_name}",
                                                 visualize=visualize_instruction_graph, clean_original=clean_optimization, clean_organized=clean_optimization)
             except Exception as e:
-                print(e)
-                knitout = self._knit_pass_context.knitout
+                raise e
+                # knitout = self._knit_pass_context.knitout
         else:
             knitout = self._knit_pass_context.knitout
         with open(out_file_name, "w", encoding="utf-8", newline='\n') as out:
@@ -160,10 +162,13 @@ class Knit_Script_Interpreter:
         print(f"\n###################Start Knit Script Interpreter {on_file}###################\n")
         try:
             self._knit_pass_context.execute_statements(statements)
-        except AssertionError as e:
+        except (AssertionError, Knit_Script_Error, Knitout_Error) as e:
             self._knit_pass_context.knitout.extend(self._knit_pass_context.machine_state.carrier_system.cut_all_yarns(self._knit_pass_context.machine_state))
             with open("error.k", "w") as out:
                 out.writelines([str(k) for k in self._knit_pass_context.knitout])
+                if isinstance(e, Knit_Script_Error) or isinstance(e, Knitout_Error):
+                    error_comments = [Comment_Line(e.message)]
+                    out.writelines([str(ec) for ec in error_comments])
             knitout_to_dat(f"error.k", f"error.dat")
             raise e
             # raise Knit_Script_Error(str(e))

@@ -45,14 +45,14 @@ class Knit_Script_Scope:
         self.machine_scope.direction = value
 
     @property
-    def carrier_set(self) -> Optional[Carrier_Set]:
+    def carrier(self) -> Optional[Carrier_Set]:
         """
         :return: the current carrier being used by the machine
         """
         return self.machine_scope.carrier
 
-    @carrier_set.setter
-    def carrier_set(self, carrier: Optional[Carrier_Set]):
+    @carrier.setter
+    def carrier(self, carrier: Optional[Carrier_Set]):
         self.machine_scope.carrier = carrier
 
     @property

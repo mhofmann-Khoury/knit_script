@@ -60,6 +60,7 @@ to_bed: "to" expression "bed";
 drop_pass: "drop" needles=expression+[comma] eol;
 
 cut_statement: "cut" exps=expression*[comma] eol;
+release_statement: "releasehook" eol;
 remove_statement: "remove" exps=expression*[comma] eol;
 
 push_statement: "push" needles=expression+[comma]  push_val=(push_to | push_dir) eol;
@@ -90,6 +91,7 @@ statement: assertion {10}
             | function_declaration {10}
             | return_statement {10}
             | cut_statement {10}
+            | release_statement {10}
             | remove_statement {10}
             | import_statement {10}
             | declare_variable {2}

@@ -119,9 +119,11 @@ class Carriage_Pass:
             else:
                 second_needle = None
             results[needle] = second_needle
-            instruction = build_instruction(instruction_type, first_needle=needle, direction=context.direction, carrier_set=context.carrier_set, second_needle=second_needle)
+            instruction = build_instruction(instruction_type, first_needle=needle, direction=context.direction, carrier_set=context.carrier, second_needle=second_needle)
             _ = instruction.execute(context.machine_state)
             context.knitout.append(instruction)
+        if needs_all_needle_rack:
+            context.knitout.append(rack(context.machine_state, cur_rack, comment=f"Reset rack from all_needle"))
         context.racking = cur_rack
         if self._has_drops:  # still has drops available
             results.update(self._drop_pass.write_knitout(context))

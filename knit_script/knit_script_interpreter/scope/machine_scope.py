@@ -15,7 +15,7 @@ class Machine_Variables(Enum):
     Tracks Knit-script names for global machine variables
     """
     Gauge = "gauge"
-    Carrier = "carrier_set"
+    Carrier = "carrier"
     Rack = "racking"
     Sheet = "sheet"
 

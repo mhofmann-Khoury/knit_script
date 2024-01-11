@@ -1,19 +1,21 @@
 from knit_script.Knit_Errors.Knit_Script_Error import Knit_Script_Error
 from knit_script.Knit_Errors.Knitout_Error import Knitout_Error
 from knit_script.knitting_machine.machine_components.needles import Needle
+from knit_script.knitting_machine.machine_components.yarn_management.Carrier import Carrier
 
 
 class Long_Float_Error(Knitout_Error):
 
-    def __init__(self, start_position: int, end_position: int, max_float: int, knitout_instruction=None):
+    def __init__(self, start_position: int | Needle, end_position: int | Needle, carrier: Carrier, max_float: int, knitout_instruction=None):
+        self.carrier = carrier
         self.max_float = max_float
         self.start_position = start_position
         self.end_position = end_position
         super().__init__(self._message(), knitout_instruction)
 
     def _message(self) -> str:
-        float_length = abs(self.end_position - self.start_position)
-        return f"Long float (i.e., >{self.max_float}) of {float_length} between {self.start_position} and {self.end_position}"
+        float_length = abs(int(self.end_position) - int(self.start_position))
+        return f"Long float  of carrier {self.carrier} (i.e., >{self.max_float}) of {float_length} between {self.start_position} and {self.end_position}"
 
 
 class Slider_Use_Error(Knitout_Error):
