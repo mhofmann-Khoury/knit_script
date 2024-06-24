@@ -1,41 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "knit-script"
-description = "Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
-version ="0.1.21"
+dynamic = ["version"]
+description = 'Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
+homepage = "https://github.com/mhofmann-Khoury/knit_script"
+repository = "https://github.com/mhofmann-Khoury/knit_script"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {file = "LICENSE.txt"}
+license = "MIT"
+keywords = ["knit", "machine knit", "textile", "Northeastern", "ACT Lab", "fabrication"]
 authors = [
-    {name = "Megan Hofmann", email = "m.hofmann@northeastern.edu"}
+  { name = "Megan Hofmann", email = "m.hofmann@northeastern.edu" },
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Programming Language :: Python :: 3.11",
-    "Natural Language :: English",
-    "License :: OSI Approved :: MIT License"
+  "Development Status :: 2 - Pre-Alpha",
+  "Natural Language :: English",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Scientific/Engineering",
 ]
-dependencies = [
-    "networkx==3.2",
-    "parglare==0.16.1",
-    "Naked==0.1.32",
-    "setuptools==68.2.2",
-    "matplotlib==3.8.0",
-    "nodejs~=0.1.1",
-    "node",
-    "importlib_resources==6.1.0"
-]
-[project.scripts]
-knit-script = "knit_script.interpret:main"
-[project.urls]
-"Homepage" = "https://github.com/mhofmann-Khoury/knit_script"
-[tools.setuptools.packages]
-find = {}
-exclude = ['tests']
-[tool.setuptools]
-include-package-data = true
-[tool.setuptools.package-data]
-"*" = ["*.pg", "*.pgt", "*.ks", "*.md", "*.js", "*.rst"]
+dependencies = []
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[project.urls]
+Documentation = "https://github.com/mhofmann-Khoury/knit_script#readme"
+Issues = "https://github.com/mhofmann-Khoury/knit_script/issues"
+Source = "https://github.com/mhofmann-Khoury/knit_script"
+
+[tool.hatch.version]
+path = "src/knit_script/__about__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "knit_script/*.py",
+]
+exclude = [
+  "/tests",
+  "requirements.txt",
+  ".gitignore",
+]
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/knit_script tests}"

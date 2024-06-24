@@ -1,0 +1,233 @@
+S: program;
+
+program: statements=statement+;
+
+declare_variable: assign=assignment eol;
+declare_global: "global" assign=assignment eol;
+
+assertion: "assert" exp=expression error=assert_error? eol;
+@pass_second
+assert_error: comma expression;
+
+try_catch: "try" colon try_block=code_block "catch" errors=exception*[comma] colon catch_block=code_block;
+@pass_single
+exception: exception_assignment {2} | expression {1};
+exception_assignment: except_val=expression "as" var_name=identifier;
+
+print_statement: "print" exp=expression eol;
+
+pause_statement: "pause" eol;
+
+code_block: "{" statements=statement+ "}";
+
+if_statement: "if" condition=expression colon true_statement=code_block
+                elifs=elif_statement*
+                else_stmt=else_statement?;
+
+else_statement: "else" colon false_statement=code_block;
+
+elif_statement: "elif" exp=expression colon stmnt=code_block;
+
+while_statement: "while" condition=expression colon while_block=code_block;
+
+for_each_statement: "for" variables=identifier+[comma] "in" iters=expression+[comma] colon block=code_block;
+
+with_statement: "with" assigns=as_assignment+[comma] colon block=code_block;
+as_assignment: variable=identifier "as" exp=expression;
+
+carriage_pass: "in" pass_dir=expression "direction" colon "{" instructions=instruction_assignment+ "}";
+
+param_list: args=identifier+[comma] comma kwargs=assignment+[comma] {3, right} |
+				kwargs= assignment+[comma] {2} |
+				args= identifier+[comma] {1};
+
+
+function_declaration: "def" func_name=identifier "(" params=param_list? ")" colon block=code_block;
+
+
+return_statement: "return" exp=expression eol;
+
+exp_statement: exp=expression eol;
+
+
+xfer_rack: is_across="across" | dist_exp=expression "to" side_id=expression;
+
+xfer_pass: "xfer" needles=expression+[comma] rack_val=xfer_rack bed=to_bed? slider="sliders"? eol;
+
+@pass_inner
+to_bed: "to" expression "bed";
+
+drop_pass: "drop" needles=expression+[comma] eol;
+
+cut_statement: "cut" exps=expression*[comma] eol;
+release_statement: "releasehook" eol;
+remove_statement: "remove" exps=expression*[comma] eol;
+
+push_statement: "push" needles=expression+[comma]  push_val=(push_to | push_dir) eol;
+push_to: "to" push_val=("Front"|"Back"| "layer" expression);
+push_dir: amount=expression? direction=("Forward"|"Backward");
+
+swap_statement: "swap" needles=expression+[comma] "with" swap_type=("layer"|"sheet") value=expression eol;
+
+
+import_statement: "import" src=expression alias=as_import? eol;
+@pass_second
+as_import: "as" identifier;
+
+statement: assertion {10}
+            | print_statement {10}
+            | try_catch {10}
+            | pause_statement {10}
+            | code_block {10}
+            | if_statement {10}
+            | while_statement {10}
+            | for_each_statement {10}
+            | with_statement {10}
+            | carriage_pass {10}
+            | xfer_pass {10}
+            | drop_pass {10}
+            | push_statement {10}
+            | swap_statement {10}
+            | function_declaration {10}
+            | return_statement {10}
+            | cut_statement {10}
+            | release_statement {10}
+            | remove_statement {10}
+            | import_statement {10}
+            | declare_variable {2}
+            | declare_global {2}
+            | exp_statement {1};
+
+
+assignment: var_name=identifier "=" exp=expression;
+
+negation: "not" exp=expression;
+
+
+direction_exp: "Leftward" | "Rightward"
+                | "Increasing" | "Decreasing"
+                | "-->" | "<--"
+                | "current"
+                | "reverse";
+
+formatted_string: f_quote sections=f_string_section* quote;
+f_string_section: "{" exp=expression "}" | string_value=f_string_text ;
+
+@collect_sep
+param_fill_list: param_fill_list comma expression | expression;
+
+call_list: params=param_fill_list comma kwargs=assignment+[comma] {3, right} |
+			params= param_fill_list {2} |
+			kwargs= assignment+[comma] {1};
+
+function_call: func_name=identifier "(" args=call_list? ")";
+
+list_expression: "[" exps = expression*[comma] "]" ;
+
+list_comp: "[" fill_exp=expression "for"
+	variables=identifier+[comma] "in" iter_exp=expression
+	comp_cond=if_comp?
+	"]";
+
+@pass_second
+if_comp: "if" expression;
+
+dict_assign: key=expression colon exp=expression;
+dict_expression: "{" kwargs=dict_assign*[comma] "}";
+dict_comp: "{" key=expression colon value=expression
+				"for" variables=identifier+[comma] "in" iter_exp=expression
+ 				comp_cond=if_comp?
+ 				"}";
+
+indexed_value: item=expression key=(index | list_expression) assign=index_assignment?;
+
+@pass_second
+index: "[" slice_index "]";
+slice_index: start= slice_section end=end_slice;
+end_slice: expression | slice_section expression;
+@pass_single
+slice_section: expression? colon;
+
+@pass_second
+index_assignment: "=" expression;
+
+needle_instruction: inst=("knit" | "tuck" | "miss" | "split" | "drop");
+
+instruction_assignment: inst=expression needles=expression+[comma] eol;
+
+accessor: exp=expression dot attribute=expression;
+unpack: "*" exp=expression;
+
+gauge_exp: sheet_exp=expression "of" gauge=expression "sheets";
+
+
+
+expression: expression "^" expression {right, 6}
+            | expression "*" expression {left, 5}
+            | expression "/" expression {left, 4}
+            | expression "%" expression {left, 3}
+            | expression "+" expression {left, 2}
+            | expression "-" expression   {left, 1}
+            | expression "<" expression   {left, 1}
+            | expression "<=" expression  {left, 1}
+            | expression ">" expression   {left, 1}
+            | expression ">=" expression  {left, 1}
+            | expression "==" expression  {left, 1}
+            | expression "!=" expression  {left, 1}
+            | expression "is" "not"? expression  {left, 1}
+            | expression "in" expression  {left, 1}
+            | expression "not" "in" expression {left, 1}
+            | expression "and" expression {left, 1}
+            | expression "or" expression  {left, 1}
+            | negation {1}
+            | gauge_exp {1}
+            | "(" expression ")" {7}
+            | indexed_value {14}
+            | unpack {13}
+            | float_exp {13}
+            | int_exp {13}
+            | formatted_string {13}
+            | string {13}
+            | direction_exp {13}
+            | list_expression {13}
+            | list_comp {13}
+            | dict_expression {13}
+            | dict_comp {13}
+            | needle_instruction {13}
+            | needle_id {12}
+            | carrier {12}
+            | sheet_id {12}
+            | function_call {11}
+            | accessor {10}
+            | identifier {8};
+
+LAYOUT: LayoutItem | LAYOUT LayoutItem | EMPTY;
+LayoutItem: WS | Comment;
+Comment: '/*' CorNCs '*/' | LineComment;
+CorNCs: CorNC | CorNCs CorNC | EMPTY;
+CorNC: Comment | NotComment | WS;
+
+
+terminals
+float_exp: /-?[0-9]*(\.?[0-9]+)?/;
+int_exp: /-?[0-9]+/ {prefer};
+comma: ",";
+colon: ":";
+dot: /\./;
+eol: ";";
+left_right: /(Left)|(Right)/{10};
+needle_id: /[fb]s?[0-9]+/{10};
+carrier: /c[0-9]+/{10};
+sheet_id: /s[0-9]+(:g[0-9]+)?/{10};
+identifier: /[a-zA-Z_]+[0-9a-zA-Z_]*/{9};
+KEYWORD: /\w+/;
+string: /"[^"]*"/;
+f_quote: /f"/;
+quote: /"/;
+f_string_text: /[^"{]+/;
+
+
+/*Used to manage comments*/
+WS: /\s+/;
+LineComment: /\/\/.*/;
+NotComment: /((\*[^\/])|[^\s*\/]|\/[^\*])+/;

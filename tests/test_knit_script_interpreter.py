@@ -1,8 +1,9 @@
 from unittest import TestCase
 
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
+
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
-from knit_script.knitout_interpreter.knitout_structures.Knitout_Line import Knitout_Line
 
 
 def _print_parse(parser, pattern, is_file: bool = False):

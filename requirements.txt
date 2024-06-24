@@ -1,8 +1,4 @@
-networkx==3.2
-parglare==0.16.1
-Naked==0.1.32
-setuptools==68.2.2
-matplotlib==3.8.0
-nodejs~=0.1.1
-node
-importlib_resources==6.1.0
+parglare~=0.16.1
+networkx~=3.2
+matplotlib~=3.8.0
+virtual-knitting-machine~=0.0.2

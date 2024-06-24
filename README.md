@@ -1,5 +1,18 @@
 # knit_script
+
+[![PyPI - Version](https://img.shields.io/pypi/v/knit-script.svg)](https://pypi.org/project/knit-script)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/knit-script.svg)](https://pypi.org/project/knit-script)
+
+-----
+## Description
 Knit Script is a domain-specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines.
+
+## Table of Contents
+- [Description](#description)
+- [Installation](#installation)
+- [License](#license)
+
+[//]: # (Todo: Fill in Table of contents)
 
 # Set Up
 ## Install Development Version (from local source code)
@@ -588,3 +601,7 @@ The knit script interpreter which manages parsing and interpreting knit_script p
 
 ## tests
 Test classes for evaluating the interpreter and parsing knit_script samples. Calibration samples are used for calibrating allowable gauge on a machine. Paper samples demonstrate different basic techniques of sheet knitting. 
+
+# License
+
+`knit-script` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
