@@ -99,12 +99,13 @@ class Knit_Script_Interpreter:
             self._knit_pass_context.execute_statements(statements)
         except (AssertionError, Knit_Script_Exception, Knitting_Machine_Exception) as e:
             self._knit_pass_context.knitout.extend(cut_active_carriers(self._knit_pass_context.machine_state))
-            with open(f"error.k", "w") as out:
-                out.writelines([str(k) for k in self._knit_pass_context.knitout])
-                if isinstance(e, Knit_Script_Exception) or isinstance(e, Knit_Script_Exception):
-                    error_comments = [Knitout_Comment_Line(e.message)]
-                    out.writelines([str(ec) for ec in error_comments])
-            compile_knitout(f"error.k", f"error.dat")
+            if len(self._knit_pass_context.knitout) > 0:
+                with open(f"error.k", "w") as out:
+                    out.writelines([str(k) for k in self._knit_pass_context.knitout])
+                    if isinstance(e, Knitting_Machine_Exception) or isinstance(e, Knit_Script_Exception):
+                        error_comments = [Knitout_Comment_Line(e.message)]
+                        out.writelines([str(ec) for ec in error_comments])
+                compile_knitout(f"error.k", f"error.dat")
             raise e
         return self._knit_pass_context.knitout
 

@@ -1,8 +1,9 @@
 """Parser code for accessing Parglare language support"""
 import importlib_resources
-from parglare import Parser, Grammar
+from parglare import Parser, Grammar, ParseError
 
 import knit_script
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Parsing_Exception
 from knit_script.knit_script_interpreter.knit_script_actions import action
 
 
@@ -24,7 +25,10 @@ class Knit_Script_Parser:
         :param pattern_is_file: if true, assumes that the pattern is parsed from a file
         :return: List of statements parsed from file
         """
-        if pattern_is_file:
-            return self._parser.parse_file(pattern)
-        else:
-            return self._parser.parse(pattern)
+        try:
+            if pattern_is_file:
+                return self._parser.parse_file(pattern)
+            else:
+                return self._parser.parse(pattern)
+        except ParseError as e:
+            raise Parsing_Exception(e)

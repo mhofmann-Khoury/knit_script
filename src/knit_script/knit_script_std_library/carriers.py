@@ -17,7 +17,7 @@ def cut_active_carriers(machine_state: Knitting_Machine) -> list[Outhook_Instruc
     :param machine_state:
     :return: A list of outhook instructions that cut all active carriers in the machine state.
     """
-    outhooks = [Outhook_Instruction(c, f"Outhooking all active carriers") for c in machine_state.carrier_system]
+    outhooks = [Outhook_Instruction(c, f"Outhooking all active carriers") for c in machine_state.carrier_system.active_carriers]
     for outhook in outhooks:
         outhook.execute(machine_state)
     return outhooks

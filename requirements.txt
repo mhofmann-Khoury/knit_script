@@ -1,4 +1,4 @@
 parglare~=0.16.1
 networkx~=3.2
 matplotlib~=3.8.0
-virtual-knitting-machine~=0.0.2
+virtual-knitting-machine~=0.0.3

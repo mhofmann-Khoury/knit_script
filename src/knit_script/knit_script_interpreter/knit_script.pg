@@ -155,7 +155,7 @@ needle_instruction: inst=("knit" | "tuck" | "miss" | "split" | "drop");
 
 instruction_assignment: inst=expression needles=expression+[comma] eol;
 
-accessor: exp=expression dot attribute=expression;
+accessor: exp=expression dot attribute=expression {left};
 unpack: "*" exp=expression;
 
 gauge_exp: sheet_exp=expression "of" gauge=expression "sheets";

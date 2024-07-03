@@ -127,22 +127,19 @@ def drop(machine_state, needle: Needle, comment: str | None = None) -> Drop_Inst
     # return f"drop {needle} ;Dropped loops: {loops}. {comment}\n"
 
 
-def xfer(machine_state, start: Needle, target: Needle, comment: str | None = None, record_needle=False) -> Xfer_Instruction:
+def xfer(machine_state, start: Needle, target: Needle, comment: str | None = None) -> Xfer_Instruction:
     """
     Synonym for "split + N N2"
     Transfer loops from needle 1 to needle 2, leaving needle 1 empty
-    :param record_needle:
     :param machine_state: the current machine model to update
     :param start: the first needle to xfer from
     :param target: the second needle to xfer to
     :param comment: additional details to document in the knitout
     :return: the xfer instruction
     """
-    # machine_state.xfer(start, target, record_needle=record_needle)
-    instruction = Xfer_Instruction(start, target, comment, record_location=record_needle)
+    instruction = Xfer_Instruction(start, target, comment)
     instruction.execute(machine_state)
     return instruction
-    # return f"xfer {start} {target} ;{comment}\n"
 
 
 def bring_in(machine_state, carrier_set: Yarn_Carrier, comment: str | None = None) -> In_Instruction:
@@ -185,16 +182,13 @@ def releasehook(machine_state, comment: str | None = None) -> Releasehook_Instru
     :param comment: additional details to document in the knitout
     :return: the releasehook instruction
     """
-    released_carrier = machine_state.carrier_system.hooked_carriers
-    # machine_state.release_hook()
+    released_carrier = machine_state.carrier_system.hooked_carrier
     if released_carrier is None:
         return Knitout_Comment_Line("no-op. Releasehook with no hooked carriers")
-        # return f"; no-op. Releasehook with no hooked carriers\n"
     else:
         instruction = Releasehook_Instruction(released_carrier, comment)
         instruction.execute(machine_state)
         return instruction
-        # return f"releasehook {_make_carrier_set(released_carrier)} ;{comment}\n"
 
 
 def outhook(machine_state, carrier_set: Yarn_Carrier, comment: str | None = None) -> Outhook_Instruction:

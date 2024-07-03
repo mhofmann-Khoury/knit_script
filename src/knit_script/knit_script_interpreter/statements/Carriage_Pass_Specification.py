@@ -1,5 +1,6 @@
 """Used to manage all instruction sets written for a single carriage pass in a given direction"""
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from knitout_interpreter.knitout_operations.needle_instructions import Needle_Instruction
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
@@ -76,7 +77,8 @@ class Carriage_Pass_Specification:
         if self._direction is None:  # assume the next pass is reversed
             self._direction = context.direction.opposite()  # used as the implied direction but not set unless explicit
         else:
-            if self._has_drops and context.direction is Carriage_Pass_Direction.Leftward and self._direction is Carriage_Pass_Direction.Leftward:  # needs to drop and can drop between repeat leftward passes
+            if self._has_drops and context.direction is Carriage_Pass_Direction.Leftward and self._direction is Carriage_Pass_Direction.Leftward:
+                # needs to drop and can drop between repeat leftward passes
                 results = self._drop_pass.write_knitout(context)
                 self._has_drops = False
             context.direction = self._direction
@@ -88,7 +90,8 @@ class Carriage_Pass_Specification:
 
         needles = self._keep_target_bed_needles(needles)  # ignore needles that are already on target bed
 
-        needles_in_order = self._direction.sort_needles(needles, racking=int(context.racking))  # sort into the direction of machine pass #Todo: update context to give rack value and all_needle separately.
+        needles_in_order = self._direction.sort_needles(needles, racking=int(context.racking))
+        # sort into the direction of machine pass #Todo: update context to give rack value and all_needle separately.
 
         # calculate all-needle racking condition
         needs_all_needle_rack = False
@@ -114,12 +117,16 @@ class Carriage_Pass_Specification:
         for needle in needles_in_order:
             instruction_type = self._needle_to_instruction[needle]
             if instruction_type.requires_second_needle:
-                second_needle = context.machine_state.xfer_needle_at_racking(needle, slider=self._to_sliders)
+                second_needle = context.machine_state.get_aligned_needle(needle, aligned_slider=self._to_sliders)
             else:
                 second_needle = None
             results[needle] = second_needle
             instruction = build_instruction(instruction_type, first_needle=needle, direction=context.direction, carrier_set=context.carrier, second_needle=second_needle)
             _ = instruction.execute(context.machine_state)
+            if isinstance(instruction, Needle_Instruction):
+                context.gauged_sheet_record.record_needle(instruction.needle)
+                if instruction.has_second_needle and instruction.needle_2.position != instruction.needle.position:
+                    context.gauged_sheet_record.record_needle(instruction.needle_2)
             context.knitout.append(instruction)
         if needs_all_needle_rack:
             context.knitout.append(rack(context.machine_state, cur_rack, comment=f"Reset rack from all_needle"))

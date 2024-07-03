@@ -1,4 +1,5 @@
 """Statement that cuts a yarn"""
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -44,9 +45,12 @@ class Cut_Statement(Statement):
                         _add_carrier(sub_cr)
                 elif isinstance(cr, int):
                     carrier_set.add(cr)
-                elif not isinstance(cr, Yarn_Carrier_Set):
+                elif isinstance(cr, Yarn_Carrier_Set):
+                    carrier_set.update(cr.carrier_ids)
+                elif isinstance(cr, Yarn_Carrier):
+                    carrier_set.add(cr.carrier_id)
+                else:
                     raise TypeError(f'Expected to cut a carrier, integer representing a carrier, or list of carriers, but got {cr}')
-                carrier_set.update(cr.carrier_ids)
 
             for c in self._carriers:
                 carrier = c.evaluate(context)

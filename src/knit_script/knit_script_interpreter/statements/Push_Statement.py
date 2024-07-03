@@ -33,21 +33,21 @@ class Push_Statement(Statement):
         for needle_pos in positions:
             if isinstance(self._push_val, Expression):
                 pos = int(self._push_val.evaluate(context))
-                context.machine_state.set_layer_position(needle_pos, pos)
+                context.gauged_sheet_record.set_layer_position(needle_pos, pos)
             elif isinstance(self._push_val, str):
                 if self._push_val.lower() == "front":
-                    context.machine_state.set_layer_to_front(needle_pos)
+                    context.gauged_sheet_record.set_layer_to_front(needle_pos)
                 elif self._push_val.lower() == "back":
-                    context.machine_state.set_layer_to_back(needle_pos)
+                    context.gauged_sheet_record.set_layer_to_back(needle_pos)
             else:
                 assert isinstance(self._push_val, tuple)
                 dist = int(self._push_val[0].evaluate(context))
                 direction = self._push_val[1].lower()
                 if direction == "forward":
-                    context.machine_state.push_layer_forward(needle_pos, dist)
+                    context.gauged_sheet_record.push_layer_forward(needle_pos, dist)
                 else:
-                    context.machine_state.push_layer_backward(needle_pos, dist)
-        context.knitout.extend(context.machine_state.reset_sheet(context.sheet.sheet))
+                    context.gauged_sheet_record.push_layer_backward(needle_pos, dist)
+        context.knitout.extend(context.gauged_sheet_record.reset_to_sheet(context.sheet.sheet))
 
     def __str__(self):
         return f"push {self._needles} {self._push_val}"

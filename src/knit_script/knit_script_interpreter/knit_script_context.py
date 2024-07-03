@@ -1,5 +1,6 @@
 """Manages variable scope and machine state of knit pass during execution"""
-from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line, Knitout_Comment_Line
+from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line, Machine_Header_Line, Gauge_Header_Line, Position_Header_Line, Knitout_Header_Line_Type
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line, Knitout_Comment_Line, Knitout_Version_Line
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
@@ -7,9 +8,29 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import She
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Position
+from knit_script.knit_script_interpreter.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
+from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Position, Machine_Type
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knitout_execution.knitout_execution import inhook, bring_in, rack
+
+
+class _Carriers_Header_Line(Knitout_Header_Line):
+
+    def __init__(self, carrier_ids: list[int], comment: str | None = None):
+        self._carrier_ids = carrier_ids
+        super().__init__(Knitout_Header_Line_Type.Carriers, carrier_ids, comment)
+
+    def __str__(self):
+        carrier_str = ""
+        for cid in self._carrier_ids:
+            carrier_str += f"{cid} "
+        carrier_str = carrier_str[:-1]  # removing the space.
+        return f";;{self.header_type}: {carrier_str}{self.comment_str}"
+
+    def execute(self, machine_state: Knitting_Machine) -> bool:
+        carrier_count = len(self.header_value)
+        machine_state.carrier_system = carrier_count
+        return True
 
 
 class Knit_Script_Context:
@@ -19,11 +40,70 @@ class Knit_Script_Context:
                  bed_width: int = 540, machine_position: Machine_Position = Machine_Position.Right,
                  ks_file=None, parser=None):
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
-        self.machine_state: Knitting_Machine = Knitting_Machine()
-        self.knitout: list[Knitout_Line] = []
+        self.machine_state: Knitting_Machine = Knitting_Machine(needle_count=bed_width)
+        self.gauged_sheet_record: Gauged_Sheet_Record = Gauged_Sheet_Record(1, self.machine_state)
         self.ks_file: str | None = ks_file
         self.parser = parser
         self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
+        self._version = 2
+        self._machine_type = Machine_Type.SWG091N2
+        self._machine_gauge = 15
+        self._program_position: Machine_Position = machine_position
+        self.knitout: list[Knitout_Line] = self._header_lines()
+
+    @property
+    def version(self):
+        """
+        :return: The knitout version being written.
+        """
+        return self._version
+
+    @version.setter
+    def version(self, version: int):
+        self._version = version
+
+    @property
+    def machine_type(self) -> Machine_Type:
+        """
+        :return: The type of machine to generate the knitout for.
+        """
+        return self._machine_type
+
+    @machine_type.setter
+    def machine_type(self, machine_type: Machine_Type):
+        self._machine_type = machine_type
+
+    @property
+    def machine_gauge(self) -> int:
+        """
+        :return: The needle/inch gauge of the machine being knit on.
+        """
+        return self._machine_gauge
+
+    @machine_gauge.setter
+    def machine_gauge(self, machine_gauge: int):
+        self._machine_gauge = machine_gauge
+
+    @property
+    def program_position(self) -> Machine_Position:
+        """
+        :return: The position to place the knitout program relative to the actual needle beds.
+        """
+        return self._program_position
+
+    @program_position.setter
+    def program_position(self, program_position: Machine_Position):
+        self._program_position = program_position
+
+    def _header_lines(self) -> list[Knitout_Header_Line | Knitout_Version_Line]:
+        # Todo: support custom yarn naming in header.
+        return [Knitout_Version_Line(self.version),
+                Machine_Header_Line(self.machine_type.value),
+                Gauge_Header_Line(self.machine_gauge),
+                Position_Header_Line(self.program_position.value),
+                _Carriers_Header_Line(self.machine_state.carrier_system.carrier_ids)]
+        # TODO Fix Carrier Header Line in Knitout interperter to have correct format.
+        # Carriers_Header_Line(self.machine_state.carrier_system.carrier_ids)]
 
     def add_variable(self, key, value):
         """
@@ -60,7 +140,7 @@ class Knit_Script_Context:
         """
         :return: The needle count of the bed broken up by current gauge
         """
-        return self.machine_state.sheet_needle_count(gauge)
+        return int(self.machine_state.needle_count / gauge)
 
     @property
     def direction(self) -> Carriage_Pass_Direction:
@@ -81,7 +161,11 @@ class Knit_Script_Context:
         return self.variable_scope.carrier
 
     @carrier.setter
-    def carrier(self, carrier: Yarn_Carrier_Set | None):
+    def carrier(self, carrier: Yarn_Carrier_Set | None | int | list[int]):
+        if isinstance(carrier, int):
+            carrier = Yarn_Carrier_Set([carrier])
+        elif isinstance(carrier, list):
+            carrier = Yarn_Carrier_Set(carrier)
         if self.carrier != carrier:
             self.variable_scope.carrier = carrier
             if self.carrier is not None and not self.machine_state.carrier_system.is_active(self.carrier.carrier_ids):  # if yarn is not active, bring it in by inhook operation
@@ -120,7 +204,7 @@ class Knit_Script_Context:
     def sheet(self, value: Sheet_Identifier | int | None):
         self.variable_scope.sheet = value
         self.knitout.append(Knitout_Comment_Line(f"Resetting to sheet {self.sheet} of {self.gauge}"))
-        self.knitout.extend(self.machine_state.reset_sheet(self.sheet.sheet))
+        self.knitout.extend(self.gauged_sheet_record.reset_to_sheet(self.sheet.sheet))
         self.machine_state.sheet = value
         # Resets machine to the needed sheet, peeling other layers out of the way
 

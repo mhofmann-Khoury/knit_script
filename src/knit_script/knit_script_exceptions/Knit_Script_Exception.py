@@ -1,5 +1,7 @@
 """Module containing the base class for KnitScript exceptions."""
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from parglare import ParseError
+from parglare.common import Location, position_context
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
@@ -9,8 +11,17 @@ class Knit_Script_Exception(Exception):
     """
 
     def __init__(self, message: str):
-        self.message = f"Knit Script Exception: {message}"
+        self.message = f"\nKnit Script Exception: {message}"
         super().__init__(self.message)
+
+
+class Knit_Script_Assertion_Exception(Knit_Script_Exception):
+
+    def __init__(self, condition, condition_value, assertion_report: str | None = None):
+        message = f"AssertionError:\n {condition} <{condition_value}>"
+        if assertion_report is not None:
+            message += f":{assertion_report}"
+        super().__init__(message)
 
 
 class Needle_Instruction_Type_Exception(Knit_Script_Exception):
@@ -90,3 +101,32 @@ class Sheet_Value_Exception(Knit_Script_Exception):
 
     def __init__(self, sheet: int, current_gauge: int):
         super().__init__(f"Sheet must be between 0 and gauge {current_gauge} but got {sheet}")
+
+
+class Sheet_Peeling_Stacked_Loops_Exception(Knit_Script_Exception):
+    def __init__(self, front_needle: Needle, back_needle: Needle):
+        super().__init__(f"Loops recorded on {front_needle} and {back_needle}, but peeled loops cannot be returned to a seperated state")
+
+
+class Sheet_Peeling_Blocked_Loops_Exception(Knit_Script_Exception):
+    def __init__(self, return_to_needle: Needle, return_from_needle: Needle):
+        super().__init__(f"Cannot return loops from {return_from_needle} because loops are held on {return_to_needle}")
+
+
+class Lost_Sheet_Loops_Exception(Knit_Script_Exception):
+    def __init__(self, recorded_needle: Needle):
+        super().__init__(f"Lost loops recorded on {recorded_needle}. Sheet cannot be reset.")
+
+
+class Parsing_Exception(Knit_Script_Exception):
+
+    def __init__(self, parglare_parse_error: ParseError):
+        self.parse_error: ParseError = parglare_parse_error
+        self.error_location: Location = self.parse_error.location
+        self._location_message: str = ""
+        if self.error_location.file_name is not None:
+            self._location_message += f" in File {self.error_location.file_name}"
+        self._location_message += f" on line {self.error_location.line}"
+        self._location_example: str = position_context(self.error_location.input_str, self.error_location.start_position)
+        self._expected: str = f"Expected: {[t.name for t in self.parse_error.symbols_expected]}"
+        super().__init__(f"Parsing Error{self._location_message}\n\t{self._location_example}\n\t{self._expected}")

@@ -69,4 +69,9 @@ class Indexed_Expression(Expression):
                 raise TypeError(f'Cannot set the value of {self.item} of value {item} with type slice {self.key} <{key}> ')
             assign_value = self.assign.evaluate(context)
             item[key] = assign_value
-        return item[key]
+        try:
+            return item[key]
+        except IndexError as e:
+            raise IndexError(f'Index {self.key}<{key}> is out of range of {self.item} <{item}>')
+        except KeyError as e:
+            raise KeyError(f'Key {self.key}<{key}> is not in {self.item} <{item}>')

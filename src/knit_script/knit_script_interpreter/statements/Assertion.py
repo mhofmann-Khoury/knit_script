@@ -1,5 +1,5 @@
 """Statements for asserting conditions"""
-
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Assertion_Exception
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
@@ -27,10 +27,11 @@ class Assertion(Statement):
         :param context: The current context of the knit_script_interpreter
         """
         condition = self._condition.evaluate(context)
-        if self._error_str is None:
-            assert condition, "KP Assertion Error"
-        else:
-            assert condition, f"KP Assertion Error: {self._error_str.evaluate(context)}"
+        if not condition:
+            if self._error_str is None:
+                raise Knit_Script_Assertion_Exception(self._condition, condition)
+            else:
+                raise Knit_Script_Assertion_Exception(self._condition, condition, self._error_str.evaluate(context))
 
     def __str__(self):
         return f"Assert({self._condition} -> {self._error_str})"

@@ -87,56 +87,56 @@ class Attribute_Accessor_Expression(Expression):
             kp_set = Needle_Sets[self.attribute.set_str]
             if isinstance(parent, Knitting_Machine):
                 if kp_set is Needle_Sets.Front_Needles:
-                    return context.machine_state.front_needles(on_sheet=False)
+                    return context.machine_state.front_needles()
                 elif kp_set is Needle_Sets.Back_Needles:
-                    return context.machine_state.back_needles(on_sheet=False)
+                    return context.machine_state.back_needles()
                 elif kp_set is Needle_Sets.Front_Sliders:
-                    return context.machine_state.front_sliders(on_sheet=False)
+                    return context.machine_state.front_sliders()
                 elif kp_set is Needle_Sets.Back_Sliders:
-                    return context.machine_state.back_sliders(on_sheet=False)
+                    return context.machine_state.back_sliders()
                 elif kp_set is Needle_Sets.Front_Loops:
-                    return context.machine_state.front_loops(on_sheet=False)
+                    return context.machine_state.front_loops()
                 elif kp_set is Needle_Sets.Back_Loops:
-                    return context.machine_state.back_loops(on_sheet=False)
+                    return context.machine_state.back_loops()
                 elif kp_set is Needle_Sets.Needles:
-                    return context.machine_state.all_needles(on_sheet=False)
+                    return context.machine_state.all_needles()
                 elif kp_set is Needle_Sets.Front_Slider_Loops:
-                    return context.machine_state.front_slider_loops(on_sheet=False)
+                    return context.machine_state.front_slider_loops()
                 elif kp_set is Needle_Sets.Back_Slider_Loops:
-                    return context.machine_state.back_slider_loops(on_sheet=False)
+                    return context.machine_state.back_slider_loops()
                 elif kp_set is Needle_Sets.Sliders:
-                    return context.machine_state.all_sliders(on_sheet=False)
+                    return context.machine_state.all_sliders()
                 elif kp_set is Needle_Sets.Loops:
-                    return context.machine_state.all_loops(on_sheet=False)
+                    return context.machine_state.all_loops()
                 elif kp_set is Needle_Sets.Slider_Loops:
-                    return context.machine_state.all_slider_loops(on_sheet=False)
+                    return context.machine_state.all_slider_loops()
             elif isinstance(parent, Sheet_Identifier):
                 if kp_set is Needle_Sets.Front_Needles:
-                    return context.machine_state.front_needles(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.front_needles(parent.sheet)
                 elif kp_set is Needle_Sets.Back_Needles:
-                    return context.machine_state.back_needles(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.back_needles(parent.sheet)
                 elif kp_set is Needle_Sets.Front_Sliders:
-                    return context.machine_state.front_sliders(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.front_sliders(parent.sheet)
                 elif kp_set is Needle_Sets.Back_Sliders:
-                    return context.machine_state.back_sliders(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.back_sliders(parent.sheet)
                 elif kp_set is Needle_Sets.Front_Loops:
-                    return context.machine_state.front_loops(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.front_loops(parent.sheet)
                 elif kp_set is Needle_Sets.Back_Loops:
-                    return context.machine_state.back_loops(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.back_loops(parent.sheet)
                 elif kp_set is Needle_Sets.Needles:
-                    return context.machine_state.all_needles(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.all_needles(parent.sheet)
                 elif kp_set is Needle_Sets.Front_Slider_Loops:
-                    return context.machine_state.front_slider_loops(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.front_slider_loops(parent.sheet)
                 elif kp_set is Needle_Sets.Back_Slider_Loops:
-                    return context.machine_state.back_slider_loops(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.back_slider_loops(parent.sheet)
                 elif kp_set is Needle_Sets.Sliders:
-                    return context.machine_state.all_sliders(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.all_sliders(parent.sheet)
                 elif kp_set is Needle_Sets.Loops:
-                    return context.machine_state.all_loops(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.all_loops(parent.sheet)
                 elif kp_set is Needle_Sets.Slider_Loops:
-                    return context.machine_state.all_slider_loops(sheet=parent.sheet, gauge=parent.gauge)
+                    return context.gauged_sheet_record.all_slider_loops(parent.sheet)
             else:
-                assert False, f"KP error: Cannot access needle set {kp_set} from {parent}"
+                raise AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>")
         elif isinstance(self.attribute, Function_Call):
             method_name = self.attribute.func_name.variable_name
             attribute = getattr(parent, method_name)
@@ -159,6 +159,6 @@ class Attribute_Accessor_Expression(Expression):
                         return parent[attribute]
                 elif isinstance(parent, Sheet_Identifier):
                     sheet_needle = parent.get_needle(attribute)
-                    return context.machine_state[sheet_needle] # TODO: Update Virtual Knitting Machine Package to support this.
+                    return context.machine_state[sheet_needle]
             else:
                 return getattr(parent, attribute)

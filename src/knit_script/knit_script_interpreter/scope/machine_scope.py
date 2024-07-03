@@ -7,6 +7,7 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import She
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Gauge_Value_Exception, Sheet_Value_Exception
+from knit_script.knit_script_interpreter.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_warnings.Knit_Script_Warning import Sheet_Beyond_Gauge_Warning
 
 
@@ -134,7 +135,7 @@ class Machine_Scope:
             raise Gauge_Value_Exception(value)
         if self.gauge != int(value):
             self._gauge = int(value)
-            self.context.machine_state.gauge = self.gauge
+            self.context.gauged_sheet_record = Gauged_Sheet_Record(value, self.context.machine_state)
             if 0 > int(self.sheet) or int(self.sheet) >= self.gauge:
                 warnings.warn(Sheet_Beyond_Gauge_Warning(self.sheet, self.gauge))
                 self.sheet = self.gauge - 1
@@ -162,7 +163,7 @@ class Machine_Scope:
             self._sheet = value
             self.context.machine_state.sheet = self.sheet.sheet
         if 0 > int(self.sheet) or int(self.sheet) >= self.gauge:
-            print(f"Knit Script Warning: Gauge of {self.gauge} is greater than current sheet {self.sheet} so sheet is set to {self.gauge - 1}")
+            warnings.warn(Sheet_Beyond_Gauge_Warning(self.sheet, self.gauge))
             self.sheet = self.gauge - 1
 
     def __getitem__(self, key: str):

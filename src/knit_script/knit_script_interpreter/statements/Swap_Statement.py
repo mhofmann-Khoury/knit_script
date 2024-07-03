@@ -41,13 +41,13 @@ class Swap_Statement(Statement):
             if layer is not None:
                 positions = [needle_pos + (s - context.sheet.sheet) for s in range(0, context.gauge) if s != context.sheet.sheet]
                 for other_position in positions:
-                    other_layer = context.machine_state.get_layer_at_position(other_position)
+                    other_layer = context.gauged_sheet_record.get_layer_at_position(other_position)
                     if other_layer == layer:
-                        context.machine_state.swap_layer_at_positions(needle_pos, other_layer)
+                        context.gauged_sheet_record.swap_layer_at_positions(needle_pos, other_layer)
             else:
                 other_position = needle_pos + (sheet - context.sheet.sheet)
-                other_layer = context.machine_state.get_layer_at_position(other_position)
-                context.machine_state.swap_layer_at_positions(needle_pos, other_layer)
+                other_layer = context.gauged_sheet_record.get_layer_at_position(other_position)
+                context.gauged_sheet_record.swap_layer_at_positions(needle_pos, other_layer)
 
     def __str__(self):
         if self._layer is None:

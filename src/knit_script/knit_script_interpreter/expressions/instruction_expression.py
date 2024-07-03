@@ -1,4 +1,6 @@
 """Instructions Expressions"""
+from typing import Iterable
+
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
@@ -42,7 +44,7 @@ class Needle_Instruction_Exp(Expression):
         needles = []
         for exp in self._needles:
             value = exp.evaluate(context)
-            if isinstance(value, list):
+            if isinstance(value, Iterable):
                 needles.extend(value)
             else:
                 needles.append(value)

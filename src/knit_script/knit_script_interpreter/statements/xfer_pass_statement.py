@@ -1,6 +1,8 @@
 """
 Statement for executing a xfer pass
 """
+from typing import Iterable
+
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
@@ -48,7 +50,7 @@ class Xfer_Pass_Statement(Statement):
         needles = []
         for needle in self._needles:
             n = needle.evaluate(context)
-            if isinstance(n, list):
+            if isinstance(n, Iterable):
                 needles.extend(n)
             else:
                 needles.append(n)

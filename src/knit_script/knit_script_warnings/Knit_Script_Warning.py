@@ -8,14 +8,14 @@ class Knit_Script_Warning(RuntimeWarning):
     """
 
     def __init__(self, message: str):
-        self.message = f"KnitScript Warning: {message}"
+        self.message = f"\nKnitScript Warning: {message}"
         super().__init__(self.message)
 
 
 class Shadow_Variable_Warning(Knit_Script_Warning):
 
     def __init__(self, variable_name: str):
-        super().__init__(f"Variable {variable_name} shadows a variable in the outer scope.")
+        super().__init__(f"Variable <{variable_name}> shadows a variable in the outer scope.")
 
 
 class Sheet_Beyond_Gauge_Warning(Knit_Script_Warning):

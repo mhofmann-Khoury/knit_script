@@ -1,7 +1,6 @@
 """Expressions for accessing standard needle sets from the machine state"""
 
 from enum import Enum
-from typing import Iterator
 
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
@@ -46,7 +45,7 @@ class Needle_Set_Expression(Expression):
         """
         return self._set_str
 
-    def evaluate(self, context: Knit_Script_Context) -> Iterator[Needle] | list[Needle] | dict[Needle, Needle | None] | list[Slider_Needle]:
+    def evaluate(self, context: Knit_Script_Context) -> list[Needle] | dict[Needle, Needle | None] | list[Slider_Needle]:
         """
         Evaluate the expression
         :param context: The current context of the knit_script_interpreter
@@ -54,29 +53,29 @@ class Needle_Set_Expression(Expression):
         """
         kp_set = Needle_Sets[self._set_str]
         if kp_set is Needle_Sets.Front_Needles:
-            return context.machine_state.front_needles()
+            return context.gauged_sheet_record.front_needles(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Needles:
-            return context.machine_state.back_needles()
+            return context.gauged_sheet_record.back_needles(context.sheet.sheet)
         elif kp_set is Needle_Sets.Front_Sliders:
-            return context.machine_state.front_sliders()
+            return context.gauged_sheet_record.front_sliders(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Sliders:
-            return context.machine_state.back_sliders()
+            return context.gauged_sheet_record.back_sliders(context.sheet.sheet)
         elif kp_set is Needle_Sets.Front_Loops:
-            return context.machine_state.front_loops()
+            return context.gauged_sheet_record.front_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Loops:
-            return context.machine_state.back_loops()
+            return context.gauged_sheet_record.back_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Needles:
-            return context.machine_state.all_needles()
+            return context.gauged_sheet_record.all_needles(context.sheet.sheet)
         elif kp_set is Needle_Sets.Front_Slider_Loops:
-            return context.machine_state.front_slider_loops()
+            return context.gauged_sheet_record.front_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Slider_Loops:
-            return context.machine_state.back_slider_loops()
+            return context.gauged_sheet_record.back_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Sliders:
-            return context.machine_state.all_sliders()
+            return context.gauged_sheet_record.all_sliders(context.sheet.sheet)
         elif kp_set is Needle_Sets.Loops:
-            return context.machine_state.all_loops()
+            return context.gauged_sheet_record.all_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Slider_Loops:
-            return context.machine_state.all_slider_loops()
+            return context.gauged_sheet_record.all_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Last_Pass:
             return context.last_carriage_pass_result
 

@@ -55,12 +55,13 @@ class Function_Signature:
         for assignment in kwargs:
             key = assignment.variable_name
             if key not in self._parameter_names:
-                raise NameError(key)
-            assert key in self._parameter_names, f"Unexpected key {key} given to function {self._name}"
+                raise NameError(f"Unexpected key {key} given to function {self._name}")
+            # assert key in self._parameter_names, f"Unexpected key {key} given to function {self._name}"
             assignment.assign_value(context)
             filled_params.add(key)
-        for param in self._parameter_names:
-            assert param in filled_params, f"No value assigned to required parameter {param}"
+        missing_parameters = [p for p in self._parameter_names if p not in filled_params]
+        if len(missing_parameters) > 0:
+            raise TypeError(f"Knit Script function {self._name} expected a value(s) for parameters: {missing_parameters}")
 
         self._body.execute(context)  # execute function body
         return_value = context.variable_scope.return_value  # store return value before exiting scope and deleting it
