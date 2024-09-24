@@ -1,11 +1,11 @@
 """Statement that cuts a yarn"""
+from knitout_interpreter.knitout_operations.carrier_instructions import Releasehook_Instruction, Outhook_Instruction, Out_Instruction
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
-from knit_script.knitout_execution.knitout_execution import outhook, releasehook, out
 
 
 class Cut_Statement(Statement):
@@ -34,7 +34,7 @@ class Cut_Statement(Statement):
         if len(self._carriers) == 0:
             print(f"No carrier to cut specified. Cutting working carrier: {context.carrier}")
             for carrier in context.carrier:
-                outhook_op = outhook(context.machine_state, carrier, f"Cutting working carrier {carrier} of {context.carrier}")
+                outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, carrier, f"Cutting working carrier {carrier} of {context.carrier}")
                 context.knitout.append(outhook_op)
         else:
             carrier_set = set()
@@ -57,7 +57,7 @@ class Cut_Statement(Statement):
                 _add_carrier(carrier)
             carrier_set = Yarn_Carrier_Set([*carrier_set])
             for carrier in carrier_set:
-                outhook_op = outhook(context.machine_state, carrier)
+                outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, carrier)
                 context.knitout.append(outhook_op)
 
 
@@ -83,7 +83,7 @@ class Release_Statement(Statement):
         Cuts with outhook operation carrier
         :param context: The current context of the knit_script_interpreter
         """
-        release_op = releasehook(context.machine_state)
+        release_op = Releasehook_Instruction.execute_releasehook(context.machine_state, context.machine_state.carrier_system.hooked_carrier)
         context.knitout.append(release_op)
 
 
@@ -115,7 +115,7 @@ class Remove_Statement(Statement):
         if len(self._carriers) == 0:
             print(f"No carrier to bring out specified. Cutting working carrier: {context.carrier}")
             for carrier in context.carrier:
-                out_op = out(context.machine_state, carrier, f"Removing working carrier {carrier} of {context.carrier}")
+                out_op = Out_Instruction.execute_out(context.machine_state, carrier, f"Removing working carrier {carrier} of {context.carrier}")
                 context.knitout.append(out_op)
         else:
             carrier_set = set()
@@ -135,5 +135,5 @@ class Remove_Statement(Statement):
                 _add_carrier(carrier)
             carrier_set = Yarn_Carrier_Set([*carrier_set])
             for carrier in carrier_set:
-                out_op = out(context.machine_state, carrier)
+                out_op = Out_Instruction.execute_out(context.machine_state, carrier)
                 context.knitout.append(out_op)

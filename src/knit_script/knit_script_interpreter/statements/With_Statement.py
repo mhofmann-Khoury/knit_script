@@ -1,9 +1,10 @@
 """With statement for setting variables in temporary variable space"""
+from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
+
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Variables
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
-from knit_script.knitout_execution.knitout_execution import rack
 
 
 class With_Statement(Statement):
@@ -41,7 +42,7 @@ class With_Statement(Statement):
             Machine_Variables.Gauge.set_value(context, reset_machine_scope[Machine_Variables.Gauge.name])
         if Machine_Variables.Rack.name in reset_machine_scope:
             Machine_Variables.Rack.set_value(context, reset_machine_scope[Machine_Variables.Rack.name])
-            rack_instruction = rack(context.machine_state, context.racking)
+            rack_instruction = Rack_Instruction.execute_rack(context.machine_state, context.racking)
             context.knitout.append(rack_instruction)
         if Machine_Variables.Carrier.name in reset_machine_scope:
             Machine_Variables.Carrier.set_value(context, reset_machine_scope[Machine_Variables.Carrier.name])

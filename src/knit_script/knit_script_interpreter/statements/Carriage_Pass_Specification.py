@@ -1,13 +1,14 @@
 """Used to manage all instruction sets written for a single carriage pass in a given direction"""
+from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from knitout_interpreter.knitout_operations.needle_instructions import Needle_Instruction
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception, Repeated_Needle_Exception, All_Needle_Operation_Exception
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position
-from knit_script.knitout_execution.knitout_execution import rack, build_instruction
-from knit_script.knit_script_exceptions.Knit_Script_Exception import Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception, Repeated_Needle_Exception, All_Needle_Operation_Exception
+from knit_script.knitout_execution.knitout_execution import build_instruction
 
 
 class Carriage_Pass_Specification:
@@ -110,9 +111,9 @@ class Carriage_Pass_Specification:
 
         if needs_all_needle_rack:
             if context.racking >= 0:
-                context.knitout.append(rack(context.machine_state, context.racking + .25, comment=f"All Needle racking {context.racking} to right"))
+                context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking + .25, comment=f"All Needle racking {context.racking} to right"))
             else:
-                context.knitout.append(rack(context.machine_state, context.racking - .25, comment=f"All Needle racking {context.racking} to left"))
+                context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking - .25, comment=f"All Needle racking {context.racking} to left"))
 
         for needle in needles_in_order:
             instruction_type = self._needle_to_instruction[needle]
@@ -129,7 +130,7 @@ class Carriage_Pass_Specification:
                     context.gauged_sheet_record.record_needle(instruction.needle_2)
             context.knitout.append(instruction)
         if needs_all_needle_rack:
-            context.knitout.append(rack(context.machine_state, cur_rack, comment=f"Reset rack from all_needle"))
+            context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, cur_rack, comment=f"Reset rack from all_needle"))
         context.racking = cur_rack
         if self._has_drops:  # still has drops available
             results.update(self._drop_pass.write_knitout(context))

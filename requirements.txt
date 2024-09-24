@@ -1,4 +1,6 @@
 parglare~=0.16.1
 networkx~=3.2
 matplotlib~=3.8.0
-virtual-knitting-machine~=0.0.3
+virtual-knitting-machine~=0.0.5
+knitout-interpreter~=0.0.5
+importlib_resources~=6.4.0

@@ -1,6 +1,8 @@
 """Manages variable scope and machine state of knit pass during execution"""
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line, Machine_Header_Line, Gauge_Header_Line, Position_Header_Line, Knitout_Header_Line_Type
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line, Knitout_Comment_Line, Knitout_Version_Line
+from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
+from knitout_interpreter.knitout_operations.carrier_instructions import In_Instruction, Inhook_Instruction
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
@@ -11,7 +13,6 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Se
 from knit_script.knit_script_interpreter.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Position, Machine_Type
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
-from knit_script.knitout_execution.knitout_execution import inhook, bring_in, rack
 
 
 class _Carriers_Header_Line(Knitout_Header_Line):
@@ -171,10 +172,10 @@ class Knit_Script_Context:
             if self.carrier is not None and not self.machine_state.carrier_system.is_active(self.carrier.carrier_ids):  # if yarn is not active, bring it in by inhook operation
                 for carrier in self.carrier:
                     if self.machine_state.carrier_system.yarn_is_loose(carrier):  # inhook loose yarns
-                        inhook_op = inhook(self.machine_state, carrier, f"Activating carrier {carrier}")
+                        inhook_op = Inhook_Instruction.execute_inhook(self.machine_state, carrier, f"Activating carrier {carrier}")
                         self.knitout.append(inhook_op)
                     else:  # bring connected yarns out from grippers
-                        in_op = bring_in(self.machine_state, carrier, f"Bring in {carrier} that is not loose")
+                        in_op = In_Instruction.execute_in(self.machine_state, carrier, f"Bring in {carrier} that is not loose")
                         self.knitout.append(in_op)
 
     @property
@@ -190,7 +191,7 @@ class Knit_Script_Context:
         if update:
             self.variable_scope.racking = value
             gauge_adjusted_racking = self.gauge * self.racking
-            rack_instruction = rack(self.machine_state, gauge_adjusted_racking, comment=f"Rack to {self.racking} at {self.gauge} gauge")
+            rack_instruction = Rack_Instruction.execute_rack(self.machine_state, gauge_adjusted_racking, comment=f"Rack to {self.racking} at {self.gauge} gauge")
             self.knitout.append(rack_instruction)
 
     @property

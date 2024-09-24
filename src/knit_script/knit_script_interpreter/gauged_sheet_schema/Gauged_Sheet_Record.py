@@ -1,12 +1,12 @@
 """Module containing the Gauged_Sheet_Record class and Sheet class"""
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line, Knitout_Comment_Line
+from knitout_interpreter.knitout_operations.needle_instructions import Xfer_Instruction
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle, get_sheet_needle
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Sheet_Value_Exception, Sheet_Peeling_Stacked_Loops_Exception, Sheet_Peeling_Blocked_Loops_Exception, Lost_Sheet_Loops_Exception
-from knit_script.knitout_execution.knitout_execution import xfer
 
 
 class Sheet:
@@ -200,7 +200,7 @@ class Gauged_Sheet_Record:
             if len(peel_needles) > 0:
                 xfers.append(Knitout_Comment_Line(f"Peel sheet {sheet} relative to {active_sheet}"))
             for peel_needle in peel_needles:
-                xfer_instruction = xfer(self.knitting_machine, peel_needle, peel_needle.opposite())
+                xfer_instruction = Xfer_Instruction.execute_xfer(self.knitting_machine, peel_needle, peel_needle.opposite())
                 xfers.append(xfer_instruction)
         return xfers, same_layer_needles
 
@@ -231,13 +231,13 @@ class Gauged_Sheet_Record:
                     if b.has_loops:
                         raise Sheet_Peeling_Blocked_Loops_Exception(f, b)
                 else:  # front loops are not there, must have back loops to transfer.
-                    knitout.append(xfer(self.knitting_machine, b, f, f"return loops {b.held_loops}"))
+                    knitout.append(Xfer_Instruction.execute_xfer(self.knitting_machine, b, f, f"return loops {b.held_loops}"))
             elif back_had_loops:  # Loops must still be there or loops on front can be moved back.
                 if b.has_loops:  # Back loops are there. Raise an error if extra front loops are present.
                     if f.has_loops:
                         raise Sheet_Peeling_Blocked_Loops_Exception(b, f)
                 else:  # Back loops are not there. Must have front loops to transfer.
-                    knitout.append(xfer(self.knitting_machine, f, b, f"return loops {f.held_loops}"))
+                    knitout.append(Xfer_Instruction.execute_xfer(self.knitting_machine, f, b, f"return loops {f.held_loops}"))
         return knitout
 
     def get_layer_at_position(self, needle_pos: int | Needle) -> int:
