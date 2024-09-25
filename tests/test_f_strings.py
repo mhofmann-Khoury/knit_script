@@ -34,6 +34,15 @@ class Test_KnitScript_Parser(TestCase):
             evaluation = expression.evaluate(None)
             print(evaluation)
 
+    def test_parse_string_with_space(self):
+        program = r""" "\n\t: string"; """
+        statements = self._parse_program(program)
+        assert len(statements) == 1
+
+    def test_interpret_string_with_space(self):
+        program = r""" print " :\n\t: string"; """
+        knitout_lines = self._interpret(program)
+
     def test_interpret_f_string_with_space(self):
         program = r""" print f"before string {2+2} after string {2+3}: after string no space."; """
         knitout_lines = self._interpret(program)

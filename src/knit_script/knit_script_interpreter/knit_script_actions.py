@@ -1,4 +1,5 @@
 """Actions for converting parglare elements into useful code"""
+import codecs
 import os
 
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
@@ -235,8 +236,9 @@ def string(parser_node, node: str) -> String_Value:
     :param node: string value
     :return: Expression storing quote
     """
-    no_quotes = node.strip("\"")
-    return String_Value(parser_node, no_quotes)
+    string_value = node.strip("\"")
+    decode_string = codecs.decode(string_value, 'unicode_escape')
+    return String_Value(parser_node, decode_string)
 
 
 @action
@@ -251,7 +253,7 @@ def f_string_section(parser_node, __, exp: Expression | None = None, string_valu
     if exp is not None:
         return exp
     else:
-        string_value = string_value.replace("\\n", os.linesep)
+        string_value = codecs.decode(string_value, 'unicode_escape')
         prior_char_index = parser_node.start_position-1
         if prior_char_index >= 0:
             prior_char = parser_node.input_str[prior_char_index]
