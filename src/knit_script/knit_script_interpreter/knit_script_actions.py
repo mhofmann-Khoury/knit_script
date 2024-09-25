@@ -252,6 +252,16 @@ def f_string_section(parser_node, __, exp: Expression | None = None, string_valu
         return exp
     else:
         string_value = string_value.replace("\\n", os.linesep)
+        prior_char_index = parser_node.start_position-1
+        if prior_char_index >= 0:
+            prior_char = parser_node.input_str[prior_char_index]
+            while prior_char.isspace():
+                string_value = prior_char + string_value
+                prior_char_index -= 1
+                if prior_char_index >= 0:
+                    prior_char = parser_node.input_str[prior_char_index]
+                else:
+                    prior_char = None
         return String_Value(parser_node, string_value)
 
 
