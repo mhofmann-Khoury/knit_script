@@ -144,7 +144,7 @@ indexed_value: item=expression key=(index | list_expression) assign=index_assign
 @pass_second
 index: "[" slice_index "]";
 slice_index: start= slice_section end=end_slice;
-end_slice: expression | slice_section expression;
+end_slice: expression? | slice_section expression;
 @pass_single
 slice_section: expression? colon;
 
