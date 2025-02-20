@@ -25,6 +25,7 @@ class Test_KnitScript_Parser(TestCase):
         print(f"Output Knitout:")
         print(knitout_lines)
         return knitout_lines
+
     def test_slices_and_indexing(self):
         self._parse_program("indexable[i];")
         self._parse_program("sliceable[s:];")

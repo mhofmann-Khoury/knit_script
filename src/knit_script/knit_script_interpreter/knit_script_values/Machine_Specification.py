@@ -2,32 +2,19 @@
 from enum import Enum
 
 
-class Machine_Type(Enum):
-    """
-        Accepted Machine specifications
-    """
-    SWG091N2 = 'SWG091N2'
-
-    def __str__(self):
-        return self.value
-
-
-class Machine_Position(Enum):
+class Xfer_Direction(Enum):
     """Enumerator for needle positioning"""
     Left = "Left"
     Right = "Right"
-    Center = "Center"
-    Keep = "Keep"
 
-    @property
-    def is_direction(self) -> bool:
-        """
-        :return: True, if is left or right
-        """
-        return self in [Machine_Position.Left, Machine_Position.Right]
+    def __str__(self) -> str:
+        return self.name
 
-    def __str__(self):
-        return self.value
+    def __repr__(self):
+        return str(self)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 class Machine_Bed_Position(Enum):

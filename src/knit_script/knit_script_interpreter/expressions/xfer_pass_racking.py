@@ -4,7 +4,7 @@ from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_D
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Position
+from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Xfer_Direction
 
 
 class Xfer_Pass_Racking(Expression):
@@ -40,12 +40,12 @@ class Xfer_Pass_Racking(Expression):
             direction = self._side.evaluate(context)
             if isinstance(direction, Carriage_Pass_Direction):
                 if direction is Carriage_Pass_Direction.Leftward:
-                    direction = Machine_Position.Left
+                    direction = Xfer_Direction.Left
                 else:
-                    direction = Machine_Position.Right
-            if not isinstance(direction, Machine_Position) or not direction.is_direction:
+                    direction = Xfer_Direction.Right
+            if not isinstance(direction, Xfer_Direction):
                 raise TypeError(f"KS:{self.line_number}: Expected Left or Right Direction but got {direction}")
-            if direction is Machine_Position.Left:
+            if direction is Xfer_Direction.Left:
                 return Knitting_Machine.get_rack(front_pos=0, back_pos=-1 * distance)
             else:
                 return Knitting_Machine.get_rack(front_pos=0, back_pos=distance)

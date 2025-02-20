@@ -190,6 +190,20 @@ class Test_KnitScript(unittest.TestCase):
                 """
         _knitout_lines = self._interpret(program)
 
+    def test_set_carrier(self):
+        program = """
+        with Carrier as c1:{
+            in reverse direction:{
+                knit f1;
+            }
+            print c1.position;
+            in reverse direction:{
+                knit b6;
+            }
+            print c1.position;
+            print Carrier.positions(machine.carrier_system);
+        }"""
+        _knitout_lines = self._interpret(program)
     def test_index_and_slicing(self):
         program = """
         assert [0,1,2][0] == 0;

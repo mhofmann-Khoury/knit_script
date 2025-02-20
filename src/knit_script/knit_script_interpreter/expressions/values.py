@@ -1,9 +1,10 @@
 """Expression values that don't need context to evaluate"""
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line_Type
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position, Machine_Position, Machine_Type
+from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position, Xfer_Direction
 
 
 class _Context_Free_Value(Expression):
@@ -161,8 +162,8 @@ class Machine_Position_Value(_Context_Free_Value):
         super().__init__(parser_node)
         self._position_str = position_str
 
-    def _context_free_evaluation(self) -> Machine_Position:
-        return Machine_Position[self._position_str]
+    def _context_free_evaluation(self) -> Xfer_Direction:
+        return Xfer_Direction[self._position_str]
 
 
 class Machine_Type_Value(_Context_Free_Value):
@@ -174,8 +175,8 @@ class Machine_Type_Value(_Context_Free_Value):
         super().__init__(parser_node)
         self._type_str = type_str
 
-    def _context_free_evaluation(self) -> Machine_Type:
-        return Machine_Type[self._type_str]
+    def _context_free_evaluation(self) -> Knitting_Machine_Type:
+        return Knitting_Machine_Type[self._type_str]
 
 
 class Header_ID_Value(_Context_Free_Value):

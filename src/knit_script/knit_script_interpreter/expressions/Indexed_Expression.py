@@ -71,7 +71,7 @@ class Indexed_Expression(Expression):
             item[key] = assign_value
         try:
             return item[key]
-        except IndexError as e:
+        except IndexError as _e:
             raise IndexError(f'Index {self.key}<{key}> is out of range of {self.item} <{item}>')
-        except KeyError as e:
+        except KeyError as _e:
             raise KeyError(f'Key {self.key}<{key}> is not in {self.item} <{item}>')

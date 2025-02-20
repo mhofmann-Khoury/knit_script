@@ -2,9 +2,11 @@
 import random
 from unittest import TestCase
 
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type
+
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Position, Machine_Type, Machine_Bed_Position
+from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Xfer_Direction, Machine_Bed_Position
 from knit_script.knit_script_interpreter.statements.Statement import Expression_Statement
 
 
@@ -58,9 +60,9 @@ class Test_KnitScript_Parser(TestCase):
         self._parse_program("len(len(list_value));")
 
     def test_standard_values(self):
-        for pos in Machine_Position:
+        for pos in Xfer_Direction:
             self._parse_program(f"{pos.value};")
-        for mt in Machine_Type:
+        for mt in Knitting_Machine_Type:
             self._parse_program(f"{mt.value};")
         for ns in Needle_Sets:
             self._parse_program(f"{ns.value};")

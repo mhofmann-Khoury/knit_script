@@ -4,6 +4,7 @@ from enum import Enum
 
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Gauge_Value_Exception, Sheet_Value_Exception
@@ -105,8 +106,10 @@ class Machine_Scope:
             carrier = Yarn_Carrier_Set([int(carrier)])
         elif isinstance(carrier, list):
             carrier = Yarn_Carrier_Set(carrier)
+        elif isinstance(carrier, Yarn_Carrier):
+            carrier = Yarn_Carrier_Set([carrier.carrier_id])
         elif not isinstance(carrier, Yarn_Carrier_Set) and carrier is not None:
-            raise TypeError(f"Expected carrier to bes set by int, list of ints, or a yarn carrier set but got {carrier}")
+            raise TypeError(f"Expected carrier to bes set by int, list of ints,  Yarn Carrier (e.g., c1, c2.., c10) or a Yarn Carrier Set but got {carrier}")
         self._carrier = carrier
 
     @property

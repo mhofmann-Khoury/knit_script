@@ -83,8 +83,10 @@ class Release_Statement(Statement):
         Cuts with outhook operation carrier
         :param context: The current context of the knit_script_interpreter
         """
-        release_op = Releasehook_Instruction.execute_releasehook(context.machine_state, context.machine_state.carrier_system.hooked_carrier)
-        context.knitout.append(release_op)
+        carrier = context.machine_state.carrier_system.hooked_carrier
+        if carrier is not None:
+            release_op = Releasehook_Instruction.execute_releasehook(context.machine_state, carrier)
+            context.knitout.append(release_op)
 
 
 class Remove_Statement(Statement):

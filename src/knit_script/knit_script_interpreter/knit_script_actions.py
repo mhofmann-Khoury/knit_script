@@ -1,9 +1,9 @@
 """Actions for converting parglare elements into useful code"""
 import codecs
-import os
 
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from parglare import get_collector
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type, Knitting_Position
 
 from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
 from knit_script.knit_script_interpreter.expressions.Indexed_Expression import Slice_Index, Indexed_Expression
@@ -24,7 +24,7 @@ from knit_script.knit_script_interpreter.expressions.values import (Boolean_Valu
                                                                     Machine_Position_Value, Machine_Type_Value, Header_ID_Value)
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position, Machine_Position, Machine_Type
+from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position, Xfer_Direction
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
 from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
@@ -88,9 +88,9 @@ def identifier(parser_node, node: str) -> Expression:
         return Boolean_Value(parser_node, node)
     elif _in_enum(node, Machine_Bed_Position):
         return Bed_Value(parser_node, node)
-    elif _in_enum(node, Machine_Position):
+    elif _in_enum(node, Knitting_Position):
         return Machine_Position_Value(parser_node, node)
-    elif _in_enum(node, Machine_Type):
+    elif _in_enum(node, Knitting_Machine_Type):
         return Machine_Type_Value(parser_node, node)
     # elif _in_enum(node, Header_ID):
     #     return Header_ID_Value(parser_node, node)
@@ -592,7 +592,7 @@ def sheet_id(parser_node, sheet_node: str) -> Sheet_Expression:
 def carrier(parser_node, carrier_node: str) -> Carrier_Expression:
     """
     :param parser_node: The parser element that created this value
-    :param carrier_node: string describing carrier
+    :param carrier_node: string describing carrier.
     :return: carrier expression
     """
     return Carrier_Expression(parser_node, carrier_node)

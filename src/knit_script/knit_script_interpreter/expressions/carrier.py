@@ -24,7 +24,8 @@ class Carrier_Expression(Expression):
         :param context:
         :return: carrier with given integer
         """
-        return Yarn_Carrier(int(self._carrier_str[1:]))
+        carrier = Yarn_Carrier(int(self._carrier_str[1:]))
+        return context.machine_state[carrier]
 
     def __str__(self):
         return self._carrier_str

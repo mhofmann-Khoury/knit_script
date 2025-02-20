@@ -10,7 +10,6 @@ homepage = "https://github.com/mhofmann-Khoury/knit_script"
 repository = "https://github.com/mhofmann-Khoury/knit_script"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
 keywords = ["knit", "machine knit", "textile", "Northeastern", "ACT Lab", "fabrication"]
 authors = [
   { name = "Megan Hofmann", email = "m.hofmann@northeastern.edu" },
@@ -28,8 +27,8 @@ dependencies = [
   "parglare~=0.16.1",
   "networkx~=3.2",
   "matplotlib~=3.8.0",
-  "virtual-knitting-machine~=0.0.3",
-  "knitout-interpreter~=0.0.5",
+  "virtual-knitting-machine~=0.0.13",
+  "knitout-interpreter~=0.0.14",
   "importlib_resources~=6.4.0",
 ]
 
