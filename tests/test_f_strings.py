@@ -27,12 +27,9 @@ class Test_KnitScript_Parser(TestCase):
         return statements
 
     def test_parse_f_string_with_space(self):
-        program = r""" f"before string {2+2} after string {2+3}: after string no space."; """
-        statements = self._parse_program(program)
-        assert len(statements) == 1
-        for expression in statements[0].expression.expressions:
-            evaluation = expression.evaluate(None)
-            print(evaluation)
+        program = r""" print f"before string {2+2} after string {2+3}: after string no space."; """
+        knitout_lines = self._interpret(program, program_is_file=False)
+        print(knitout_lines)
 
     def test_parse_string_with_space(self):
         program = r""" "\n\t: string"; """

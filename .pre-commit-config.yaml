@@ -1,0 +1,25 @@
+# Note: to use this run from terminal:  poetry run pre-commit install
+repos:
+  # Basic file quality checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace        # Remove trailing spaces
+      - id: end-of-file-fixer         # Ensure files end with newline
+      - id: check-yaml                # Validate YAML files
+      - id: check-added-large-files   # Prevent huge files
+        exclude: ^docs/                # Allow large files in docs directory
+      - id: check-merge-conflict      # Catch merge conflict markers
+
+  # Type checking with MyPy
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        types: [python]
+        args: [--config-file=pyproject.toml, src/]
+        exclude: ^(docs/|tests/)
+        files: ^src/
+        pass_filenames: false

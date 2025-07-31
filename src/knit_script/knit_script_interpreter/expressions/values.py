@@ -1,5 +1,9 @@
 """Expression values that don't need context to evaluate"""
+from __future__ import annotations
+from typing import Any
+
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line_Type
+from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -8,60 +12,65 @@ from knit_script.knit_script_interpreter.knit_script_values.Machine_Specificatio
 
 
 class _Context_Free_Value(Expression):
+    """Base class used for context free evaluations that do not need information about the state of the program to be processed."""
 
-    def __init__(self, parser_node):
+    def __init__(self, parser_node: LRStackNode):
         super().__init__(parser_node)
 
-    def evaluate(self, context: Knit_Script_Context):
-        """
-        Evaluate the expression
-        :param context: The current context of the knit_script_interpreter
-        :return: the value
-        """
-        return self._context_free_evaluation()
+    def evaluate(self, context: Knit_Script_Context) -> Any:
+        """Evaluate the expression.
 
-    def _context_free_evaluation(self):
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            Any: The value.
+        """
+        return self.context_free_evaluation()
+
+    def context_free_evaluation(self) -> Any:
         pass
 
-    def __str__(self):
-        return str(self._context_free_evaluation())
+    def __str__(self) -> str:
+        return str(self.context_free_evaluation())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
 class None_Value(_Context_Free_Value):
-    """
-        Used to None values
-    """
+    """Used to None values."""
 
-    def __init__(self, parser_node):
+    def __init__(self, parser_node: LRStackNode) -> None:
         super().__init__(parser_node)
 
-    def _context_free_evaluation(self) -> None:
-        """
-        :return: None value
+    def context_free_evaluation(self) -> None:
+        """Get None value.
+
+        Returns:
+            None: None value.
         """
         return None
 
 
 class Float_Value(_Context_Free_Value):
-    """
-        Processes numerical string into floating point value
-    """
+    """Processes numerical string into floating point value."""
 
-    def __init__(self, parser_node, value: str):
-        """
-        Instantiate
-        :param parser_node:
-        :param value: string with float value
+    def __init__(self, parser_node: LRStackNode, value: str) -> None:
+        """Initialize the Float_Value.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            value (str): String with float value.
         """
         super().__init__(parser_node)
         self._value: str = value
 
-    def _context_free_evaluation(self) -> float:
-        """
-        :return: floating point value
+    def context_free_evaluation(self) -> float:
+        """Get floating point value.
+
+        Returns:
+            float: Floating point value.
         """
         digits = ""
         for c in self._value:
@@ -71,37 +80,38 @@ class Float_Value(_Context_Free_Value):
 
 
 class Int_Value(Float_Value):
-    """
-        Expression of a single integer (not numerical expression) that evaluates to integer value
-    """
+    """Expression of a single integer (not numerical expression) that evaluates to integer value."""
 
-    def __init__(self, parser_node, value: str):
+    def __init__(self, parser_node: LRStackNode, value: str) -> None:
         super().__init__(parser_node, value)
 
-    def _context_free_evaluation(self) -> int:
+    def context_free_evaluation(self) -> int:
+        """Get integer value of expression.
+
+        Returns:
+            int: Integer value of expression.
         """
-        :return: integer value of expression
-        """
-        return int(super()._context_free_evaluation())
+        return int(super().context_free_evaluation())
 
 
 class Bed_Value(_Context_Free_Value):
-    """
-        Expression of Needle bed
-    """
+    """Expression of Needle bed."""
 
-    def __init__(self, parser_node, bed_str: str):
-        """
-        Instantiate
-        :param parser_node:
-        :param bed_str: string representing the bed
+    def __init__(self, parser_node: LRStackNode, bed_str: str) -> None:
+        """Initialize the Bed_Value.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            bed_str (str): String representing the bed.
         """
         super().__init__(parser_node)
         self._bed_str: str = bed_str
 
-    def _context_free_evaluation(self) -> Machine_Bed_Position:
-        """
-        :return: Machine Bed Position from string (must be (f)ront or (b)ack)
+    def context_free_evaluation(self) -> Machine_Bed_Position:
+        """Get Machine Bed Position from string.
+
+        Returns:
+            Machine_Bed_Position: Machine Bed Position from string (must be (f)ront or (b)ack).
         """
         capitalize = self._bed_str.capitalize()
         capitalize = capitalize.replace('s', 'S')
@@ -109,22 +119,23 @@ class Bed_Value(_Context_Free_Value):
 
 
 class Boolean_Value(_Context_Free_Value):
-    """
-        Expressions of boolean values
-    """
+    """Expressions of boolean values."""
 
-    def __init__(self, parser_node, bool_str: str):
-        """
-        Instantiate
-        :param parser_node:
-        :param bool_str: string representing the bool
+    def __init__(self, parser_node: LRStackNode, bool_str: str) -> None:
+        """Initialize the Boolean_Value.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            bool_str (str): String representing the bool.
         """
         super().__init__(parser_node)
         self._bool_str: str = bool_str
 
-    def _context_free_evaluation(self) -> bool:
-        """
-        :return: boolean value of expression
+    def context_free_evaluation(self) -> bool:
+        """Get boolean value of expression.
+
+        Returns:
+            bool: Boolean value of expression.
         """
         if self._bool_str == "True":
             return True
@@ -133,60 +144,55 @@ class Boolean_Value(_Context_Free_Value):
 
 
 class String_Value(_Context_Free_Value):
-    """
-        Follows Python String Conventions
-    """
+    """Follows Python String Conventions."""
 
-    def __init__(self, parser_node, string: str):
-        """
-        Instantiate
-        :param parser_node:
-        :param string: the string
+    def __init__(self, parser_node: LRStackNode, string: str) -> None:
+        """Initialize the String_Value.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            string (str): The string.
         """
         super().__init__(parser_node)
         self._string: str = string
 
-    def _context_free_evaluation(self) -> str:
-        """
-        :return: the string
+    def context_free_evaluation(self) -> str:
+        """Get the string.
+
+        Returns:
+            str: The string.
         """
         return self._string
 
 
 class Machine_Position_Value(_Context_Free_Value):
-    """
-        Used for evaluating Machine Position identifiers in headers
-    """
+    """Used for evaluating Machine Position identifiers in headers."""
 
-    def __init__(self, parser_node, position_str: str):
+    def __init__(self, parser_node: LRStackNode, position_str: str) -> None:
         super().__init__(parser_node)
         self._position_str = position_str
 
-    def _context_free_evaluation(self) -> Xfer_Direction:
+    def context_free_evaluation(self) -> Xfer_Direction:
         return Xfer_Direction[self._position_str]
 
 
 class Machine_Type_Value(_Context_Free_Value):
-    """
-        Used for evaluating Machine Position identifiers in headers
-    """
+    """Used for evaluating Machine Type identifiers in headers."""
 
-    def __init__(self, parser_node, type_str: str):
+    def __init__(self, parser_node: LRStackNode, type_str: str) -> None:
         super().__init__(parser_node)
         self._type_str = type_str
 
-    def _context_free_evaluation(self) -> Knitting_Machine_Type:
+    def context_free_evaluation(self) -> Knitting_Machine_Type:
         return Knitting_Machine_Type[self._type_str]
 
 
 class Header_ID_Value(_Context_Free_Value):
-    """
-        Used for evaluating strings of header types
-    """
+    """Used for evaluating strings of header types."""
 
-    def __init__(self, parser_node, hid_str: str):
+    def __init__(self, parser_node: LRStackNode, hid_str: str) -> None:
         super().__init__(parser_node)
         self.hid_str = hid_str
 
-    def _context_free_evaluation(self) -> Knitout_Header_Line_Type:
+    def context_free_evaluation(self) -> Knitout_Header_Line_Type:
         return Knitout_Header_Line_Type[self.hid_str]

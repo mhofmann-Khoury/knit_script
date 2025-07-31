@@ -90,6 +90,7 @@ def all_needle_cast_on(w, first_needle=0, tuck_lines=2, knit_lines=1, cross=True
 			}
 		}
 	}
+	releasehook;
 	if cross:{
 		for _ in range(0, knit_lines):{
 			in reverse direction:{

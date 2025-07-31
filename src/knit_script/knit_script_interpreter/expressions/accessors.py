@@ -1,6 +1,7 @@
 """Used to access attributes from instances in code"""
-from typing import Any, Union
+from typing import Any
 
+from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, Sheet_Identifier
@@ -14,16 +15,15 @@ from knit_script.knit_script_interpreter.statements.function_dec_statement impor
 
 
 class Attribute_Accessor_Expression(Expression):
-    """
-        Accesses attributes of expression either from knit-script or underlying python
-    """
+    """Accesses attributes of expression either from knit-script or underlying python."""
 
-    def __init__(self, parser_node, parent_path: Union[list[Expression], Expression], attribute: Expression):
-        """
-        Instantiate
-        :param parser_node:
-        :param parent_path: The expression to access and attribute from
-        :param attribute: the attribute of the parent expression. May produce more accessors
+    def __init__(self, parser_node: LRStackNode, parent_path: list[Expression] | Expression, attribute: Expression) -> None:
+        """Initialize the Attribute_Accessor_Expression.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            parent_path (Union[list[Expression], Expression]): The expression to access and attribute from.
+            attribute (Expression): The attribute of the parent expression. May produce more accessors.
         """
         super().__init__(parser_node)
         self.is_method_call = False
@@ -45,9 +45,11 @@ class Attribute_Accessor_Expression(Expression):
         else:
             return Attribute_Accessor_Expression(self.parser_node, self.parent[:-1], self.parent[1])
 
-    def parent_path(self):
-        """
-        :return: path to parent value
+    def parent_path(self) -> str:
+        """Get the path to parent value.
+
+        Returns:
+            str: Path to parent value.
         """
         parent_source_str = ""
         for p in self.parent:
@@ -64,17 +66,20 @@ class Attribute_Accessor_Expression(Expression):
             parent = parent_accessor.evaluate(context)
         return parent
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.parent_path()}.{self.attribute}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
-        """
-        Evaluate the expression
-        :param context: The current context of the knit_script_interpreter
-        :return: accessed attribute of parent expression
+        """Evaluate the expression.
+
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            Any: Accessed attribute of parent expression.
         """
         parent = self._evaluate_parent(context)
         if isinstance(self.attribute, Variable_Expression):  # variable name, access directly from parent instance

@@ -1,5 +1,6 @@
 """Statement that cuts a yarn"""
 from knitout_interpreter.knitout_operations.carrier_instructions import Releasehook_Instruction, Outhook_Instruction, Out_Instruction
+from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
@@ -9,27 +10,44 @@ from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Cut_Statement(Statement):
-    """Cuts a set of carriers. Creates outhook operations"""
+    """Statement for cutting yarn carriers.
 
-    def __init__(self, parser_node, carriers: list[Expression]):
-        """
-        Instantiate
-        :param parser_node:
-        :param carriers: List of carriers to outhook
+    Creates outhook operations that cut and remove yarn carriers from the machine.
+    If no carriers are specified, cuts the currently active working carrier.
+    """
+
+    def __init__(self, parser_node: LRStackNode, carriers: list[Expression]) -> None:
+        """Initialize a cut statement.
+
+        Args:
+            parser_node: The parser node from the abstract syntax tree.
+            carriers: List of expression that evaluate to carriers to cut.
+                Can be empty to cut the current working carrier.
         """
         super().__init__(parser_node)
         self._carriers: list[Expression] = carriers
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the cut statement.
+
+        Returns:
+            A string showing the carriers to be cut.
+        """
         return f"Cut({self._carriers})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return detailed string representation of the cut statement.
+
+        Returns:
+            Same as __str__ for this class.
+        """
         return str(self)
 
-    def execute(self, context: Knit_Script_Context):
-        """
-        Cuts with outhook operation carrier
-        :param context: The current context of the knit_script_interpreter
+    def execute(self, context: Knit_Script_Context) -> None:
+        """Execute the cut operation on the specified carriers.
+
+        Args:
+            context: The current execution context of the knit script interpreter.
         """
         if len(self._carriers) == 0:
             print(f"No carrier to cut specified. Cutting working carrier: {context.carrier}")
@@ -39,7 +57,15 @@ class Cut_Statement(Statement):
         else:
             carrier_set = set()
 
-            def _add_carrier(cr):
+            def _add_carrier(cr: list | int | Yarn_Carrier | Yarn_Carrier_Set) -> None:
+                """Recursively add carriers to the set to be cut.
+
+                Args:
+                    cr: Carrier specification that can be a list, int, Yarn_Carrier, or Yarn_Carrier_Set.
+
+                Raises:
+                    TypeError: If cr is not a supported carrier type.
+                """
                 if isinstance(cr, list):
                     for sub_cr in cr:
                         _add_carrier(sub_cr)
@@ -62,26 +88,41 @@ class Cut_Statement(Statement):
 
 
 class Release_Statement(Statement):
-    """Removes current carrier on yarn inserting hook or does nothing."""
+    """Statement for releasing the yarn inserting hook.
 
-    def __init__(self, parser_node):
-        """
-        Instantiate
-        :param parser_node:
-        :param carriers: List of carriers to outhook
+    Removes the current carrier from the yarn inserting hook or does nothing
+    if no carrier is currently hooked.
+    """
+
+    def __init__(self, parser_node: LRStackNode) -> None:
+        """Initialize a release statement.
+
+        Args:
+            parser_node: The parser node from the abstract syntax tree.
         """
         super().__init__(parser_node)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the release statement.
+
+        Returns:
+            A string indicating this is a release hook operation.
+        """
         return f"ReleaseHook"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return detailed string representation of the release statement.
+
+        Returns:
+            Same as __str__ for this class.
+        """
         return str(self)
 
-    def execute(self, context: Knit_Script_Context):
-        """
-        Cuts with outhook operation carrier
-        :param context: The current context of the knit_script_interpreter
+    def execute(self, context: Knit_Script_Context) -> None:
+        """Execute the release hook operation.
+
+        Args:
+            context: The current execution context of the knit script interpreter.
         """
         carrier = context.machine_state.carrier_system.hooked_carrier
         if carrier is not None:
@@ -90,29 +131,44 @@ class Release_Statement(Statement):
 
 
 class Remove_Statement(Statement):
-    """
-    Statement removing carriers from bed without cuts. Equivalent to out operations
+    """Statement for removing carriers from bed without cutting.
+
+    Equivalent to 'out' operations - removes carriers from the needle bed
+    but does not cut the yarn, allowing the carrier to be brought back later.
     """
 
-    def __init__(self, parser_node, carriers: list[Expression]):
-        """
-        Instantiate
-        :param parser_node:
-        :param carriers: Carriers to out
+    def __init__(self, parser_node: LRStackNode, carriers: list[Expression]) -> None:
+        """Initialize a remove statement.
+
+        Args:
+            parser_node: The parser node from the abstract syntax tree.
+            carriers: List of expressions that evaluate to carriers to remove.
+                Can be empty to remove the current working carrier.
         """
         super().__init__(parser_node)
         self._carriers: list[Expression] = carriers
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the remove statement.
+
+        Returns:
+            A string showing the carriers to be removed.
+        """
         return f"Out({self._carriers})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return detailed string representation of the remove statement.
+
+        Returns:
+            Same as __str__ for this class.
+        """
         return str(self)
 
-    def execute(self, context: Knit_Script_Context):
-        """
-        Cuts with outhook operation carrier
-        :param context: The current context of the knit_script_interpreter
+    def execute(self, context: Knit_Script_Context) -> None:
+        """Execute the remove operation on the specified carriers.
+
+        Args:
+            context: The current execution context of the knit script interpreter.
         """
         if len(self._carriers) == 0:
             print(f"No carrier to bring out specified. Cutting working carrier: {context.carrier}")
@@ -122,7 +178,15 @@ class Remove_Statement(Statement):
         else:
             carrier_set = set()
 
-            def _add_carrier(cr):
+            def _add_carrier(cr: list | int | Yarn_Carrier_Set) -> None:
+                """Recursively add carriers to the set to be removed.
+
+                Args:
+                    cr: Carrier specification that can be a list, int, or Yarn_Carrier_Set.
+
+                Raises:
+                    AssertionError: If cr is not a supported carrier type.
+                """
                 if isinstance(cr, list):
                     for sub_cr in cr:
                         _add_carrier(sub_cr)

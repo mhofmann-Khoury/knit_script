@@ -1,5 +1,6 @@
 """A pass of drop operations"""
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
@@ -10,23 +11,34 @@ from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Drop_Pass(Statement):
-    """
-        Executes a set of drops from left to right
+    """Executes a set of drop operations from left to right.
+
+    Creates a specialized carriage pass that drops stitches from the specified
+    needles. Always executes in rightward direction for consistency.
     """
 
-    def __init__(self, parser_node, needles: list[Expression]):
-        """
-        Instantiate
-        :param parser_node:
-        :param needles: The list of needles to drop from
+    def __init__(self, parser_node: LRStackNode, needles: list[Expression]) -> None:
+        """Initialize a drop pass.
+
+        Args:
+            parser_node: The parser node from the abstract syntax tree.
+            needles: List of expressions that evaluate to needles to drop from.
+                Can include nested lists of needles.
         """
         super().__init__(parser_node)
         self._needles: list[Expression] = needles
 
-    def execute(self, context: Knit_Script_Context):
-        """
-        Writes drop operations to knitout
-        :param context: The current context of the knit_script_interpreter
+    def execute(self, context: Knit_Script_Context) -> None:
+        """Execute drop operations on all specified needles.
+
+        Evaluates all needle expressions, flattens any nested lists,
+        then creates a carriage pass to drop all stitches.
+
+        Args:
+            context: The current execution context of the knit script interpreter.
+
+        Raises:
+            TypeError: If any expression doesn't evaluate to a Needle object.
         """
         needles = []
         for needle in self._needles:

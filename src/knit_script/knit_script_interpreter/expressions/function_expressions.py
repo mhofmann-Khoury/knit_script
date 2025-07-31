@@ -1,5 +1,7 @@
 """Expressions associated with functions"""
-from typing import Callable
+from typing import Any
+
+from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
@@ -9,38 +11,36 @@ from knit_script.knit_script_interpreter.statements.function_dec_statement impor
 
 
 class Function_Call(Expression):
-    """
-        A call to a function which must return a value or result in None
-    ...
+    """A call to a function which must return a value or result in None.
 
-    Attributes
-    ----------
-    kwargs: List[Assignment]
-        The list of assignments used to set keyword arguments
-    args: List[Expression]
-        The list of expressions to fill in arguments
-    func_name: Expression
-        The name of the function to call
+    Attributes:
+        kwargs (list[Assignment]): The list of assignments used to set keyword arguments.
+        args (list[Expression]): The list of expressions to fill in arguments.
+        func_name (Variable_Expression): The name of the function to call.
     """
 
-    def __init__(self, parser_node, func_name: Variable_Expression, args: list[Expression], kwargs: list[Assignment]):
-        """
-        Instantiate
-        :param parser_node:
-        :param func_name: Name of the function
-        :param args: the list of argument expressions to fill in
-        :param kwargs: the list of assignments to fill in by keywords
+    def __init__(self, parser_node: LRStackNode, func_name: Variable_Expression, args: list[Expression], kwargs: list[Assignment]) -> None:
+        """Initialize the Function_Call.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            func_name (Variable_Expression): Name of the function.
+            args (list[Expression]): The list of argument expressions to fill in.
+            kwargs (list[Assignment]): The list of assignments to fill in by keywords.
         """
         super().__init__(parser_node)
         self.kwargs: list[Assignment] = kwargs
         self.args: list[Expression] = args
         self.func_name: Variable_Expression = func_name
 
-    def evaluate(self, context: Knit_Script_Context):
-        """
-        Finds function in scope, fills parameters and then executes
-        :param context: The current context of the knit_script_interpreter
-        :return: Return value set at function scope before closing
+    def evaluate(self, context: Knit_Script_Context) -> Any:
+        """Find function in scope, fill parameters and then execute.
+
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            Any: Return value set at function scope before closing.
         """
         if self.func_name.variable_name in context.variable_scope:
             function_signature = context.variable_scope[self.func_name.variable_name]
@@ -50,7 +50,8 @@ class Function_Call(Expression):
             else:
                 args = [arg.evaluate(context) for arg in self.args]
                 kwargs = {kwarg.variable_name: kwarg.value(context) for kwarg in self.kwargs}
-                if isinstance(function_signature, Callable):
+                # if isinstance(function_signature, Callable):
+                if callable(function_signature):
                     return function_signature(*args, **kwargs)
                 else:
                     func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
@@ -58,7 +59,7 @@ class Function_Call(Expression):
         else:
             raise NameError(f"name {self.func_name.variable_name} is not defined.")  # Todo add way of tracking line numbers from statements and expressions
 
-    def __str__(self):
+    def __str__(self) -> str:
         values = ""
         for exp in self.args:
             values += f"{exp}, "

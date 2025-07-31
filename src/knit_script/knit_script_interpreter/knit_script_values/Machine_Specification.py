@@ -1,26 +1,26 @@
 """Module containing enumerations of common machine value terms."""
+
+from __future__ import annotations
 from enum import Enum
 
 
 class Xfer_Direction(Enum):
-    """Enumerator for needle positioning"""
+    """Enumerator for needle positioning."""
     Left = "Left"
     Right = "Right"
 
     def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
 
 class Machine_Bed_Position(Enum):
-    """
-        Enumeration of positions on needle beds
-    """
+    """Enumeration of positions on needle beds."""
     Front = "front"
     Front_Slider = "front_slider"
     Back = "back"
@@ -28,24 +28,32 @@ class Machine_Bed_Position(Enum):
 
     @property
     def is_front(self) -> bool:
-        """
-        :return: True if front bed (slider or standard bed)
+        """Check if this is a front bed position.
+
+        Returns:
+            bool: True if front bed (slider or standard bed).
         """
         return self is Machine_Bed_Position.Front or self is Machine_Bed_Position.Front_Slider
 
     @property
     def is_slider(self) -> bool:
-        """
-        :return: True if represents a slider bed
+        """Check if this represents a slider bed.
+
+        Returns:
+            bool: True if represents a slider bed.
         """
         return self is Machine_Bed_Position.Front_Slider or self is Machine_Bed_Position.Back_Slider
 
     @staticmethod
-    def get_bed(is_front: bool, is_slider: bool = False):
-        """
-        :param is_front:
-        :param is_slider:
-        :return: corresponding bed from criteria
+    def get_bed(is_front: bool, is_slider: bool = False) -> Machine_Bed_Position:
+        """Get the corresponding bed from criteria.
+
+        Args:
+            is_front (bool): Whether the bed is on the front.
+            is_slider (bool, optional): Whether the bed is a slider bed. Defaults to False.
+
+        Returns:
+            Machine_Bed_Position: Corresponding bed from criteria.
         """
         if is_front:
             if is_slider:

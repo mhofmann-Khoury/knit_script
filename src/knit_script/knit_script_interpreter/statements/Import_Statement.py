@@ -2,29 +2,54 @@
 
 import importlib
 import os.path
+from typing import Iterable
 
+from parglare.parser import LRStackNode
 
 import knit_script.knit_script_std_library as ks_library
 from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Import_Statement(Statement):
-    """
-        A statement that imports a python or knit script module
+    """Statement that imports a Python or knit script module.
+
+    Supports importing Python modules, knit script standard library modules,
+    and local knit script files. Handles both direct imports and aliased imports.
     """
 
-    def __init__(self, parser_node, src: Expression, alias: Expression | None = None):
+    def __init__(self, parser_node: LRStackNode, src: Expression, alias: Expression | None = None) -> None:
+        """Initialize an import statement.
+
+        Args:
+            parser_node: The parser node from the abstract syntax tree.
+            src: Expression representing the module name or path to import.
+                Must evaluate to a Variable_Expression or Attribute_Accessor_Expression.
+            alias: Optional alias name for the imported module. If None and src is
+                a Variable_Expression, uses the module name as the alias.
+        """
         super().__init__(parser_node)
         self.src: Expression = src
         self.alias: Expression | None = alias
 
-    def execute(self, context):
-        """
-        Add the module with a given alias to the variable scope
-        :param context: the current context to execute at
+    def execute(self, context: Knit_Script_Context) -> None:
+        """Execute the import by loading the module and adding it to scope.
+
+        Attempts to import in the following order:
+        1. Python module with the exact name
+        2. Knit script standard library module
+        3. Local knit script file
+        4. Standard library knit script file
+
+        Args:
+            context: The current execution context to import into.
+
+        Raises:
+            AssertionError: If src is not a module name or path expression.
+            ImportError: If the module cannot be found in any location.
         """
         assert isinstance(self.src, Attribute_Accessor_Expression) or isinstance(self.src, Variable_Expression), \
             f"Cannot Import {self.src}, expected a module name or path"
@@ -79,13 +104,23 @@ class Import_Statement(Statement):
             context.variable_scope[alias] = module
         else:  # attribute accessor path
             assert isinstance(self.src, Attribute_Accessor_Expression)
+            assert isinstance(self.src.parent, Iterable)
             path = [str(p) for p in self.src.parent]
             path.append(str(self.src.attribute))
             context.variable_scope.add_local_by_path(path, module)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the import statement.
 
+        Returns:
+            A string showing the source and optional alias.
+        """
         return f"import {self.src} as {self.alias}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return detailed string representation of the import statement.
+
+        Returns:
+            Same as __str__ for this class.
+        """
         return str(self)

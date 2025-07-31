@@ -1,25 +1,37 @@
 """manages blocks of code executed in a new scope"""
+from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Code_Block(Statement):
-    """Used for executing any block of code in a new scope"""
+    """Used for executing any block of code in a new scope.
 
-    def __init__(self, parser_node, statements: list[Statement]):
-        """
-        Instantiate
-        :param parser_node:
-        :param statements: Ordered list of statements to execute.
+    Creates a new variable scope, executes all statements in order,
+    then restores the previous scope. Handles return statements properly
+    by preserving return values across scope boundaries.
+    """
+
+    def __init__(self, parser_node: LRStackNode, statements: list[Statement]) -> None:
+        """Initialize a code block.
+
+        Args:
+            parser_node: The parser node from the abstract syntax tree.
+            statements: Ordered list of statements to execute within the new scope.
         """
         super().__init__(parser_node)
         self._statements: list[Statement] = statements
 
-    def execute(self, context: Knit_Script_Context):
-        """
-        Enters a new scope, executes statements in order, then leaves the new scope, returning to prior scope
-        :param context: The current context of the knit_script_interpreter
+    def execute(self, context: Knit_Script_Context) -> None:
+        """Execute all statements in a new scope.
+
+        Creates a new variable scope, executes statements in order, then exits
+        the scope. If any statement triggers a return, execution stops early
+        and the return value is preserved.
+
+        Args:
+            context: The current execution context of the knit script interpreter.
         """
         context.enter_sub_scope()
         had_return = False
@@ -35,12 +47,22 @@ class Code_Block(Statement):
             context.variable_scope.returned = True
             context.variable_scope.return_value = return_value
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the code block.
+
+        Returns:
+            A string showing all statements in the block separated by semicolons.
+        """
         values = ""
         for stst in self._statements:
             values += f"{stst};\n"
         values = values[:-2]
         return f"[{values}]"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return detailed string representation of the code block.
+
+        Returns:
+            Same as __str__ for this class.
+        """
         return str(self)

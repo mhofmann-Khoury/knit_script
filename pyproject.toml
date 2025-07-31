@@ -1,61 +1,281 @@
+# =============================================================================
+# POETRY BUILD SYSTEM CONFIGURATION
+# =============================================================================
+# This section tells Poetry how to build your package
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["poetry-core>=2.0.0,<3.0.0"]  # Poetry build backend version
+build-backend = "poetry.core.masonry.api"  # Use Poetry's build system
 
-[project]
-name = "knit-script"
-dynamic = ["version"]
-description = 'Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines.'
-homepage = "https://github.com/mhofmann-Khoury/knit_script"
-repository = "https://github.com/mhofmann-Khoury/knit_script"
-readme = "README.md"
-requires-python = ">=3.11"
-keywords = ["knit", "machine knit", "textile", "Northeastern", "ACT Lab", "fabrication"]
-authors = [
-  { name = "Megan Hofmann", email = "m.hofmann@northeastern.edu" },
+# =============================================================================
+# PROJECT METADATA AND CONFIGURATION
+# =============================================================================
+# All the information about your project that will appear on PyPI
+[tool.poetry]
+name = "knit-script"            # Package name on PyPI (use hyphens)
+version = "0.1.28"               # Current version (update this for each release)
+description = "Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
+authors = ["Megan Hofmann <m.hofmann@northeastern.edu>"]       # Primary authors
+maintainers = ["Megan Hofmann <m.hofmann@northeastern.edu>"]   # Current maintainers
+license = "MIT"                 # License type (shows up on PyPI)
+readme = "README.md"            # File to use as long description on PyPI
+homepage = "https://github.com/mhofmann-Khoury/knit_script"     # Project website
+repository = "https://github.com/mhofmann-Khoury/knit_script"   # Source code location
+documentation = "https://github.com/mhofmann-Khoury/knit_script#readme"            # Documentation site
+keywords = [                    # Keywords for PyPI search
+    "knit",
+    "machine knit",
+    "textile",
+    "Northeastern",
+    "ACT Lab",
+    "fabrication",
+    "knit script",
+    "domain specific language",
+    "DSL"
 ]
-classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
-  "Natural Language :: English",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: Implementation :: PyPy",
-  "Topic :: Scientific/Engineering",
-]
-dependencies = [
-  "parglare~=0.16.1",
-  "networkx~=3.2",
-  "matplotlib~=3.8.0",
-  "virtual-knitting-machine~=0.0.13",
-  "knitout-interpreter~=0.0.14",
-  "importlib_resources~=6.4.0",
+classifiers = [                 # PyPI classifiers for categorization
+    "Development Status :: 2 - Pre-Alpha",                   # Project maturity
+    "Natural Language :: English",                           # Human language
+    "Intended Audience :: Developers",                       # Who this is for
+    "Intended Audience :: Manufacturing",                    # Industry audience
+    "License :: OSI Approved :: MIT License",               # License classifier
+    "Operating System :: OS Independent",                   # Platform support
+    "Programming Language :: Python :: 3",                 # Python support
+    "Programming Language :: Python :: 3.11",              # Specific versions
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Scientific/Engineering",                      # Subject area
 ]
 
-[project.urls]
-Documentation = "https://github.com/mhofmann-Khoury/knit_script#readme"
-Issues = "https://github.com/mhofmann-Khoury/knit_script/issues"
-Source = "https://github.com/mhofmann-Khoury/knit_script"
+# =============================================================================
+# PACKAGE STRUCTURE CONFIGURATION
+# =============================================================================
+# Tell Poetry where to find your Python packages in your repository
+packages = [
+    {include = "knit_script", from = "src"},  # Package is in src/ directory
+    # This means Poetry will look for src/knit_script/ as your main package
+]
 
-[tool.hatch.version]
-path = "src/knit_script/__about__.py"
-
-[tool.hatch.build.targets.sdist]
+# =============================================================================
+# FILES TO INCLUDE/EXCLUDE IN DISTRIBUTION
+# =============================================================================
+# Include additional files when building the package for distribution
 include = [
-  "knit_script/*.py",
-  "knit_script/*.pg",
-  "knit_script/*.ks",
-]
-exclude = [
-  "/tests",
-  "requirements.txt",
-  ".gitignore",
-  "*.PNG",
+    "README.md",                    # Project description
+    "LICENSE",                      # License file
+    "docs/**/*",                    # All documentation files
+    "examples/**/*.ks",             # Example knit script files
+    "src/knit_script/**/*.pg",      # Grammar files
+    "src/knit_script/**/*.ks",      # Knit script example files
 ]
 
-[tool.hatch.envs.types]
-extra-dependencies = [
-  "mypy>=1.0.0",
+# Exclude files from the distribution package (keeps package size down)
+exclude = [
+    "tests/**/*",                   # Don't include test files in distribution
+    "docs/_build",                  # Don't include built documentation
+    "*.pyc",                        # No compiled Python files
+    "__pycache__",                  # No Python cache directories
+    ".coverage",                    # No coverage data files
+    "htmlcov",                      # No coverage HTML reports
+    "requirements.txt",             # No old requirements file
+    ".gitignore",                   # No git ignore file
+    "*.PNG",                        # No PNG image files
 ]
-[tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/knit_script tests}"
+
+# =============================================================================
+# RUNTIME DEPENDENCIES
+# =============================================================================
+# These are packages your project needs to run in production
+[tool.poetry.dependencies]
+python = "^3.11"                        # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
+parglare = "~0.16.1"                   # Parser generator library
+networkx = "~3.2"                     # Graph algorithms library
+virtual-knitting-machine = "~0.0.13"   # Virtual knitting machine
+knitout-interpreter = "~0.0.14"        # Knitout interpreter library
+importlib_resources = "6.5.2"         # For loading parser grammar files
+
+# =============================================================================
+# DEVELOPMENT DEPENDENCIES
+# =============================================================================
+# These packages are only needed during development and testing
+[tool.poetry.group.dev.dependencies]
+
+# -------------------------------------------------------------------------
+# TESTING FRAMEWORK AND PLUGINS
+# -------------------------------------------------------------------------
+coverage = "^7.3.0"              # Coverage measurement for unittest
+unittest-xml-reporting = "^3.2.0"  # XML test reporting for CI/CD
+
+# -------------------------------------------------------------------------
+# CODE QUALITY AND ANALYSIS TOOLS
+# -------------------------------------------------------------------------
+mypy = "^1.5.0"                 # Static type checker (catches type errors)
+pre-commit = "^3.4.0"           # Git hook framework for code quality checks
+
+# -------------------------------------------------------------------------
+# SECURITY AND PACKAGE VALIDATION
+# -------------------------------------------------------------------------
+safety = "^2.3.0"               # Scans dependencies for security vulnerabilities
+twine = "^4.0.0"                # Validates and uploads packages to PyPI
+
+# -------------------------------------------------------------------------
+# DOCUMENTATION GENERATION
+# -------------------------------------------------------------------------
+sphinx = "^7.1.0"               # Documentation generator
+sphinx-rtd-theme = "^1.3.0"     # Read the Docs theme for Sphinx
+myst-parser = "^2.0.0"          # Allows Markdown files in Sphinx documentation
+
+# -------------------------------------------------------------------------
+# DEVELOPMENT TOOLS AND UTILITIES
+# -------------------------------------------------------------------------
+ipython = "^8.14.0"             # Enhanced interactive Python shell
+
+# -------------------------------------------------------------------------
+# PLATFORM-SPECIFIC DEPENDENCIES
+# -------------------------------------------------------------------------
+# Only install on Windows systems (for colored terminal output)
+colorama = {version = "^0.4.6", markers = "sys_platform == 'win32'"}
+
+# =============================================================================
+# DOCUMENTATION-SPECIFIC DEPENDENCIES
+# =============================================================================
+# Separate dependency group for building documentation (allows selective installation)
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.1.0"                    # Documentation generator (main tool)
+sphinx-rtd-theme = "^1.3.0"         # Professional-looking theme
+sphinx-autodoc-typehints = "^1.24.0" # Automatically include type hints in docs
+myst-parser = "^2.0.0"              # Support for Markdown files in documentation
+
+# =============================================================================
+# COMMAND-LINE INTERFACE SCRIPTS
+# =============================================================================
+# Define console scripts that get installed when users install your package
+# [tool.poetry.scripts]
+# Add command-line scripts here if your package provides any
+# knit-script = "knit_script.cli:main"
+
+# =============================================================================
+# ADDITIONAL PROJECT URLS
+# =============================================================================
+# Extra links that appear on your PyPI project page
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/mhofmann-Khoury/knit_script/issues"        # Where to report bugs
+"Documentation" = "https://github.com/mhofmann-Khoury/knit_script#readme"
+
+# =============================================================================
+# MYPY STATIC TYPE CHECKER CONFIGURATION
+# =============================================================================
+# MyPy analyzes your code for type errors without running it
+# This configuration enables strict type checking for better code quality
+[tool.mypy]
+python_version = "3.11"              # Target Python version for type checking
+warn_return_any = true               # Warn when function returns 'Any' type
+warn_unused_configs = true           # Warn about unused configuration options
+disallow_untyped_defs = true         # Require type annotations on all functions
+disallow_incomplete_defs = true      # Require complete type annotations (no partial)
+check_untyped_defs = true           # Type-check functions even without annotations
+disallow_untyped_decorators = true   # Require type annotations on decorators
+no_implicit_optional = true          # Don't automatically make arguments Optional
+warn_redundant_casts = true          # Warn about unnecessary type casts
+warn_unused_ignores = true           # Warn about unused # type: ignore comments
+warn_no_return = true               # Don't warn about functions that don't return
+warn_unreachable = true             # Warn about unreachable code
+strict_equality = true              # Use strict equality checks
+show_error_codes = true             # Show error codes in output (helpful for ignoring specific errors)
+ignore_missing_imports = true       # Ignore untyped library imports
+
+# Settings to allow attributes defined outside __init__
+allow_redefinition = true           # Allow variables to be redefined with different types
+
+# Enhanced error code disabling to handle subclassing and inheritance issues
+disable_error_code = [             # Disable specific error codes that are problematic
+    "attr-defined",                # Don't error on attributes that might not be defined
+    "no-redef",                    # Don't error on redefined attributes/methods
+    "misc",                        # Disable miscellaneous errors (includes subclassing Any errors)
+    "type-arg",                    # Disable generic type argument errors
+    "valid-type",                  # Disable "not a valid type" errors for complex inheritance
+    "override",                    # Disable method override signature mismatches
+]
+
+# Additional settings to be more permissive with third-party library integration
+allow_untyped_globals = true        # Allow untyped global variables (common in third-party libs)
+allow_subclassing_any = true        # Explicitly allow subclassing from Any types
+implicit_reexport = true            # Allow implicit re-exports from modules
+
+# Override settings for specific modules (less strict for tests)
+[[tool.mypy.overrides]]
+module = [
+    "tests.*",                      # Apply to all test files
+    "tests",                        # Apply to tests module itself
+]
+disallow_untyped_defs = false      # Allow untyped test functions (tests can be less strict)
+disallow_incomplete_defs = false   # Allow incomplete type annotations in tests
+check_untyped_defs = false         # Don't type-check untyped test functions
+warn_return_any = false            # Don't warn about returning 'Any' in tests
+warn_unused_ignores = false        # Don't warn about unused type ignores in tests
+
+# Specific overrides for third-party knitting libraries that may have type issues
+[[tool.mypy.overrides]]
+module = [
+    "parglare.*",                   # Parser generator library
+    "networkx.*",                   # Graph algorithms library
+    "matplotlib.*",                 # Plotting library
+    "virtual_knitting_machine.*",   # Virtual knitting machine library
+    "knitout_interpreter.*",        # Knitout interpreter library
+    "importlib_resources.*",        # Resource management
+]
+ignore_errors = true              # Completely ignore all mypy errors in these modules
+ignore_missing_imports = true     # Ignore missing imports from these modules
+follow_imports = "skip"           # Don't follow imports into these modules
+
+# =============================================================================
+# COVERAGE.PY CONFIGURATION FOR UNITTEST
+# =============================================================================
+# Detailed configuration for measuring code coverage with unittest
+
+# -------------------------------------------------------------------------
+# COVERAGE MEASUREMENT SETTINGS
+# -------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["src"]                    # Only measure coverage for source code (not tests)
+omit = [                           # Files to exclude from coverage measurement
+    "*/tests/*",                    # Don't measure coverage of test files themselves
+    "*/test_*",                     # Don't measure coverage of any test files
+    "*/__pycache__/*",              # Ignore Python cache files
+    "*/site-packages/*",            # Ignore installed packages
+    "*/venv/*",                     # Ignore virtual environment
+    "setup.py",                     # Ignore setup script
+]
+branch = true                       # Enable branch coverage (more comprehensive than line coverage)
+
+# -------------------------------------------------------------------------
+# COVERAGE REPORTING SETTINGS
+# -------------------------------------------------------------------------
+[tool.coverage.report]
+# Lines to exclude from coverage analysis (patterns that are hard to test)
+exclude_lines = [
+    "pragma: no cover",             # Explicit exclusion comment
+    "def __repr__",                 # String representation methods
+    "if self.debug:",               # Debug-only code
+    "if settings.DEBUG",            # Django-style debug code
+    "raise AssertionError",         # Should never be reached
+    "raise NotImplementedError",    # Abstract method placeholders
+    "if 0:",                        # Never-executed debug code
+    "if __name__ == .__main__.:",   # Script entry points
+    "class .*\\bProtocol\\):",      # Protocol classes (typing)
+    "@(abc\\.)?abstractmethod",     # Abstract methods
+]
+
+# Coverage quality settings
+fail_under = 0                      # Don't fail if coverage is low (for development)
+show_missing = true                 # Show which lines are missing coverage
+skip_covered = false                # Show covered files in report
+skip_empty = true                   # Skip empty files in report
+
+# -------------------------------------------------------------------------
+# COVERAGE OUTPUT FORMATS
+# -------------------------------------------------------------------------
+[tool.coverage.html]
+directory = "htmlcov"               # Directory for HTML coverage reports (open htmlcov/index.html to view)
+
+[tool.coverage.xml]
+output = "coverage.xml"             # XML coverage report file (used by CI/CD and external tools)

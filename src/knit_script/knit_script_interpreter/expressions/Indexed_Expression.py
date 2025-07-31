@@ -1,3 +1,6 @@
+"""Expressions associated with slicing and indexing elements"""
+from typing import Any
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -5,6 +8,7 @@ from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_
 
 
 class Slice_Index(Expression):
+    """An expression that slices a given expression using python notation."""
 
     def __init__(self, start: Expression | None, end: Expression | None, spacer: Expression | None, parser_node: LRStackNode):
         super().__init__(parser_node)
@@ -12,17 +16,20 @@ class Slice_Index(Expression):
         self.end = end
         self.start = start
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.start}:{self.end}:{self.spacer}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
     def evaluate(self, context: Knit_Script_Context) -> slice:
-        """
-        Evaluate the expression
-        :param context: The current context of the knit_script_interpreter
-        :return: The list of values in the given slice or (if no colons given in slice) return the indexed value
+        """Evaluate the expression.
+
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            slice: The list of values in the given slice or (if no colons given in slice) return the indexed value.
         """
         if self.start is not None:
             start = self.start.evaluate(context)
@@ -40,6 +47,7 @@ class Slice_Index(Expression):
 
 
 class Indexed_Expression(Expression):
+    """An expression to index into an expression using python notation."""
 
     def __init__(self, parser_node: LRStackNode, item: Expression, key: Expression, assign: Expression | None):
         super().__init__(parser_node)
@@ -47,20 +55,23 @@ class Indexed_Expression(Expression):
         self.key = key
         self.item = item
 
-    def __str__(self):
+    def __str__(self) -> str:
         string = f"{self.item}[{self.key}]"
         if self.assign is not None:
             string += f"= {self.assign}"
         return string
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def evaluate(self, context: Knit_Script_Context):
-        """
-        Evaluate the expression
-        :param context: The current context of the knit_script_interpreter
-        :return: The list of values in the given slice or (if no colons given in slice) return the indexed value
+    def evaluate(self, context: Knit_Script_Context) -> list[Any] | Any:
+        """Evaluate the expression.
+
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            list[Any] | Any: The list of values in the given slice or (if no colons given in slice) return the indexed value.
         """
         item = self.item.evaluate(context)
         key = self.key.evaluate(context)

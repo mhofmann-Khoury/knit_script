@@ -11,11 +11,11 @@ from knit_script.knit_script_interpreter.statements.Statement import Expression_
 
 
 class Test_KnitScript_Parser(TestCase):
-    parser = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
+    interpreter = Knit_Script_Interpreter(debug_grammar=False, debug_parser=False, debug_parser_layout=False)
 
     def _parse_program(self, program: str):
         print(f"Testing:\n{program}")
-        statements = self.parser.parse(program)
+        statements = self.interpreter.parse(program)
         for statement in statements:
             if isinstance(statement, Expression_Statement):
                 print(f"Expression Statement <{statement}> of value {statement.expression} of type {statement.expression.__class__.__name__}")
@@ -208,31 +208,31 @@ class Test_KnitScript_Parser(TestCase):
         statements = self._parse_program(" (2 - 1)^0 * 1 / 1 + 1 - 1;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert 1 == self.parser.knit_script_evaluate_expression(statement.expression)
+        assert 1 == self.interpreter.knit_script_evaluate_expression(statement.expression)
         statements = self._parse_program("2 < 0;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert not self.parser.knit_script_evaluate_expression(statement.expression)
+        assert not self.interpreter.knit_script_evaluate_expression(statement.expression)
         statements = self._parse_program("2 <= 0;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert not self.parser.knit_script_evaluate_expression(statement.expression)
+        assert not self.interpreter.knit_script_evaluate_expression(statement.expression)
         statements = self._parse_program("2 > 0;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.knit_script_evaluate_expression(statement.expression)
+        assert self.interpreter.knit_script_evaluate_expression(statement.expression)
         statements = self._parse_program("2 >= 0;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.knit_script_evaluate_expression(statement.expression)
+        assert self.interpreter.knit_script_evaluate_expression(statement.expression)
         statements = self._parse_program("2 == 0;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert not self.parser.knit_script_evaluate_expression(statement.expression)
+        assert not self.interpreter.knit_script_evaluate_expression(statement.expression)
         statements = self._parse_program("2 != 0;")
         statement = statements[0]
         assert isinstance(statement, Expression_Statement)
-        assert self.parser.knit_script_evaluate_expression(statement.expression)
+        assert self.interpreter.knit_script_evaluate_expression(statement.expression)
         self._parse_program("not 2 < 0;")
 
     def test_with(self):

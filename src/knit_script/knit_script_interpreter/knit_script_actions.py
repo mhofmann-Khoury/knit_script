@@ -1,8 +1,12 @@
 """Actions for converting parglare elements into useful code"""
+from __future__ import annotations
 import codecs
+from enum import Enum
+from typing import Any, Iterable
 
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from parglare import get_collector
+from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type, Knitting_Position
 
 from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
@@ -24,7 +28,8 @@ from knit_script.knit_script_interpreter.expressions.values import (Boolean_Valu
                                                                     Machine_Position_Value, Machine_Type_Value, Header_ID_Value)
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position, Xfer_Direction
+from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_interpreter.ks_element import KS_Element
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
 from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
@@ -50,21 +55,29 @@ action = get_collector()  # some boiler plate parglare code
 
 
 @action
-def program(_, __, statements: list[Statement]) -> list[Statement]:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param statements: the list of statements to execute
-    :return: statements
+def program(_parser_node: LRStackNode, __: list, statements: list[Statement]) -> list[Statement]:
+    """Creates a program from a list of statements.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        statements: The list of statements to execute
+        
+    Returns:
+        The list of statements
     """
     return statements
 
 
-def _in_enum(item, enumeration) -> bool:
-    """
-    :param enumeration: The enumeration class
-    :param item: item to compare against Enum
-    :return:
+def _in_enum(item: str | Enum, enumeration: Iterable) -> bool:
+    """Checks if an item exists in an enumeration.
+    
+    Args:
+        item: Item to compare against Enum
+        enumeration: The enumeration class
+        
+    Returns:
+        True if item is in enumeration, False otherwise
     """
     if isinstance(item, str):
         return (item in [i.value for i in enumeration]) or (item in [i.name for i in enumeration])
@@ -76,11 +89,15 @@ def _in_enum(item, enumeration) -> bool:
 
 # basic expressions and statements
 @action
-def identifier(parser_node, node: str) -> Expression:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param node: the string recognized as an identifier
-    :return: variable expression or withheld keyword
+def identifier(parser_node: LRStackNode, node: str) -> Expression:
+    """Converts a string identifier into an appropriate expression.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        node: The string recognized as an identifier
+        
+    Returns:
+        Variable expression or withheld keyword
     """
     if node == "None":
         return None_Value(parser_node)
@@ -92,8 +109,6 @@ def identifier(parser_node, node: str) -> Expression:
         return Machine_Position_Value(parser_node, node)
     elif _in_enum(node, Knitting_Machine_Type):
         return Machine_Type_Value(parser_node, node)
-    # elif _in_enum(node, Header_ID):
-    #     return Header_ID_Value(parser_node, node)
     elif node == "machine":
         return Machine_Accessor(parser_node)
     elif _in_enum(node, Needle_Sets):
@@ -103,94 +118,125 @@ def identifier(parser_node, node: str) -> Expression:
 
 
 @action
-def declare_variable(parser_node, __, assign: Assignment) -> Variable_Declaration:
-    """
-    :param assign: assignment before eol punctuation
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :return: Variable Declaration Statement that assigns the variable on execution
+def declare_variable(parser_node: LRStackNode, __: list, assign: Assignment) -> Variable_Declaration:
+    """Creates a variable declaration statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        assign: Assignment before eol punctuation
+        
+    Returns:
+        Variable Declaration Statement that assigns the variable on execution
     """
     return Variable_Declaration(parser_node, assign)
 
 
 @action
-def declare_global(parser_node, __, assign: Assignment) -> Variable_Declaration:
-    """
-    :param assign: assignment before eol punctuation
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :return: Variable Declaration Statement that assigns the global variable on execution
+def declare_global(parser_node: LRStackNode, __: list, assign: Assignment) -> Variable_Declaration:
+    """Creates a global variable declaration statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        assign: Assignment before eol punctuation
+        
+    Returns:
+        Variable Declaration Statement that assigns the global variable on execution
     """
     return Variable_Declaration(parser_node, assign, is_global=True)
 
 
 @action
-def assertion(parser_node, __, exp: Expression, error: Expression | None = None) -> Assertion:
-    """
-    :param __: ignored nodes
-    :param error: error to report
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param exp: expression to evaluate assertion by
-    :return: Assertion Statement
+def assertion(parser_node: LRStackNode, __: list, exp: Expression, error: Expression | None = None) -> Assertion:
+    """Creates an assertion statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        exp: Expression to evaluate assertion by
+        error: Error to report (optional)
+        
+    Returns:
+        Assertion Statement
     """
     return Assertion(parser_node, exp, error)
 
 
 @action
-def print_statement(parser_node, __, exp: Expression) -> Print:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context.
-    :param __: Ignored nodes.
-    :param exp: Expression to print.
-    :return: Print Statement
+def print_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Print:
+    """Creates a print statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        exp: Expression to print
+        
+    Returns:
+        Print Statement
     """
     return Print(parser_node, exp)
 
 
 @action
-def try_catch(parser_node, __, try_block: Statement, catch_block: Statement, errors: list[Expression]) -> Try_Catch_Statement:
-    """
-    :param errors: errors to accept
-    :param parser_node: The parser element that created this value ignored parglare context.
-    :param __: ignored nodes.
-    :param try_block: statements to execute in try branch
-    :param catch_block: statements to execute in catch branch
-    :return: Try Catch
+def try_catch(parser_node: LRStackNode, __: list, try_block: Statement, catch_block: Statement, errors: list[Expression]) -> Try_Catch_Statement:
+    """Creates a try-catch statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        try_block: Statements to execute in try branch
+        catch_block: Statements to execute in catch branch
+        errors: Errors to accept
+        
+    Returns:
+        Try Catch statement
     """
     return Try_Catch_Statement(parser_node, try_block, catch_block, errors=errors)
 
 
 @action
-def exception_assignment(parser_node, __, except_val: Expression, var_name: Variable_Expression) -> Assignment:
-    """
-    Reversed assignment syntax for catch statements
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param except_val: the exception to allow
-    :param var_name: the name of the variable for the error
-    :return: an assignment operation for this error
+def exception_assignment(parser_node: LRStackNode, __: list, except_val: Expression, var_name: Variable_Expression) -> Assignment:
+    """Creates assignment with reversed syntax for catch statements.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        except_val: The exception to allow
+        var_name: The name of the variable for the error
+        
+    Returns:
+        An assignment operation for this error
     """
     return Assignment(parser_node, var_name.variable_name, except_val)
 
 
 @action
-def pause_statement(parser_node, __) -> Pause_Statement:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :return: Pause statement
+def pause_statement(parser_node: LRStackNode, __: list) -> Pause_Statement:
+    """Creates a pause statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        
+    Returns:
+        Pause statement
     """
     return Pause_Statement(parser_node)
 
 
 @action
-def assignment(parser_node, __, var_name: Variable_Expression, exp: Expression):
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes
-    :param var_name: processed identifier to variable name
-    :param exp: expression to assign variable value
-    :return: assignment expression which evaluates to expression value
+def assignment(parser_node: LRStackNode, __: list, var_name: Variable_Expression, exp: Expression) -> Assignment:
+    """Creates an assignment expression.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        var_name: Processed identifier to variable name
+        exp: Expression to assign variable value
+        
+    Returns:
+        Assignment expression which evaluates to expression value
     """
     # todo: ensure that typing is checking identifier not over shadowing keywords
     return Assignment(parser_node, var_name.variable_name, exp)
@@ -199,42 +245,57 @@ def assignment(parser_node, __, var_name: Variable_Expression, exp: Expression):
 # NUMBERS #
 
 @action
-def float_exp(parser_node, node: str) -> Float_Value:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param node: the number string
-    :return: the positive number specified
+def float_exp(parser_node: LRStackNode, node: str) -> Float_Value:
+    """Creates a float value expression.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        node: The number string
+        
+    Returns:
+        The positive number specified
     """
     return Float_Value(parser_node, node)
 
 
 @action
-def int_exp(parser_node, node: str) -> Int_Value:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param node: the number string
-    :return: the positive number specified
+def int_exp(parser_node: LRStackNode, node: str) -> Int_Value:
+    """Creates an integer value expression.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        node: The number string
+        
+    Returns:
+        The positive number specified
     """
     return Int_Value(parser_node, node)
 
 
 @action
-def direction_exp(parser_node, nodes: list) -> Pass_Direction_Expression:
-    """
+def direction_exp(parser_node: LRStackNode, nodes: list) -> Pass_Direction_Expression:
+    """Creates a direction expression.
     
-    :param parser_node: The parser element that created this value 
-    :param nodes: single node list with direction keyword
-    :return: pass direction
+    Args:
+        parser_node: The parser element that created this value
+        nodes: Single node list with direction keyword
+        
+    Returns:
+        Pass direction expression
     """
     return Pass_Direction_Expression(parser_node, nodes[0])
 
 
 @action
-def string(parser_node, node: str) -> String_Value:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param node: string value
-    :return: Expression storing quote
+def string(parser_node: LRStackNode, node: str) -> String_Value:
+    """Creates a string value expression.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        node: String value
+        
+    Returns:
+        Expression storing quote
     """
     string_value = node.strip("\"")
     decode_string = codecs.decode(string_value, 'unicode_escape')
@@ -242,19 +303,24 @@ def string(parser_node, node: str) -> String_Value:
 
 
 @action
-def f_string_section(parser_node, __, exp: Expression | None = None, string_value: str | None = None) -> Expression:
-    """
-    :param __:
-    :param exp: expression in formatting
-    :param string_value: string in formatting
-    :param parser_node: The parser element that created this value ignored parglare context
-    :return: Expression of string value of a section of a formatted string
+def f_string_section(parser_node: LRStackNode, __: list, exp: Expression | None = None, string_value: str | None = None) -> Expression:
+    """Creates an expression from a section of a formatted string.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Unused parameter
+        exp: Expression in formatting
+        string_value: String in formatting
+        
+    Returns:
+        Expression of string value of a section of a formatted string
     """
     if exp is not None:
         return exp
     else:
-        string_value = codecs.decode(string_value, 'unicode_escape')
-        prior_char_index = parser_node.start_position-1
+        assert isinstance(string_value, str)
+        string_value = string_value.encode().decode('unicode_escape')
+        prior_char_index = parser_node.start_position - 1
         if prior_char_index >= 0:
             prior_char = parser_node.input_str[prior_char_index]
             while prior_char.isspace():
@@ -268,25 +334,33 @@ def f_string_section(parser_node, __, exp: Expression | None = None, string_valu
 
 
 @action
-def formatted_string(parser_node, __, sections: list[Expression]) -> Formatted_String_Value:
-    """
-    :param __:
-    :param sections: f string sections parsed as expressions
-    :param parser_node: The parser element that created this value ignored parglare context
-    :return: Formatted string expression
+def formatted_string(parser_node: LRStackNode, __: list, sections: list[Expression]) -> Formatted_String_Value:
+    """Creates a formatted string expression.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Unused parameter
+        sections: F string sections parsed as expressions
+        
+    Returns:
+        Formatted string expression
     """
     return Formatted_String_Value(parser_node, sections)
 
 
 @action
-def call_list(_, __, params: list[Expression] | None = None,
+def call_list(_parser_node: LRStackNode, __: list, params: list[Expression] | None = None,
               kwargs: list[Assignment] | None = None) -> tuple[list[Expression], list[Assignment]]:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param params: the parameters in the call list
-    :param kwargs: the keyword set parameters in the call list
-    :return: parameters and kwargs
+    """Creates a call list with parameters and keyword arguments.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        params: The parameters in the call list
+        kwargs: The keyword set parameters in the call list
+        
+    Returns:
+        Tuple of parameters and kwargs
     """
     if params is None:
         params = []
@@ -296,14 +370,18 @@ def call_list(_, __, params: list[Expression] | None = None,
 
 
 @action
-def function_call(parser_node, __, func_name: Variable_Expression,
-                  args: tuple[list[Expression], list[Assignment]]) -> Function_Call:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param func_name: name of the function being called
-    :param args: the arguments passed to the function
-    :return: the function call
+def function_call(parser_node: LRStackNode, __: list, func_name: Variable_Expression,
+                  args: tuple[list[Expression], list[Assignment]] | None) -> Function_Call:
+    """Creates a function call expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        func_name: Name of the function being called
+        args: The arguments passed to the function
+        
+    Returns:
+        The function call
     """
     if args is None:
         params = []
@@ -315,39 +393,51 @@ def function_call(parser_node, __, func_name: Variable_Expression,
 
 
 @action
-def list_expression(parser_node, __, exps: list[Expression]) -> Knit_Script_List:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exps: Expressions in the list.
-    :return: The list expression
+def list_expression(parser_node: LRStackNode, __: list, exps: list[Expression]) -> Knit_Script_List:
+    """Creates a list expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exps: Expressions in the list
+        
+    Returns:
+        The list expression
     """
     return Knit_Script_List(parser_node, exps)
 
 
 @action
-def list_comp(parser_node, __, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression = None) -> List_Comp:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param fill_exp: Expression that fills the list
-    :param variables: Variables to fill from iterable
-    :param iter_exp: the iterable to pass over
-    :param comp_cond: condition to evaluate for adding a value
-    :return: List comprehension
+def list_comp(parser_node: LRStackNode, __: list, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression = None) -> List_Comp:
+    """Creates a list comprehension expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        fill_exp: Expression that fills the list
+        variables: Variables to fill from iterable
+        iter_exp: The iterable to pass over
+        comp_cond: Condition to evaluate for adding a value
+        
+    Returns:
+        List comprehension
     """
     return List_Comp(parser_node, fill_exp, variables, iter_exp, comp_cond)
 
 
 @action
-def indexed_value(parser_node, __, item: Expression, key: Slice_Index | Knit_Script_List, assign: Expression) -> Indexed_Expression:
-    """
-    :param parser_node:
-    :param __:
-    :param item: item to index
-    :param key: key to index by
-    :param assign: optional assignment
-    :return: expression that evaluations assignment
+def indexed_value(parser_node: LRStackNode, __: list, item: Expression, key: Slice_Index | Knit_Script_List, assign: Expression) -> Indexed_Expression:
+    """Creates an indexed value expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        item: Item to index
+        key: Key to index by
+        assign: Optional assignment
+        
+    Returns:
+        Expression that evaluates assignment
     """
     if isinstance(key, Knit_Script_List):
         key = key.expressions[0]
@@ -355,13 +445,17 @@ def indexed_value(parser_node, __, item: Expression, key: Slice_Index | Knit_Scr
 
 
 @action
-def slice_index(parser_node, __, start: Expression | None, end: Expression | list[Expression | None]) -> Slice_Index:
-    """
-    :param parser_node:
-    :param __:
-    :param start:
-    :param end:
-    :return:
+def slice_index(parser_node: LRStackNode, __: list, start: Expression | None, end: Expression | list[Expression | None]) -> Slice_Index:
+    """Creates a slice index expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        start: Start index expression
+        end: End index expression or list of expressions
+        
+    Returns:
+        Slice index expression
     """
     spacer = None
     if isinstance(end, list):
@@ -372,105 +466,134 @@ def slice_index(parser_node, __, start: Expression | None, end: Expression | lis
 
 
 @action
-def dict_assign(_, __, key: Expression, exp: Expression) -> tuple[Expression, Expression]:
-    """
-    collect key value pair
-    :param _: The parser element that created this value
-    :param __:
-    :param key: key expression
-    :param exp: value expression
-    :return: key, value
+def dict_assign(_parser_node: LRStackNode, __: list, key: Expression, exp: Expression) -> tuple[Expression, Expression]:
+    """Collects key value pair for dictionary.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        key: Key expression
+        exp: Value expression
+        
+    Returns:
+        Tuple of key and value
     """
     return key, exp
 
 
 @action
-def dict_expression(parser_node, __, kwargs: list[tuple[Expression, Expression]]):
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param kwargs: key value pairs
-    :return: The dictionary
+def dict_expression(parser_node: LRStackNode, __: list, kwargs: list[tuple[Expression, Expression]]) -> Knit_Script_Dictionary:
+    """Creates a dictionary expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        kwargs: Key value pairs
+        
+    Returns:
+        The dictionary
     """
     return Knit_Script_Dictionary(parser_node, kwargs)
 
 
 @action
-def dict_comp(parser_node, __, key: Expression, value: Expression,
+def dict_comp(parser_node: LRStackNode, __: list, key: Expression, value: Expression,
               variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None = None) -> Dictionary_Comprehension:
-    """
-    :param comp_cond: conditional on variables to skip specific designs
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param key: key expression
-    :param value: value expression
-    :param variables: variables to parse from iterable
-    :param iter_exp: the iterable to parse over
-    :return: Dictionary comprehension
+    """Creates a dictionary comprehension expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        key: Key expression
+        value: Value expression
+        variables: Variables to parse from iterable
+        iter_exp: The iterable to parse over
+        comp_cond: Conditional on variables to skip specific designs
+        
+    Returns:
+        Dictionary comprehension
     """
     return Dictionary_Comprehension(parser_node, key, value, variables, iter_exp, comp_cond)
 
 
 @action
-def unpack(parser_node, __, exp: Expression) -> Unpack:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exp: Expression to unpack.
-    :return: Unpacking expression
+def unpack(parser_node: LRStackNode, __: list, exp: Expression) -> Unpack:
+    """Creates an unpack expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exp: Expression to unpack
+        
+    Returns:
+        Unpacking expression
     """
     return Unpack(parser_node, exp)
 
 
 @action
-def code_block(parser_node, __, statements: list[Statement]) -> Code_Block:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param __: ignored nodes.
-    :param statements: Statements to execute in sub scope
-    :return: scoping block
+def code_block(parser_node: LRStackNode, __: list, statements: list[Statement]) -> Code_Block:
+    """Creates a code block statement.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        statements: Statements to execute in sub scope
+        
+    Returns:
+        Scoping block
     """
     return Code_Block(parser_node, statements)
 
 
 @action
-def elif_statement(_, __, exp: Expression, stmnt: Statement) -> tuple[Expression, Statement]:
-    """
-    components of an elif statement
-    :param _: The parser element that created this value ignored parglare context
-    :param __: ignored nodes.
-    :param exp: expression to test on elif.
-    :param stmnt: statement to execute on true result
-    :return: expression and statement to execute when true
+def elif_statement(_parser_node: LRStackNode, __: list, exp: Expression, stmnt: Statement) -> tuple[Expression, Statement]:
+    """Creates components of an elif statement.
+    
+    Args:
+        _parser_node: The parser element that created this value ignored parglare context
+        __: Ignored nodes
+        exp: Expression to test on elif
+        stmnt: Statement to execute on true result
+        
+    Returns:
+        Tuple of expression and statement to execute when true
     """
     return exp, stmnt
 
 
 @action
-def else_statement(_, __, false_statement: Code_Block) -> Code_Block:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param false_statement: code block to execute when false
-    :return: the code to execute when false
+def else_statement(_parser_node: LRStackNode, __: list, false_statement: Code_Block) -> Code_Block:
+    """Creates an else statement.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        false_statement: Code block to execute when false
+        
+    Returns:
+        The code to execute when false
     """
     return false_statement
 
 
 @action
-def if_statement(parser_node, __,
+def if_statement(parser_node: LRStackNode, __: list,
                  condition: Expression, true_statement: Code_Block,
                  elifs: list[tuple[Expression, Statement]],
                  else_stmt: Code_Block | None) -> If_Statement:
-    """
-
-    :param elifs: list of else-if conditions and statements
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param condition: branching condition
-    :param true_statement: statement to execute on true.
-    :param else_stmt: statement to execute on false
-    :return: if statement
+    """Creates an if statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter.
+        condition: Branching condition.
+        true_statement: Statement to execute on true.
+        elifs: List of else-if conditions and statements.
+        else_stmt: Statement to execute on false.
+        
+    Returns:
+        If statement
     """
     while len(elifs) > 0:
         elif_tuple = elifs.pop()
@@ -479,27 +602,34 @@ def if_statement(parser_node, __,
 
 
 @action
-def while_statement(parser_node, __, condition: Expression, while_block: Code_Block) -> While_Statement:
-    """
-
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param condition: condition to evaluate on while
-    :param while_block: the statement to execute with each iteration
-    :return:
+def while_statement(parser_node: LRStackNode, __: list, condition: Expression, while_block: Code_Block) -> While_Statement:
+    """Creates a while statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        condition: Condition to evaluate on while
+        while_block: The statement to execute with each iteration
+        
+    Returns:
+        While statement
     """
     return While_Statement(parser_node, condition, while_block)
 
 
 @action
-def for_each_statement(parser_node, __, variables: list[Variable_Expression], iters: list[Expression], block: Code_Block) -> For_Each_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param variables: To assign on each iteration of iterable.
-    :param iters: Iterable to iterate over.
-    :param block: Statement to execute with each iteration
-    :return: For each statement
+def for_each_statement(parser_node: LRStackNode, __: list, variables: list[Variable_Expression], iters: list[Expression], block: Code_Block) -> For_Each_Statement:
+    """Creates a for each statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        variables: To assign on each iteration of iterable
+        iters: Iterable to iterate over
+        block: Statement to execute with each iteration
+        
+    Returns:
+        For each statement
     """
     if len(iters) == 1:
         return For_Each_Statement(parser_node, variables, iters[0], block)
@@ -508,13 +638,17 @@ def for_each_statement(parser_node, __, variables: list[Variable_Expression], it
 
 
 @action
-def as_assignment(parser_node, __, variable: Variable_Expression, exp: Expression) -> Assignment:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param variable: variable to assign to
-    :param exp: expression to assign
-    :return: Assignment value
+def as_assignment(parser_node: LRStackNode, __: list, variable: Variable_Expression, exp: Expression) -> Assignment:
+    """Creates an assignment using 'as' syntax.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        variable: Variable to assign to
+        exp: Expression to assign
+        
+    Returns:
+        Assignment value
     """
     if isinstance(variable, Header_ID_Value):
         variable = Variable_Expression(parser_node, variable.hid_str)
@@ -522,102 +656,138 @@ def as_assignment(parser_node, __, variable: Variable_Expression, exp: Expressio
 
 
 @action
-def with_statement(parser_node, __, assigns: list[Assignment], block: Code_Block) -> With_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param assigns: Assignments for block.
-    :param block: Block to execute.
-    :return: With statement
+def with_statement(parser_node: LRStackNode, __: list, assigns: list[Assignment], block: Code_Block) -> With_Statement:
+    """Creates a with statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter.
+        assigns: Assignments for block.
+        block: Block to execute.
+        
+    Returns:
+        With statement
     """
     return With_Statement(parser_node, block, assigns)
 
 
 @action
-def needle_instruction(_, __, inst: str) -> Knitout_Instruction_Type:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param inst: instruction keyword
-    :return: needle instruction
+def needle_instruction(_parser_node: LRStackNode, __: list, inst: str) -> Knitout_Instruction_Type:
+    """Creates a needle instruction type.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        inst: Instruction keyword
+        
+    Returns:
+        Needle instruction
     """
     return Knitout_Instruction_Type.get_instruction(inst)
 
 
 @action
-def instruction_assignment(parser_node, __, inst: Expression, needles: list[Expression]) -> Needle_Instruction_Exp:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param inst: Instruction to apply to needles.
-    :param needles: Needles to apply instruction to
-    :return: Needle instruction expression
+def instruction_assignment(parser_node: LRStackNode, __: list, inst: Expression, needles: list[Expression]) -> Needle_Instruction_Exp:
+    """Creates a needle instruction expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        inst: Instruction to apply to needles.
+        needles: Needles to apply instruction to.
+        
+    Returns:
+        Needle instruction expression
     """
     return Needle_Instruction_Exp(parser_node, inst, needles)
 
 
 @action
-def carriage_pass(parser_node, __, pass_dir: Expression, instructions: list[Needle_Instruction_Exp]) -> In_Direction_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param pass_dir: direction to apply instructions in
-    :param instructions: instructions to apply
-    :return: in direction statement.
+def carriage_pass(parser_node: LRStackNode, __: list, pass_dir: Expression, instructions: list[Needle_Instruction_Exp]) -> In_Direction_Statement:
+    """Creates a carriage pass statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        pass_dir: Direction to apply instructions in
+        instructions: Instructions to apply
+        
+    Returns:
+        In direction statement
     """
     return In_Direction_Statement(parser_node, pass_dir, instructions)
 
 
 @action
-def needle_id(parser_node, needle_node: str) -> Needle_Expression:
-    """
-    :param parser_node: The parser element that created this value
-    :param needle_node: node representing needle.
-    :return: Needle expression
+def needle_id(parser_node: LRStackNode, needle_node: str) -> Needle_Expression:
+    """Creates a needle expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        needle_node: Node representing needle
+        
+    Returns:
+        Needle expression
     """
     return Needle_Expression(parser_node, needle_node)
 
 
 @action
-def sheet_id(parser_node, sheet_node: str) -> Sheet_Expression:
-    """
-    :param parser_node: The parser element that created this value
-    :param sheet_node: string representing sheet
-    :return: sheet expression
+def sheet_id(parser_node: LRStackNode, sheet_node: str) -> Sheet_Expression:
+    """Creates a sheet expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        sheet_node: String representing sheet
+        
+    Returns:
+        Sheet expression
     """
     return Sheet_Expression(parser_node, sheet_node)
 
 
 @action
-def carrier(parser_node, carrier_node: str) -> Carrier_Expression:
-    """
-    :param parser_node: The parser element that created this value
-    :param carrier_node: string describing carrier.
-    :return: carrier expression
+def carrier(parser_node: LRStackNode, carrier_node: str) -> Carrier_Expression:
+    """Creates a carrier expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        carrier_node: String describing carrier
+        
+    Returns:
+        Carrier expression
     """
     return Carrier_Expression(parser_node, carrier_node)
 
 
 @action
-def return_statement(parser_node, __, exp: Expression) -> Return_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exp: expression to return
-    :return: return statement
+def return_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Return_Statement:
+    """Creates a return statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exp: Expression to return
+        
+    Returns:
+        Return statement
     """
     return Return_Statement(parser_node, exp)
 
 
 @action
-def param_list(_, __, args: list[Variable_Expression] | None = None,
+def param_list(_parser_node: LRStackNode, __: list, args: list[Variable_Expression] | None = None,
                kwargs: list[Assignment] | None = None) -> tuple[list[Variable_Expression], list[Assignment]]:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param args: List of argument identifiers.
-    :param kwargs: List of keyword assignments
-    :return: arguments and keyword assignments
+    """Creates a parameter list for function definitions.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        args: List of argument identifiers
+        kwargs: List of keyword assignments
+        
+    Returns:
+        Tuple of arguments and keyword assignments
     """
     if args is None:
         args = []
@@ -627,16 +797,20 @@ def param_list(_, __, args: list[Variable_Expression] | None = None,
 
 
 @action
-def function_declaration(parser_node, __, func_name: Variable_Expression,
+def function_declaration(parser_node: LRStackNode, __: list, func_name: Variable_Expression,
                          params: tuple[list[Variable_Expression], list[Assignment]] | None,
                          block: Statement) -> Function_Declaration:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param func_name: Name of the function.
-    :param params: List of variables for arguments, list of key word assignments
-    :param block: body to execute
-    :return: the function declaration
+    """Creates a function declaration.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        func_name: Name of the function
+        params: List of variables for arguments, list of key word assignments
+        block: Body to execute
+        
+    Returns:
+        The function declaration
     """
     if params is None:
         params = [], []
@@ -646,11 +820,15 @@ def function_declaration(parser_node, __, func_name: Variable_Expression,
 
 
 @action
-def expression(parser_node, nodes: list) -> Expression:
-    """
-    :param parser_node: The parser element that created this value ignored parglare context
-    :param nodes: nodes to parse into expression.
-    :return: Expression
+def expression(parser_node: LRStackNode, nodes: list[str | KS_Element | Expression]) -> Expression:
+    """Creates an expression from parser nodes.
+    
+    Args:
+        parser_node: The parser element that created this value ignored parglare context
+        nodes: Nodes to parse into expression
+        
+    Returns:
+        Expression
     """
     if len(nodes) == 1:
         return nodes[0]
@@ -670,134 +848,178 @@ def expression(parser_node, nodes: list) -> Expression:
 
 
 @action
-def negation(parser_node, __, exp: Expression) -> Not_Expression:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exp: expression to negate
-    :return: not expression
+def negation(parser_node: LRStackNode, __: list, exp: Expression) -> Not_Expression:
+    """Creates a negation expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exp: Expression to negate
+        
+    Returns:
+        Not expression
     """
     return Not_Expression(parser_node, exp)
 
 
 @action
-def xfer_rack(parser_node, __, is_across: str | None = None,
+def xfer_rack(parser_node: LRStackNode, __: list, is_across: str | None = None,
               dist_exp: Expression | None = None, side_id: Expression | None = None) -> Xfer_Pass_Racking:
+    """Creates a transfer racking specification.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        is_across: True, if xfer is directly across beds
+        dist_exp: The needle offset for xfer
+        side_id: Offset direction
+        
+    Returns:
+        Xfer pass racking
     """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param is_across: True, if xfer is directly across beds.
-    :param dist_exp: The needle offset for xfer.
-    :param side_id: Offset direction.
-    :return: Xfer pass racking
-    """
-    return Xfer_Pass_Racking(parser_node, is_across is not None, dist_exp, side_id)
+    if is_across is not None:
+        return Xfer_Pass_Racking(parser_node, distance_expression=None, direction_expression=None)
+    return Xfer_Pass_Racking(parser_node, distance_expression=dist_exp, direction_expression=side_id)
 
 
 @action
-def xfer_pass(parser_node, __, needles: list[Expression],
+def xfer_pass(parser_node: LRStackNode, __: list, needles: list[Expression],
               rack_val: Xfer_Pass_Racking,
               bed: Expression | None = None,
               slider: str | None = None) -> Xfer_Pass_Statement:
-    """
-
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param rack_val: Racking for xfers
-    :param needles: needles to start xfer from
-    :param bed: beds to land on. Exclude needles already on bed
-    :param slider: True if transferring to sliders
-    :return: xfer pass statement
+    """Creates a transfer pass statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        needles: Needles to start xfer from
+        rack_val: Racking for xfers
+        bed: Beds to land on. Exclude needles already on bed
+        slider: True if transferring to sliders
+        
+    Returns:
+        Xfer pass statement
     """
     return Xfer_Pass_Statement(parser_node, rack_val, needles, bed, slider is not None)
 
 
 @action
-def accessor(parser_node, __, exp: Expression, attribute: Expression) -> Attribute_Accessor_Expression:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exp: expression to get from
-    :param attribute: attribute to collect
-    :return: accessor
+def accessor(parser_node: LRStackNode, __: list, exp: Expression, attribute: Expression) -> Attribute_Accessor_Expression:
+    """Creates an attribute accessor expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exp: Expression to get from
+        attribute: Attribute to collect
+        
+    Returns:
+        Accessor expression
     """
     return Attribute_Accessor_Expression(parser_node, exp, attribute)
 
 
 @action
-def exp_statement(parser_node, __, exp: Expression) -> Expression_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exp: expression to execute
-    :return: execution of expression
+def exp_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Expression_Statement:
+    """Creates an expression statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exp: Expression to execute
+        
+    Returns:
+        Execution of expression
     """
     return Expression_Statement(parser_node, exp)
 
 
 @action
-def cut_statement(parser_node, __, exps: list[Expression]) -> Cut_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exps: carriers to cut
-    :return: cut statement
+def cut_statement(parser_node: LRStackNode, __: list, exps: list[Expression]) -> Cut_Statement:
+    """Creates a cut statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exps: Carriers to cut
+        
+    Returns:
+        Cut statement
     """
     return Cut_Statement(parser_node, exps)
 
 
 @action
-def release_statement(parser_node, __) -> Release_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :return: Release statement for current carrier
+def release_statement(parser_node: LRStackNode, __: list) -> Release_Statement:
+    """Creates a release statement for current carrier.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        
+    Returns:
+        Release statement for current carrier
     """
     return Release_Statement(parser_node)
 
 
 @action
-def remove_statement(parser_node, __, exps: list[Expression]) -> Remove_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param exps: carriers to out
-    :return: remove statement
+def remove_statement(parser_node: LRStackNode, __: list, exps: list[Expression]) -> Remove_Statement:
+    """Creates a remove statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        exps: Carriers to out
+        
+    Returns:
+        Remove statement
     """
     return Remove_Statement(parser_node, exps)
 
 
 @action
-def gauge_exp(parser_node, __, sheet_exp: Expression, gauge: Expression) -> Gauge_Expression:
-    """
-
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param sheet_exp: sheet value
-    :param gauge: gauge value
-    :return: Gauge expression
+def gauge_exp(parser_node: LRStackNode, __: list, sheet_exp: Expression, gauge: Expression) -> Gauge_Expression:
+    """Creates a gauge expression.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        sheet_exp: Sheet value
+        gauge: Gauge value
+        
+    Returns:
+        Gauge expression
     """
     return Gauge_Expression(parser_node, sheet_exp, gauge)
 
 
 @action
-def drop_pass(parser_node, __, needles: list[Expression]) -> Drop_Pass:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param needles: needles to drop from
-    :return: drop pass
+def drop_pass(parser_node: LRStackNode, __: list, needles: list[Expression]) -> Drop_Pass:
+    """Creates a drop pass statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        needles: Needles to drop from
+        
+    Returns:
+        Drop pass
     """
     return Drop_Pass(parser_node, needles)
 
 
 @action
-def push_to(_, __, push_val: str | list) -> str | Expression:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param push_val: front, back, or a specific layer value
-    :return: identifying string or expression layer value
+def push_to(_parser_node: LRStackNode, __: list, push_val: str | list) -> str | Expression:
+    """Creates a push target specification.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        push_val: Front, back, or a specific layer value
+        
+    Returns:
+        Identifying string or expression layer value
     """
     if isinstance(push_val, list):
         return push_val[1]
@@ -805,61 +1027,79 @@ def push_to(_, __, push_val: str | list) -> str | Expression:
 
 
 @action
-def push_dir(_, __, amount: Expression, direction: str) -> tuple[Expression, str]:
-    """
-    :param _: The parser element that created this value
-    :param __:
-    :param amount: Value to push.
-    :param direction: Direction to push
-    :return: amount, direction
+def push_dir(_parser_node: LRStackNode, __: list, amount: Expression, direction: str) -> tuple[Expression, str]:
+    """Creates a push direction specification.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        __: Unused parameter
+        amount: Value to push
+        direction: Direction to push
+        
+    Returns:
+        Tuple of amount and direction
     """
     return amount, direction
 
 
 @action
-def push_statement(parser_node, __, needles: list[Expression], push_val: str | Expression | tuple[Expression, str]) -> Push_Statement:
-    """
-
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param needles: Needles to push layer value
-    :param push_val: specification of push value.
-    :return: Push statement
+def push_statement(parser_node: LRStackNode, __: list, needles: list[Expression], push_val: str | Expression | tuple[Expression, str]) -> Push_Statement:
+    """Creates a push statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        needles: Needles to push layer value
+        push_val: Specification of push value
+        
+    Returns:
+        Push statement
     """
     return Push_Statement(parser_node, needles, push_val)
 
 
 @action
-def swap_statement(parser_node, __, needles: list[Expression], swap_type: str, value: Expression) -> Swap_Statement:
-    """
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param needles: The needles to do this swap with.
-    :param swap_type: Type of value to swap with
-    :param value: the value to swap with
-    :return: swap statement
+def swap_statement(parser_node: LRStackNode, __: list, needles: list[Expression], swap_type: str, value: Expression) -> Swap_Statement:
+    """Creates a swap statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        needles: The needles to do this swap with
+        swap_type: Type of value to swap with
+        value: The value to swap with
+        
+    Returns:
+        Swap statement
     """
     return Swap_Statement(parser_node, needles, swap_type, value)
 
 
 @action
-def pass_second(_, nodes: list):
-    """
-    :param _: The parser element that created this value
-    :param nodes: nodes parsed
-    :return: the second node in the list
+def pass_second(_parser_node: LRStackNode, nodes: list[Any]) -> Any:
+    """Returns the second node in a list.
+    
+    Args:
+        _parser_node: The parser element that created this value
+        nodes: Nodes parsed
+        
+    Returns:
+        The second node in the list
     """
     return nodes[1]
 
 
 @action
-def import_statement(parser_node, __, src: Expression, alias: Expression | None) -> Import_Statement:
-    """
-
-    :param parser_node: The parser element that created this value
-    :param __:
-    :param src: source module
-    :param alias: alias to assign in variable scope
-    :return:
+def import_statement(parser_node: LRStackNode, __: list, src: Expression, alias: Expression | None) -> Import_Statement:
+    """Creates an import statement.
+    
+    Args:
+        parser_node: The parser element that created this value
+        __: Unused parameter
+        src: Source module
+        alias: Alias to assign in variable scope
+        
+    Returns:
+        Import statement
     """
     return Import_Statement(parser_node, src, alias)
