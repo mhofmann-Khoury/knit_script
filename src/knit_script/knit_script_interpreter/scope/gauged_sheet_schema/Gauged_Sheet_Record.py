@@ -270,7 +270,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The set of back bed needles on the machine that belong to the given sheet.
         """
-        return cast(list[Needle],self.sheets[sheet].back_needles())
+        return cast(list[Needle], self.sheets[sheet].back_needles())
 
     def front_sliders(self, sheet: int) -> list[Slider_Needle]:
         """Get the set of front bed slider needles on the machine that belong to the given sheet.
@@ -281,7 +281,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The set of front bed slider needles on the machine that belong to the given sheet.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].front_sliders())
+        return cast(list[Slider_Needle], self.sheets[sheet].front_sliders())
 
     def back_sliders(self, sheet: int) -> list[Slider_Needle]:
         """Get the set of back bed slider needles on the machine that belong to the given sheet.
@@ -292,7 +292,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The set of back bed slider needles on the machine that belong to the given sheet.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].back_sliders())
+        return cast(list[Slider_Needle], self.sheets[sheet].back_sliders())
 
     def front_loops(self, sheet: int) -> list[Needle]:
         """Get the list of front bed needles that belong to this sheet and currently hold loops.
@@ -303,7 +303,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The list of front bed needles that belong to this sheet and currently hold loops.
         """
-        return cast(list[Needle],self.sheets[sheet].front_loops())
+        return cast(list[Needle], self.sheets[sheet].front_loops())
 
     def back_loops(self, sheet: int) -> list[Needle]:
         """Get the list of back bed needles that belong to this sheet and currently hold loops.
@@ -314,7 +314,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The list of back bed needles that belong to this sheet and currently hold loops.
         """
-        return cast(list[Needle],self.sheets[sheet].back_loops())
+        return cast(list[Needle], self.sheets[sheet].back_loops())
 
     def front_slider_loops(self, sheet: int) -> list[Slider_Needle]:
         """Get the list of front bed slider needles that belong to this sheet and currently hold loops.
@@ -325,7 +325,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The list of front bed slider needles that belong to this sheet and currently hold loops.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].front_slider_loops())
+        return cast(list[Slider_Needle], self.sheets[sheet].front_slider_loops())
 
     def back_slider_loops(self, sheet: int) -> list[Slider_Needle]:
         """Get the list of back bed slider needles that belong to this sheet and currently hold loops.
@@ -336,7 +336,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The list of back bed slider needles that belong to this sheet and currently hold loops.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].back_slider_loops())
+        return cast(list[Slider_Needle], self.sheets[sheet].back_slider_loops())
 
     def all_needles(self, sheet: int) -> list[Needle]:
         """Get list of all needles on the sheet with front bed needles given first.
@@ -347,7 +347,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: List of all needles on the sheet with front bed needles given first.
         """
-        return cast(list[Needle],self.sheets[sheet].all_needles())
+        return cast(list[Needle], self.sheets[sheet].all_needles())
 
     def all_sliders(self, sheet: int) -> list[Slider_Needle]:
         """Get list of all slider needles on the sheet with front bed sliders given first.
@@ -358,7 +358,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: List of all slider needles on the sheet with front bed sliders given first.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].all_sliders())
+        return cast(list[Slider_Needle], self.sheets[sheet].all_sliders())
 
     def all_loops(self, sheet: int) -> list[Needle]:
         """Get list of all loop-holding needles on the sheet with front bed needles given first.
@@ -369,7 +369,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: List of all loop-holding needles on the sheet with front bed needles given first.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].all_loops())
+        return cast(list[Slider_Needle], self.sheets[sheet].all_loops())
 
     def all_slider_loops(self, sheet: int) -> list[Slider_Needle]:
         """Get list of all loop-holding slider needles on the sheet with front bed sliders given first.
@@ -380,4 +380,4 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: List of all loop-holding slider needles on the sheet with front bed sliders given first.
         """
-        return cast(list[Slider_Needle],self.sheets[sheet].all_slider_loops())
+        return cast(list[Slider_Needle], self.sheets[sheet].all_slider_loops())
