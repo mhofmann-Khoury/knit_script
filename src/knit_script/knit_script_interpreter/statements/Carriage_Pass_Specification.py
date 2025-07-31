@@ -7,7 +7,7 @@ from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_exceptions.ks_exceptions import Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception, Repeated_Needle_Exception, All_Needle_Operation_Exception
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position
+from knit_script.Machine_Specification import Machine_Bed_Position
 from knit_script.knitout_execution.knitout_execution import build_instruction
 
 

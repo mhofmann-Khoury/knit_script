@@ -1,14 +1,17 @@
 """Expression values that don't need context to evaluate"""
 from __future__ import annotations
+
+from enum import Enum
 from typing import Any
 
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line_Type
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.knit_script_values.Machine_Specification import Machine_Bed_Position, Xfer_Direction
+from knit_script.Machine_Specification import Machine_Bed_Position
 
 
 class _Context_Free_Value(Expression):
@@ -29,6 +32,10 @@ class _Context_Free_Value(Expression):
         return self.context_free_evaluation()
 
     def context_free_evaluation(self) -> Any:
+        """
+        Returns:
+            The evaluated value of this expression without requiring the current context.
+        """
         pass
 
     def __str__(self) -> str:
@@ -165,6 +172,31 @@ class String_Value(_Context_Free_Value):
         return self._string
 
 
+class _Xfer_Direction(Enum):
+    """Enumerator for needle positioning."""
+    Left = "Left"
+    Right = "Right"
+
+    def carriage_pass_direction(self) -> Carriage_Pass_Direction:
+        """
+        Returns:
+            The carriage pass direction that corresponds to this Xfer_Direction term.
+        """
+        if self is _Xfer_Direction.Left:
+            return Carriage_Pass_Direction.Leftward
+        else:
+            return Carriage_Pass_Direction.Rightward
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+
 class Machine_Position_Value(_Context_Free_Value):
     """Used for evaluating Machine Position identifiers in headers."""
 
@@ -172,8 +204,12 @@ class Machine_Position_Value(_Context_Free_Value):
         super().__init__(parser_node)
         self._position_str = position_str
 
-    def context_free_evaluation(self) -> Xfer_Direction:
-        return Xfer_Direction[self._position_str]
+    def context_free_evaluation(self) -> Carriage_Pass_Direction:
+        """
+        Returns:
+            The value to be evaluated without context.
+        """
+        return _Xfer_Direction[self._position_str].carriage_pass_direction()
 
 
 class Machine_Type_Value(_Context_Free_Value):
@@ -184,6 +220,10 @@ class Machine_Type_Value(_Context_Free_Value):
         self._type_str = type_str
 
     def context_free_evaluation(self) -> Knitting_Machine_Type:
+        """
+        Returns:
+            The value to be evaluated without context.
+        """
         return Knitting_Machine_Type[self._type_str]
 
 
@@ -195,4 +235,8 @@ class Header_ID_Value(_Context_Free_Value):
         self.hid_str = hid_str
 
     def context_free_evaluation(self) -> Knitout_Header_Line_Type:
+        """
+        Returns:
+            The value to be evaluated without context.
+        """
         return Knitout_Header_Line_Type[self.hid_str]

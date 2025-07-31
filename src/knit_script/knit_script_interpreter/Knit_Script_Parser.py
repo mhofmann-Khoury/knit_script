@@ -6,10 +6,10 @@ from parglare import Parser, Grammar
 
 import knit_script
 from knit_script.knit_script_interpreter.knit_script_actions import action
-from knit_script.knit_script_interpreter.parser_base import Parser_Base
+from knit_script.knit_script_interpreter.parser_base import _Parser_Base
 
 
-class Knit_Script_Parser(Parser_Base):
+class Knit_Script_Parser(_Parser_Base):
     """Parser for reading knit script files using parglare library."""
 
     def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False):

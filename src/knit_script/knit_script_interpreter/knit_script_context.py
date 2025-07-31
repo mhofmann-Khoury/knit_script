@@ -15,8 +15,8 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import She
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script.knit_script_interpreter.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
-from knit_script.knit_script_interpreter.parser_base import Parser_Base
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
+from knit_script.knit_script_interpreter.parser_base import _Parser_Base
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 
 
@@ -63,7 +63,7 @@ class Knit_Script_Context:
     """Manages the state of the Knitting machine during program execution."""
 
     def __init__(self, parent_scope: Knit_Script_Scope | None = None, machine_specification: Knitting_Machine_Specification = Knitting_Machine_Specification(),
-                 ks_file: str | None = None, parser: Parser_Base | None = None):
+                 ks_file: str | None = None, parser: _Parser_Base | None = None):
         """Initializes the knit script context.
 
         Args:
@@ -74,13 +74,20 @@ class Knit_Script_Context:
         """
         self.machine_state: Knitting_Machine = Knitting_Machine(machine_specification=machine_specification)
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self.machine_state, parent_scope)
-        self.gauged_sheet_record: Gauged_Sheet_Record = Gauged_Sheet_Record(1, self.machine_state)
         self.ks_file: str | None = ks_file
-        self.parser: Parser_Base | None = parser
+        self.parser: _Parser_Base | None = parser
         self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
         self._version = 2
         self._machine_gauge = 15
         self.knitout: list[Knitout_Line] = get_machine_header(self.machine_state, self.version)
+
+    @property
+    def gauged_sheet_record(self) -> Gauged_Sheet_Record:
+        """
+        Returns:
+            The current record of loops stored on each sheet in the current gauge
+        """
+        return self.variable_scope.machine_scope.gauged_sheet_record
 
     @property
     def version(self) -> int:

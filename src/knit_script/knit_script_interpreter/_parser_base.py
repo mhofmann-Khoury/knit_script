@@ -1,3 +1,4 @@
+"""Module containing the Parser_Base Class"""
 from typing import Any, cast
 
 from parglare import Parser, Grammar, ParseError
@@ -5,7 +6,7 @@ from parglare import Parser, Grammar, ParseError
 from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
 
 
-class Parser_Base:
+class _Parser_Base:
     """Abstract Base class for Knitscript Parser.
 
     Used to separate circular import of knitscript parsing action and use of the

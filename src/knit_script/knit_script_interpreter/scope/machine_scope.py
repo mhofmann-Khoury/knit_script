@@ -12,7 +12,7 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier im
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_exceptions.ks_exceptions import Gauge_Value_Exception, Sheet_Value_Exception
-from knit_script.knit_script_interpreter.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
 from knit_script.knit_script_warnings.Knit_Script_Warning import Sheet_Beyond_Gauge_Warning
 
 
@@ -140,6 +140,14 @@ class Machine_Scope:
     @racking.setter
     def racking(self, value: float) -> None:
         self._racking = value
+
+    @property
+    def gauged_sheet_record(self) -> Gauged_Sheet_Record:
+        """
+        Returns:
+            The gauged sheet record associated with this machine scope.
+        """
+        return self._gauged_sheet_record
 
     @property
     def gauge(self) -> int:

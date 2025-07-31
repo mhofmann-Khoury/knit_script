@@ -1,22 +1,8 @@
 """Module containing enumerations of common machine value terms."""
 
 from __future__ import annotations
+
 from enum import Enum
-
-
-class Xfer_Direction(Enum):
-    """Enumerator for needle positioning."""
-    Left = "Left"
-    Right = "Right"
-
-    def __str__(self) -> str:
-        return self.name
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __hash__(self) -> int:
-        return hash(str(self))
 
 
 class Machine_Bed_Position(Enum):
