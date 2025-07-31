@@ -1,0 +1,213 @@
+# =============================================================================
+# CI/CD PIPELINE FOR KNITOUT INTERPRETER
+# =============================================================================
+# This workflow runs automated checks and tests on your Python project.
+# It ensures code quality, runs tests across multiple environments, and builds
+# the package for distribution.
+#
+# WHEN THIS RUNS:
+# - Every push to 'main' or 'develop' branches
+# - Every pull request targeting 'main' branch
+# - Weekly scheduled run (Mondays at 6 AM UTC) to catch dependency issues
+# =============================================================================
+
+name: CI/CD Pipeline
+
+# Define when this workflow should run
+on:
+  push:
+    branches: [ main, develop ]  # Run when code is pushed to main or develop
+  pull_request:
+    branches: [ main ]           # Run when PRs are opened against main
+  schedule:
+    - cron: '0 6 * * 1'         # Weekly health check (Monday 6 AM UTC)
+
+# =============================================================================
+# JOBS SECTION
+# =============================================================================
+jobs:
+
+  # ===========================================================================
+  # JOB 1: CODE QUALITY CHECKS
+  # ===========================================================================
+  quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    # -------------------------------------------------------------------------
+    # STEP 1: Get the code from the repository
+    # -------------------------------------------------------------------------
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # -------------------------------------------------------------------------
+    # STEP 2: Set up Python environment
+    # -------------------------------------------------------------------------
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    # -------------------------------------------------------------------------
+    # STEP 3: Install Poetry
+    # -------------------------------------------------------------------------
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    # -------------------------------------------------------------------------
+    # STEP 4: Cache dependencies for faster builds
+    # -------------------------------------------------------------------------
+    - name: Load cached dependencies
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    # -------------------------------------------------------------------------
+    # STEP 5: Install dependencies (only if not cached)
+    # -------------------------------------------------------------------------
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --without=docs
+
+    # -------------------------------------------------------------------------
+    # STEP 6: Run pre-commit hooks (if you have them configured)
+    # -------------------------------------------------------------------------
+    - name: Run pre-commit hooks
+      run: |
+        poetry run pre-commit run --all-files
+      continue-on-error: true  # Don't fail CI if pre-commit isn't configured yet
+
+    # -------------------------------------------------------------------------
+    # STEP 7: Run type checking with mypy
+    # -------------------------------------------------------------------------
+    - name: Run mypy type checking
+      run: |
+        poetry run mypy src/knitout_interpreter/ --config-file=pyproject.toml
+      continue-on-error: true  # Don't fail CI if mypy finds issues (for now)
+
+  # ===========================================================================
+  # JOB 2: TEST SUITE (Matrix Strategy)
+  # ===========================================================================
+  test:
+    name: Test Suite
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    # -------------------------------------------------------------------------
+    # Cache dependencies (separate cache for each matrix combination)
+    # -------------------------------------------------------------------------
+    - name: Load cached dependencies
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ matrix.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --without=docs
+
+    # -------------------------------------------------------------------------
+    # Run test suite with coverage reporting using unittest
+    # -------------------------------------------------------------------------
+    - name: Run tests with coverage
+      run: |
+        poetry run coverage run -m unittest discover tests -p "test_*.py" -v
+        poetry run coverage report -m
+        poetry run coverage xml
+
+    # -------------------------------------------------------------------------
+    # Save coverage report as artifact (for later viewing)
+    # -------------------------------------------------------------------------
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      with:
+        name: coverage-report
+        path: coverage.xml
+        retention-days: 30
+
+  # ===========================================================================
+  # JOB 3: PACKAGE BUILD
+  # ===========================================================================
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    # -------------------------------------------------------------------------
+    # Build the package
+    # -------------------------------------------------------------------------
+    - name: Build package
+      run: |
+        poetry build
+
+    # -------------------------------------------------------------------------
+    # Validate the built package
+    # -------------------------------------------------------------------------
+    - name: Check built package
+      run: |
+        poetry run pip install twine
+        poetry run twine check dist/*
+
+    # -------------------------------------------------------------------------
+    # Upload build artifacts for later use or inspection
+    # -------------------------------------------------------------------------
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-files
+        path: dist/
+        retention-days: 7
+
+# =============================================================================
+# WORKFLOW REQUIREMENTS
+# =============================================================================
+# For this workflow to work optimally, ensure you have:
+#
+# 1. A tests/ directory with unittest test files (test_*.py pattern)
+# 2. .pre-commit-config.yaml for code quality hooks (optional)
+# 3. All dependencies properly defined in pyproject.toml
+# 4. MyPy configuration in pyproject.toml (already present)
+# 5. Coverage configuration in pyproject.toml (already present)
+# =============================================================================

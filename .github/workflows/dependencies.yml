@@ -1,0 +1,148 @@
+# =============================================================================
+# AUTOMATED DEPENDENCY UPDATES WORKFLOW FOR KNITOUT INTERPRETER
+# =============================================================================
+# This workflow automatically checks for updates to your project dependencies
+# and creates a Pull Request (PR) with the updates for you to review.
+#
+# WHAT IT DOES:
+# 1. Updates all dependencies to their latest compatible versions
+# 2. Runs your tests to make sure nothing breaks
+# 4. Creates a Pull Request with the changes for you to review
+#
+# WHEN IT RUNS:
+# - Every Monday at 10 AM UTC (weekly dependency check)
+# - Manually when you click "Run workflow" in GitHub Actions tab
+# =============================================================================
+
+name: Update Dependencies
+
+# When to run this workflow
+on:
+  schedule:
+    - cron: '0 10 * * 1'  # Every Monday at 10 AM UTC
+  workflow_dispatch:      # Allows manual triggering from GitHub UI
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+    # -------------------------------------------------------------------------
+    # STEP 1: Get the code and set up authentication
+    # -------------------------------------------------------------------------
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    # -------------------------------------------------------------------------
+    # STEP 2: Set up Python environment
+    # -------------------------------------------------------------------------
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    # -------------------------------------------------------------------------
+    # STEP 3: Install Poetry
+    # -------------------------------------------------------------------------
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+
+    # -------------------------------------------------------------------------
+    # STEP 4: Update all dependencies to latest compatible versions
+    # -------------------------------------------------------------------------
+    - name: Update dependencies
+      run: |
+        poetry update
+      # This command:
+      # - Reads your pyproject.toml version constraints (e.g., "^0.16.1")
+      # - Finds the latest versions that satisfy those constraints
+      # - Updates poetry.lock with the new versions
+      # - Does NOT change your pyproject.toml version requirements
+
+    # -------------------------------------------------------------------------
+    # STEP 5: Install updated dependencies and run tests
+    # -------------------------------------------------------------------------
+    - name: Install updated dependencies
+      run: |
+        poetry install
+
+    - name: Run tests with updated dependencies
+      run: |
+        poetry run coverage run -m unittest discover tests -p "test_*.py" -v
+        poetry run coverage report -m
+      # Run your test suite using unittest to make sure the updated dependencies don't break anything
+
+    # -------------------------------------------------------------------------
+    # STEP 6: Check package integrity
+    # -------------------------------------------------------------------------
+    - name: Verify package can be built
+      run: |
+        poetry build
+        poetry run pip install twine
+        poetry run twine check dist/*
+      # Ensure the updated dependencies don't break package building
+
+    # -------------------------------------------------------------------------
+    # STEP 7: Create a Pull Request with the updates
+    # -------------------------------------------------------------------------
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'deps: update dependencies to latest compatible versions'
+        title: 'Automated dependency update'
+        body: |
+          This Pull Request updates project dependencies to their latest compatible versions.
+
+          ## What Changed
+          - Updated Poetry lock file (`poetry.lock`) with latest compatible versions
+          - All existing tests pass with the updated dependencies
+          - Package build verification completed successfully
+
+          ## Dependencies Updated
+          The following dependencies may have been updated:
+          - `parglare` (parser generator library)
+          - `knit-graphs` (knitting graph library)
+          - `virtual-knitting-machine` (virtual knitting machine)
+          - `importlib_resources` (resource management)
+          - Development dependencies (coverage, mypy, pre-commit, safety, twine, sphinx, etc.)
+
+          ## What You Should Do
+          1. Review the changes in the "Files changed" tab
+          2. Check which dependencies were updated and by how much
+          3. Look for any major version updates that might need attention
+          4. Run your own tests locally if you want additional verification
+          5. If everything looks good, click "Merge pull request"
+          6. If there are issues, you can close this PR without merging
+
+          ## Testing Performed
+          - ✅ All unittest tests pass
+          - ✅ Package builds successfully
+          - ✅ Package metadata validation passed
+
+          ## Auto-generated by GitHub Actions
+          This PR was created automatically by the dependency update workflow.
+        branch: automated-dependency-update
+        delete-branch: true
+
+# =============================================================================
+# The GITHUB_TOKEN is automatically provided - no setup needed
+# =============================================================================
+
+# =============================================================================
+# HOW TO USE THIS
+# =============================================================================
+# 1. This runs automatically every Monday
+# 2. When it finds updates, it creates a PR for you to review
+# 3. Go to your repository's "Pull requests" tab to see the PR
+# 4. Review the changes, then merge if everything looks good
+# 5. You can also run this manually:
+#    - Go to Actions tab in your GitHub repository
+#    - Click on "Update Dependencies" workflow
+#    - Click "Run workflow" button
+# =============================================================================

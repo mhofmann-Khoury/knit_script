@@ -88,9 +88,8 @@ exclude = [
 [tool.poetry.dependencies]
 python = "^3.11"                        # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
 parglare = "~0.16.1"                   # Parser generator library
-networkx = "~3.2"                     # Graph algorithms library
-virtual-knitting-machine = "~0.0.13"   # Virtual knitting machine
-knitout-interpreter = "~0.0.14"        # Knitout interpreter library
+virtual-knitting-machine = "^0.0.13"   # Virtual knitting machine
+knitout-interpreter = "^0.0.16"        # Knitout interpreter library
 importlib_resources = "6.5.2"         # For loading parser grammar files
 
 # =============================================================================
