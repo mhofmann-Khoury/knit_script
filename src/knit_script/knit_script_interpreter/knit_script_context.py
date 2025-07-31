@@ -16,7 +16,7 @@ from virtual_knitting_machine.machine_components.needles.Slider_Needle import Sl
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
-from knit_script.knit_script_interpreter.parser_base import _Parser_Base
+from knit_script.knit_script_interpreter._parser_base import _Parser_Base
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 
 

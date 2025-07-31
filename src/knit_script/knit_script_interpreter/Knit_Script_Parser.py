@@ -6,7 +6,7 @@ from parglare import Parser, Grammar
 
 import knit_script
 from knit_script.knit_script_interpreter.knit_script_actions import action
-from knit_script.knit_script_interpreter.parser_base import _Parser_Base
+from knit_script.knit_script_interpreter._parser_base import _Parser_Base
 
 
 class Knit_Script_Parser(_Parser_Base):
