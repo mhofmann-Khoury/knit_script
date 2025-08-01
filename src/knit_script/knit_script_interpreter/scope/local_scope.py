@@ -1,6 +1,7 @@
 """Scoping structure for Knit Script"""
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
@@ -8,32 +9,67 @@ from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_D
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
+from knit_script.knit_script_interpreter import _Context_Base
 from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
-from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope, Machine_Variables
+from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope
+from knit_script.knit_script_warnings.Knit_Script_Warning import Shadows_Global_Variable_Warning, Shadow_Variable_Warning
 
 
 class Knit_Script_Scope:
     """Keeps track of values in a confined scope. Also accesses globals and checks python scope."""
 
-    def __init__(self, machine_state: Knitting_Machine, parent: Knit_Script_Scope | None = None,
-                 name: str | None = None, is_function: bool = False, is_module: bool = False, module_scope: Knit_Script_Scope | None = None):
-        self._machine_state: Knitting_Machine = machine_state
+    def __init__(self, context: _Context_Base, parent: Knit_Script_Scope | None = None,
+                 name: str | None = None,
+                 is_function: bool = False, is_module: bool = False,
+                 module_scope: Knit_Script_Scope | None = None):
+        self._context: _Context_Base = context
         self._is_module: bool = is_module
         self._is_function = is_function
-        self.returned: bool = False
-        self.name: str | None = name
-        self.parent: Knit_Script_Scope | None = parent
-        self.module_scope: Knit_Script_Scope | None = module_scope
-        if self.parent is None:
-            self.globals: Knit_Script_Globals = Knit_Script_Globals()
-            self.machine_scope: Machine_Scope = Machine_Scope(self._machine_state)
-            self._sub_scope_globals: set[str] = set()
+        self._returned: bool = False
+        self._name: str | None = name
+        self._parent: Knit_Script_Scope | None = parent
+        self._module_scope: Knit_Script_Scope | None = module_scope
+        if self._parent is None:
+            self._globals: Knit_Script_Globals = Knit_Script_Globals()
+            self._machine_scope: Machine_Scope = Machine_Scope(self._context)
         else:
-            self.globals: Knit_Script_Globals = self.parent.globals
-            self.machine_scope: Machine_Scope = self.parent.machine_scope  # Machine_Scope(self.parent.machine_scope)
-            self._sub_scope_globals: set[str] = {*self.parent._sub_scope_globals}
-        self.child_scope: Knit_Script_Scope | None = None
+            self._globals: Knit_Script_Globals = self._parent._globals
+            self._machine_scope: Machine_Scope = Machine_Scope(self._context, prior_settings=self._parent.machine_scope)  # start with settings from parent scope, but edit them locally
+        self._child_scope: Knit_Script_Scope | None = None
         self._return_value: Any | None = None
+
+    @property
+    def machine_scope(self) -> Machine_Scope:
+        """
+
+        Returns:
+            The machine scope for this level of scope.
+        """
+        return self._machine_scope
+
+    @property
+    def variables(self) -> dict[str, Any]:
+        """
+        Returns:
+            The variables as key value pairs in a dictionary of variables set at this level of scope.
+        """
+        return {k: v for k, v in vars(self).items() if not k.startswith('_')}
+
+    @property
+    def returned(self) -> bool:
+        """
+        Returns:
+            True if the scope has found a return value.
+        """
+        return self._returned
+
+    @property
+    def machine_state(self) -> Knitting_Machine:
+        """
+        Returns:
+            The current state of the knitting machine at the given execution context.
+        """
+        return self._context.machine_state
 
     @property
     def direction(self) -> Carriage_Pass_Direction:
@@ -49,56 +85,56 @@ class Knit_Script_Scope:
         self.machine_scope.direction = value
 
     @property
-    def carrier(self) -> Yarn_Carrier_Set | None:
+    def Carrier(self) -> Yarn_Carrier_Set | None:
         """Get the current carrier being used by the machine.
 
         Returns:
             Yarn_Carrier_Set | None: The current carrier being used by the machine.
         """
-        return self.machine_scope.carrier
+        return self.machine_scope.Carrier
 
-    @carrier.setter
-    def carrier(self, carrier: Yarn_Carrier_Set | None) -> None:
-        self.machine_scope.carrier = carrier
+    @Carrier.setter
+    def Carrier(self, carrier: Yarn_Carrier_Set | None) -> None:
+        self.machine_scope.Carrier = carrier
 
     @property
-    def racking(self) -> float:
+    def Racking(self) -> float:
         """Get current racking of the machine.
 
         Returns:
             float: Current racking of the machine.
         """
-        return float(self.machine_scope.racking)
+        return float(self.machine_scope.Racking)
 
-    @racking.setter
-    def racking(self, value: float) -> None:
-        self.machine_scope.racking = value
+    @Racking.setter
+    def Racking(self, value: float) -> None:
+        self.machine_scope.Racking = value
 
     @property
-    def gauge(self) -> int:
+    def Gauge(self) -> int:
         """Get the current number of sheets on the machine.
 
         Returns:
             int: The current number of sheets on the machine.
         """
-        return int(self.machine_scope.gauge)
+        return int(self.machine_scope.Gauge)
 
-    @gauge.setter
-    def gauge(self, value: int | None) -> None:
-        self.machine_scope.gauge = value
+    @Gauge.setter
+    def Gauge(self, value: int | None) -> None:
+        self.machine_scope.Gauge = value
 
     @property
-    def sheet(self) -> Sheet_Identifier:
+    def Sheet(self) -> Sheet_Identifier:
         """Get the current sheet being worked on the machine.
 
         Returns:
             Sheet_Identifier: The current sheet being worked on the machine.
         """
-        return self.machine_scope.sheet
+        return self.machine_scope.Sheet
 
-    @sheet.setter
-    def sheet(self, value: int | Sheet_Identifier | None) -> None:
-        self.machine_scope.sheet = value
+    @Sheet.setter
+    def Sheet(self, value: int | Sheet_Identifier | None) -> None:
+        self.machine_scope.Sheet = value
 
     @staticmethod
     def get_value_from_python_scope(key: str) -> tuple[Any | None, bool]:
@@ -148,16 +184,18 @@ class Knit_Script_Scope:
     def return_value(self, value: Any) -> None:
         scope: None | Knit_Script_Scope = self
         while scope is not None and not scope.is_function:
-            scope = self.parent
+            scope = self._parent
         if scope is None:  # set the exit value since no function can return
-            self.globals.exit_value = value
+            self._globals.exit_value = value
         else:
             scope._return_value = value
-            scope.returned = True
+            scope._returned = True
 
     def set_local(self, key: str, value: Any) -> None:
-        """Set key to value at this level.
-
+        """
+        Set a local variable by the name <key> to the given value.
+        If a local variable exists from a parent scope within this function and module, set that value.
+        Otherwise, creates a new local variable within the current scope.
         Args:
             key (str): Variable name.
             value: Value to set key to.
@@ -165,8 +203,8 @@ class Knit_Script_Scope:
         if self.has_local(key, stop_at_function=True, stop_at_module=True):  # value comes from higher up scope, but not including global
             scope = self
             while not hasattr(scope, key):
-                assert scope.parent is not None
-                scope = scope.parent
+                assert scope._parent is not None
+                scope = scope._parent
             setattr(scope, key, value)
         else:  # set at lowest scope level
             setattr(self, key, value)
@@ -178,43 +216,63 @@ class Knit_Script_Scope:
             key (str): Variable name.
             value: Value to add to globals.
         """
-        self._sub_scope_globals.add(key)
-        self.globals[key] = value
+        setattr(self._globals, key, value)
 
     def get_local(self, key: str) -> Any:
-        """Find the lowest level value in local scope by key.
+        """
+        Find the lowest level value in local scope by key.
+
+        Looks for value in the following order:
+            1. The machine scope.
+            2. Python scope.
+            3. Local scope
+            4. Modules owned by the local scope.
+            5. A parent scope or any of its modules.
+            6. The Global Scope.
 
         Args:
             key (str): The variable name.
 
         Returns:
-            Any: The value in the local hierarchy by that key. Checks against globals last.
+            Any: The value in the local hierarchy by that key.
 
         Raises:
             NameError: If key is not in scope.
+            Shadows_Global_Variable_Warning: If the key is found in a local scope but also exists in the globals.
+            Shadows_Variable_Warning: If the key is found and exists at a higher scope (excludes modules).
         """
-        if Machine_Variables.in_machine_variables(key):
-            return self.machine_scope[key]
-        is_global = self.has_global(key)
-        if is_global and key in self._sub_scope_globals:  # Set as global in current subscope
-            return self.globals[key]
-        else:  # check lowest scope then globals
-            scope: Knit_Script_Scope | None = self
-            while scope is not None:
-                if hasattr(scope, key):
-                    if is_global:
-                        print(f"KnitScript Warning: {key} shadows global variable")
-                    return getattr(scope, key)
-                elif scope.module_scope is not None:
-                    try:
-                        return scope.module_scope[key]
-                    except NameError:
-                        pass
-                scope = scope.parent
-            if is_global:
-                return self.get_global(key)
-            else:
-                raise NameError(f"Variable {key} is not in scope")
+        if hasattr(self.machine_scope, key):  # Matches a reserved property of the machine scope.
+            return getattr(self.machine_scope, key)
+        value, exist_in_python_scope = self.get_value_from_python_scope(key)
+        if exist_in_python_scope:
+            return value
+        is_global = hasattr(self._globals, key)  # Matches a global variable, but look at local scope first.
+        scope: Knit_Script_Scope | None = self
+        found_value: bool = False
+        value: Any = None
+        while scope is not None:
+            if hasattr(scope, key):
+                if is_global:
+                    warnings.warn(Shadows_Global_Variable_Warning(key))
+                if not found_value:
+                    value = getattr(scope, key)
+                    found_value = True
+                else:
+                    warnings.warn(Shadow_Variable_Warning(key))
+                    return value  # No need to look further for possible shadows.
+            elif not found_value and scope._module_scope is not None:  # don't check modules if this is already found.
+                try:
+                    value = scope._module_scope[key]
+                    found_value = True
+                except NameError:
+                    pass  # If you don't find it in the module, that is fine
+            scope = scope._parent
+        if found_value:
+            return value
+        elif is_global:
+            return getattr(self._globals, key)
+        else:
+            raise NameError(f"Variable {key} is not in scope")
 
     def add_local_by_path(self, path: list[str], value: Any) -> None:
         """Add module sub scopes to variable space following the given path.
@@ -227,22 +285,9 @@ class Knit_Script_Scope:
         """
         scope = self
         for key in path[:-1]:
-            if key not in scope:
-                scope[key] = Knit_Script_Scope(self._machine_state, scope, key, is_module=True)
-            scope = scope[key]
-        scope[path[-1]] = value
-
-    def get_global(self, key: str) -> Any:
-        """Access global value.
-
-        Args:
-            key (str): The variable name.
-
-        Returns:
-            Any: The global value under that var_name.
-        """
-        assert self.has_global(key), f"Could not find global variable {key}"
-        return self.globals[key]
+            setattr(scope, key, Knit_Script_Scope(self._context, scope, name=key, is_module=True))
+            scope = getattr(scope, key)
+        setattr(scope, path[-1], value)  # Use the last element of the path as a variable name
 
     def has_local(self, key: str, stop_at_function: bool = False, stop_at_module: bool = False) -> bool:
         """Check for key in local scope. Ignores globals.
@@ -263,19 +308,8 @@ class Knit_Script_Scope:
                 return False
             elif stop_at_module and scope.is_module:
                 return False
-            scope = scope.parent
+            scope = scope._parent
         return False
-
-    def has_global(self, key: str) -> bool:
-        """Check for global value.
-
-        Args:
-            key (str): The variable name.
-
-        Returns:
-            bool: True if there is a global variable under this key.
-        """
-        return key in self.globals
 
     def delete_local(self, key: str) -> bool:
         """Delete the variable at lowest scope level. If not found, no-op.
@@ -291,7 +325,7 @@ class Knit_Script_Scope:
             if hasattr(scope, key):
                 delattr(scope, key)
                 return True
-            scope = scope.parent
+            scope = scope._parent
         return False
 
     def delete_global(self, key: str) -> bool:
@@ -303,8 +337,10 @@ class Knit_Script_Scope:
         Returns:
             bool: True if a global was deleted.
         """
-        if self.has_global(key):
-            del self.globals[key]
+        if hasattr(self._globals, key):
+            if key == "exit_value":
+                raise NameError(f"Cannot delete {key} because this is a reserved keyword")
+            delattr(self._globals, key)
             return True
         return False
 
@@ -325,39 +361,50 @@ class Knit_Script_Scope:
         """
         if is_function:
             assert name is not None, "Functions must be named"
-        child_scope = Knit_Script_Scope(self._machine_state, self, name, is_function, is_module, module_scope=module_scope)
+        self._child_scope = Knit_Script_Scope(context=self._context, parent=self, name=name, is_function=is_function, is_module=is_module, module_scope=module_scope)
         if is_module:
             assert name is not None, f"Modules must be named"
-            self[name] = child_scope
-        self.child_scope = child_scope
-        return self.child_scope
+            setattr(self, name, self._child_scope)
+        return self._child_scope
 
-    def exit_current_scope(self) -> None | Knit_Script_Scope:
+    def collapse_lower_scope(self) -> None:
+        """
+            Brings all of the values in the child scopes (recursively) up into this scope.
+        """
+        if self._child_scope is not None:
+            self._child_scope.collapse_lower_scope()
+            for key, value in self._child_scope.variables.items():
+                self.set_local(key, value)
+            self.machine_scope.inherit_from_scope(self._child_scope.machine_scope)
+            self._child_scope = None
+
+    def exit_current_scope(self, collapse_into_parent: bool = False) -> None | Knit_Script_Scope:
         """Set child scope to none.
 
         If the current scope is not a module this may cause values to be deleted and become inaccessible.
-
+        Args:
+            collapse_into_parent: If True, brings all of the lower level values from child scope into the current scope.
         Returns:
             None | Knit_Script_Scope: The parent scope or None if program exits.
         """
-        if self.parent is not None:
-            self.parent.child_scope = None
-        return self.parent
+        if self._parent is not None:
+            if collapse_into_parent:
+                self._parent.collapse_lower_scope()
+            else:
+                parent_machine_scope = self._parent.machine_scope
+                self._parent._machine_scope = self.machine_scope
+                self._parent.machine_scope.inherit_from_scope(parent_machine_scope)  # reset from current variables back to state prior to this scope.
+            self._parent._child_scope = None
+        return self._parent
 
     def __contains__(self, key: str) -> bool:
         value, exists = self.get_value_from_python_scope(key)
         if exists:
             return exists
-        return self.has_global(key) or self.has_local(key)
+        return key in self._globals or self.has_local(key)
+
+    def __getitem__(self, key: str) -> Any:
+        return self.get_local(key)
 
     def __setitem__(self, key: str, value: Any) -> None:
         self.set_local(key, value)
-
-    def __getitem__(self, key: str) -> Any:
-        value, exists = self.get_value_from_python_scope(key)
-        if exists:
-            return value
-        return self.get_local(key)
-
-    def __delitem__(self, key: str) -> None:
-        self.delete_local(key)

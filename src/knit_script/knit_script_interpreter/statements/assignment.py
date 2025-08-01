@@ -6,7 +6,6 @@ from parglare.parser import LRStackNode
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
-from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Variables
 
 
 class Assignment(KS_Element):
@@ -40,9 +39,7 @@ class Assignment(KS_Element):
             The value that was assigned to the variable.
         """
         value = self.value(context)
-        if Machine_Variables.in_machine_variables(self.variable_name):  # shortcut for always global variables
-            Machine_Variables[self.variable_name].set_value(context, value)
-        elif is_global:
+        if is_global:
             context.variable_scope.set_global(self.variable_name, value)
         else:
             context.variable_scope[self.variable_name] = value

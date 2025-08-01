@@ -87,7 +87,7 @@ class TestFunctions(TestCase):
         """
         try:
             interpret_test_ks(program)
-        except NameError as e:
+        except NameError as _e:
             pass
 
     def test_function_parameter_scope_clears(self):
@@ -101,7 +101,7 @@ class TestFunctions(TestCase):
         """
         try:
             interpret_test_ks(program)
-        except NameError as e:
+        except NameError as _e:
             pass
 
     def test_function_returns(self):

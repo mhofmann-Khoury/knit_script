@@ -3,20 +3,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line, Knitout_Header_Line_Type, get_machine_header
-from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line, Knitout_Comment_Line
-from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
-from knitout_interpreter.knitout_operations.carrier_instructions import In_Instruction, Inhook_Instruction
+from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line, Knitout_Header_Line_Type
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Specification, Knitting_Machine_Type
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Specification
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier, Slider_Sheet_Needle, Sheet_Needle
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set, Yarn_Carrier
 
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
+from knit_script.knit_script_interpreter._Context_Base import _Context_Base
 from knit_script.knit_script_interpreter._parser_base import _Parser_Base
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 
 
@@ -59,11 +57,11 @@ class _Carriers_Header_Line(Knitout_Header_Line):
         return True
 
 
-class Knit_Script_Context:
+class Knit_Script_Context(_Context_Base):
     """Manages the state of the Knitting machine during program execution."""
 
-    def __init__(self, parent_scope: Knit_Script_Scope | None = None, machine_specification: Knitting_Machine_Specification = Knitting_Machine_Specification(),
-                 ks_file: str | None = None, parser: _Parser_Base | None = None):
+    def __init__(self, parent_scope: Knit_Script_Scope | None = None, machine_specification: Knitting_Machine_Specification = Knitting_Machine_Specification(), ks_file: str | None = None,
+                 parser: _Parser_Base | None = None):
         """Initializes the knit script context.
 
         Args:
@@ -72,14 +70,9 @@ class Knit_Script_Context:
             ks_file: Path to the knit script file
             parser: Parser instance for processing scripts
         """
-        self.machine_state: Knitting_Machine = Knitting_Machine(machine_specification=machine_specification)
-        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self.machine_state, parent_scope)
-        self.ks_file: str | None = ks_file
-        self.parser: _Parser_Base | None = parser
+        super().__init__(machine_specification, ks_file, parser)
+        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
         self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
-        self._version = 2
-        self._machine_gauge = 15
-        self.knitout: list[Knitout_Line] = get_machine_header(self.machine_state, self.version)
 
     @property
     def gauged_sheet_record(self) -> Gauged_Sheet_Record:
@@ -88,51 +81,6 @@ class Knit_Script_Context:
             The current record of loops stored on each sheet in the current gauge
         """
         return self.variable_scope.machine_scope.gauged_sheet_record
-
-    @property
-    def version(self) -> int:
-        """The knitout version being written.
-
-        Returns:
-            The knitout version number
-        """
-        return self._version
-
-    @version.setter
-    def version(self, version: int) -> None:
-        """Sets the knitout version.
-
-        Args:
-            version: The version number to set
-        """
-        self._version = version
-
-    @property
-    def machine_type(self) -> Knitting_Machine_Type:
-        """The type of machine to generate the knitout for.
-
-        Returns:
-            The machine type
-        """
-        return self.machine_state.machine_specification.machine
-
-    @property
-    def machine_gauge(self) -> int:
-        """The needle/inch gauge of the machine being knit on.
-
-        Returns:
-            The machine gauge value
-        """
-        return self._machine_gauge
-
-    @machine_gauge.setter
-    def machine_gauge(self, machine_gauge: int) -> None:
-        """Sets the machine gauge.
-
-        Args:
-            machine_gauge: The gauge value to set
-        """
-        self._machine_gauge = machine_gauge
 
     def add_variable(self, key: str, value: Any) -> None:
         """Adds a variable to the variable scope by the name of key.
@@ -162,9 +110,13 @@ class Knit_Script_Context:
             self.variable_scope = self.variable_scope.enter_new_scope(module_scope=module_scope)
         return self.variable_scope
 
-    def exit_current_scope(self) -> None:
-        """Exits the lowest level variable scope and resets the current variable scope up a level."""
-        self.variable_scope = self.variable_scope.exit_current_scope()
+    def exit_current_scope(self, collapse_into_parent: bool = False) -> None:
+        """Exits the lowest level variable scope and resets the current variable scope up a level.
+
+        Args:
+            collapse_into_parent: If True, brings values from lower scope into the next scope.
+        """
+        self.variable_scope = self.variable_scope.exit_current_scope(collapse_into_parent)
 
     @property
     def sheet_needle_count(self, gauge: int | None = None) -> int:
@@ -203,29 +155,17 @@ class Knit_Script_Context:
         Returns:
             The current carrier or None
         """
-        return self.variable_scope.carrier
+        return self.variable_scope.Carrier
 
     @carrier.setter
-    def carrier(self, carrier: Yarn_Carrier_Set | None | int | list[int]) -> None:
-        """Sets the active carrier.
+    def carrier(self, carrier: int | float | list[int | Yarn_Carrier] | Yarn_Carrier_Set | Yarn_Carrier | None) -> None:
+        """
+        Sets the active carrier.
 
         Args:
-            carrier: The carrier to set (can be Yarn_Carrier_Set, int, list of ints, or None)
+            carrier: The value to set the carrier set by.
         """
-        if isinstance(carrier, int):
-            carrier = Yarn_Carrier_Set([carrier])
-        elif isinstance(carrier, list):
-            carrier = Yarn_Carrier_Set(carrier)
-        if self.carrier != carrier:
-            self.variable_scope.carrier = carrier
-            if self.carrier is not None and not self.machine_state.carrier_system.is_active(self.carrier.carrier_ids):  # if yarn is not active, bring it in by inhook operation
-                for carrier in self.carrier:
-                    if self.machine_state.carrier_system.yarn_is_loose(carrier):  # inhook loose yarns
-                        inhook_op = Inhook_Instruction.execute_inhook(self.machine_state, carrier, f"Activating carrier {carrier}")
-                        self.knitout.append(inhook_op)
-                    else:  # bring connected yarns out from grippers
-                        in_op = In_Instruction.execute_in(self.machine_state, carrier, f"Bring in {carrier} that is not loose")
-                        self.knitout.append(in_op)
+        self.variable_scope.Carrier = carrier  # update working carrier variable
 
     @property
     def racking(self) -> float:
@@ -234,7 +174,7 @@ class Knit_Script_Context:
         Returns:
             The current racking value
         """
-        return float(self.variable_scope.racking)
+        return float(self.variable_scope.Racking)
 
     @racking.setter
     def racking(self, value: float) -> None:
@@ -243,12 +183,7 @@ class Knit_Script_Context:
         Args:
             value: The racking value to set
         """
-        update = value != self.racking
-        if update:
-            self.variable_scope.racking = value
-            gauge_adjusted_racking = self.gauge * self.racking
-            rack_instruction = Rack_Instruction.execute_rack(self.machine_state, gauge_adjusted_racking, comment=f"Rack to {self.racking} at {self.gauge} gauge")
-            self.knitout.append(rack_instruction)
+        self.variable_scope.Racking = value
 
     @property
     def sheet(self) -> Sheet_Identifier:
@@ -257,7 +192,7 @@ class Knit_Script_Context:
         Returns:
             The current sheet identifier
         """
-        return self.variable_scope.sheet
+        return self.variable_scope.Sheet
 
     @sheet.setter
     def sheet(self, value: Sheet_Identifier | int | None) -> None:
@@ -266,11 +201,7 @@ class Knit_Script_Context:
         Args:
             value: The sheet value to set
         """
-        self.variable_scope.sheet = value
-        self.knitout.append(Knitout_Comment_Line(f"Resetting to sheet {self.sheet} of {self.gauge}"))
-        self.knitout.extend(self.gauged_sheet_record.reset_to_sheet(self.sheet.sheet))
-        self.machine_state.sheet = value
-        # Resets machine to the needed sheet, peeling other layers out of the way
+        self.variable_scope.Sheet = value
 
     @property
     def gauge(self) -> int:
@@ -282,7 +213,7 @@ class Knit_Script_Context:
         Returns:
             The current gauge value
         """
-        return int(self.variable_scope.gauge)
+        return int(self.variable_scope.Gauge)
 
     @gauge.setter
     def gauge(self, value: int | None) -> None:
@@ -291,7 +222,16 @@ class Knit_Script_Context:
         Args:
             value: The gauge value to set
         """
-        self.variable_scope.gauge = value
+        self.variable_scope.Gauge = value
+
+    def execute_statements(self, statements: list) -> None:
+        """Execute the list of statements on current context.
+
+        Args:
+            statements: Statements to execute
+        """
+        for statement in statements:
+            statement.execute(self)
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False,
                    global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
@@ -339,12 +279,3 @@ class Knit_Script_Context:
             The exact needle instance in use on the machine state
         """
         return self.machine_state[self.get_needle(is_front, pos, is_slider, global_needle, sheet, gauge)]
-
-    def execute_statements(self, statements: list) -> None:
-        """Execute the list of statements on current context.
-
-        Args:
-            statements: Statements to execute
-        """
-        for statement in statements:
-            statement.execute(self)

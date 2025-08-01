@@ -56,7 +56,7 @@ class Try_Catch_Statement(Statement):
                         if isinstance(error_exp, Assignment):
                             context.variable_scope[error_exp.variable_name] = e
                         self._catch_statement.execute(context)
-                        context.exit_current_scope()
+                        context.exit_current_scope(collapse_into_parent=True) # Anything done during the except should affect external scope
                         break
             else:  # accept all errors
                 self._catch_statement.execute(context)

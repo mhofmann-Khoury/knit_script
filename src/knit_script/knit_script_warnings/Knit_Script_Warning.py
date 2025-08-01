@@ -27,6 +27,19 @@ class Shadow_Variable_Warning(Knit_Script_Warning):
         super().__init__(f"Variable <{variable_name}> shadows a variable in the outer scope.")
 
 
+class Shadows_Global_Variable_Warning(Shadow_Variable_Warning):
+    """Warning raised when a variable shadows another variable in an outer scope."""
+
+    def __init__(self, variable_name: str):
+        """Initialize the Shadow_Variable_Warning.
+
+        Args:
+            variable_name: The name of the variable that is shadowing another variable.
+        """
+        super().__init__(variable_name)
+        self.message = f"Variable <{variable_name}> shadows a global variable."
+
+
 class Sheet_Beyond_Gauge_Warning(Knit_Script_Warning):
     """Warning raised when the sheet setting exceeds the current gauge limits."""
 
