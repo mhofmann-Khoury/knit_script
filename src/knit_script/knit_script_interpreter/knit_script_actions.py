@@ -28,7 +28,7 @@ from knit_script.knit_script_interpreter.expressions.values import (Boolean_Valu
                                                                     Machine_Position_Value, Machine_Type_Value, Header_ID_Value)
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
-from knit_script.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass

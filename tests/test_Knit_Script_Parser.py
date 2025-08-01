@@ -6,7 +6,7 @@ from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Mac
 
 from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets
-from knit_script.Machine_Specification import Xfer_Direction, Machine_Bed_Position
+from knit_script.knit_script_interpreter.Machine_Specification import Xfer_Direction, Machine_Bed_Position
 from knit_script.knit_script_interpreter.statements.Statement import Expression_Statement
 
 

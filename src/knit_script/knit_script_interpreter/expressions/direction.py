@@ -28,9 +28,9 @@ class Pass_Direction_Expression(Expression):
         Returns:
             Carriage_Pass_Direction: Pass_Direction from evaluation.
         """
-        if self._dir_word in ["Leftward", "Decreasing", "<--"]:
+        if self._dir_word in ["Leftward", "Decreasing"]:
             return Carriage_Pass_Direction.Leftward
-        elif self._dir_word in ["Rightward", "Increasing", "-->"]:
+        elif self._dir_word in ["Rightward", "Increasing"]:
             return Carriage_Pass_Direction.Rightward
         elif self._dir_word.lower() == "current":
             return context.direction

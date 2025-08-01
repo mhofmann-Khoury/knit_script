@@ -189,11 +189,6 @@ fabric.properties
 
 #Knit Script
 *.pgt
-!/dat-compiler/
-!/tests/python_sample.py
-#ignore the file associated with disney code
-!/tests/sample_python.py
-!/tests/import_test.k
 *.k
 *.dat
 

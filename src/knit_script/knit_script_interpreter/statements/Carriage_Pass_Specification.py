@@ -7,7 +7,7 @@ from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_exceptions.ks_exceptions import Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception, Repeated_Needle_Exception, All_Needle_Operation_Exception
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
 from knit_script.knitout_execution.knitout_execution import build_instruction
 
 
@@ -77,12 +77,12 @@ class Carriage_Pass_Specification:
                 if first_instruction_type.requires_second_needle:
                     self._require_second = True
             else:
-                if not first_instruction_type.compatible_pass(instruction_type):
+                if not first_instruction_type.compatible_pass(instruction_type): # Todo: ensure updates to knitout-interpreter allow for carriage passes with multiple miss
                     raise Incompatible_In_Carriage_Pass_Exception(first_instruction_type, instruction_type)
             if instruction_type.directed_pass and self._direction is None:
                 raise Required_Direction_Exception(instruction_type)
 
-    def _needs_released_hook(self, context: "Knit_Script_Context") -> bool:
+    def _needs_released_hook(self, context: Knit_Script_Context) -> bool:
         """Check if the yarn hook needs to be released for this pass.
 
         Args:

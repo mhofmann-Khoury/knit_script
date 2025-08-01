@@ -78,6 +78,6 @@ class Machine_Instruction_Exp(Expression):
             context (Knit_Script_Context): The current context of the knit_script_interpreter.
 
         Returns:
-            Knitout_Instruction_Type: The carrier instruction of the expression.
+            Knitout_Instruction_Type: The instruction type matching the expression.
         """
         return Knitout_Instruction_Type.get_instruction(self.inst_str)

@@ -11,7 +11,7 @@ from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_D
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
 
 
 class _Context_Free_Value(Expression):

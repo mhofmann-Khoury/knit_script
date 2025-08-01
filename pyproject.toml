@@ -217,10 +217,9 @@ warn_unused_ignores = false        # Don't warn about unused type ignores in tes
 [[tool.mypy.overrides]]
 module = [
     "parglare.*",                   # Parser generator library
-    "networkx.*",                   # Graph algorithms library
-    "matplotlib.*",                 # Plotting library
     "virtual_knitting_machine.*",   # Virtual knitting machine library
     "knitout_interpreter.*",        # Knitout interpreter library
+    "knitout-interpreter.*",
     "importlib_resources.*",        # Resource management
 ]
 ignore_errors = true              # Completely ignore all mypy errors in these modules
@@ -241,9 +240,8 @@ omit = [                           # Files to exclude from coverage measurement
     "*/tests/*",                    # Don't measure coverage of test files themselves
     "*/test_*",                     # Don't measure coverage of any test files
     "*/__pycache__/*",              # Ignore Python cache files
-    "*/site-packages/*",            # Ignore installed packages
+#    "*/site-packages/*",            # Ignore installed packages
     "*/venv/*",                     # Ignore virtual environment
-    "setup.py",                     # Ignore setup script
 ]
 branch = true                       # Enable branch coverage (more comprehensive than line coverage)
 

@@ -1,6 +1,7 @@
 """Statement that swaps layers between two needles"""
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression, get_expression_value_list
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -53,6 +54,8 @@ class Swap_Statement(Statement):
         if self._layer is None:
             assert isinstance(self._sheet, Expression)
             sheet = self._sheet.evaluate(context)
+            if isinstance(sheet, Sheet_Identifier):
+                sheet = sheet.sheet
             assert isinstance(sheet, int), f"Expected an integer for a sheet but got {sheet}"
             layer = None
         else:
