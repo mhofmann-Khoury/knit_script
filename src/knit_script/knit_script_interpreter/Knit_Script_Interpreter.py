@@ -4,7 +4,6 @@ from inspect import stack
 from typing import Any, cast
 
 from knit_graphs.Knit_Graph import Knit_Graph
-from knitout_interpreter.knitout_compilers.compile_knitout import compile_knitout
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line, Knitout_Comment_Line
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import Knitting_Machine_Exception
@@ -129,7 +128,6 @@ class Knit_Script_Interpreter:
                     if isinstance(e, Knitting_Machine_Exception) or isinstance(e, Knit_Script_Exception):
                         error_comments = [Knitout_Comment_Line(e.message)]
                         out.writelines([str(ec) for ec in error_comments])
-                compile_knitout(f"error.k", f"error.dat")
             raise e
         return cast(list[Knitout_Line], self._knitscript_context.knitout)
 

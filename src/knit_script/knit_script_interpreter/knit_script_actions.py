@@ -238,7 +238,6 @@ def assignment(parser_node: LRStackNode, __: list, var_name: Variable_Expression
     Returns:
         Assignment expression which evaluates to expression value
     """
-    # todo: ensure that typing is checking identifier not over shadowing keywords
     return Assignment(parser_node, var_name.variable_name, exp)
 
 

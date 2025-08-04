@@ -1,6 +1,7 @@
 """Used to manage all instruction sets written for a single carriage pass in a given direction"""
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from knitout_interpreter.knitout_operations.knitout_instruction_factory import build_instruction
 from knitout_interpreter.knitout_operations.needle_instructions import Needle_Instruction
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
@@ -8,7 +9,6 @@ from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from knit_script.knit_script_exceptions.ks_exceptions import Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception, Repeated_Needle_Exception, All_Needle_Operation_Exception
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
-from knit_script.knitout_execution.knitout_execution import build_instruction
 
 
 class Carriage_Pass_Specification:
@@ -77,7 +77,7 @@ class Carriage_Pass_Specification:
                 if first_instruction_type.requires_second_needle:
                     self._require_second = True
             else:
-                if not first_instruction_type.compatible_pass(instruction_type): # Todo: ensure updates to knitout-interpreter allow for carriage passes with multiple miss
+                if not first_instruction_type.compatible_pass(instruction_type):
                     raise Incompatible_In_Carriage_Pass_Exception(first_instruction_type, instruction_type)
             if instruction_type.directed_pass and self._direction is None:
                 raise Required_Direction_Exception(instruction_type)

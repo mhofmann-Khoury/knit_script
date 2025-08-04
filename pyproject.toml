@@ -86,10 +86,10 @@ exclude = [
 # =============================================================================
 # These are packages your project needs to run in production
 [tool.poetry.dependencies]
-python = "^3.11"                        # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
-parglare = "~0.16.1"                   # Parser generator library
+python = ">=3.11,<3.13"                        # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
+parglare = "^0.18"                   # Parser generator library
 virtual-knitting-machine = "^0.0.13"   # Virtual knitting machine
-knitout-interpreter = "^0.0.16"        # Knitout interpreter library
+knitout-interpreter = "^0.0.18"        # Knitout interpreter library
 importlib_resources = "6.5.2"         # For loading parser grammar files
 
 # =============================================================================

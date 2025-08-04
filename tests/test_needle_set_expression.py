@@ -55,7 +55,7 @@ class TestNeedle_Set_Expression(TestCase):
         xfer Front_Loops across sliders;
         print Back_Slider_Loops;
         """
-        interpret_test_ks(program, execute_knitout=False)  # Todo: Ensure that updated knitout interpreter is parsing sliders.
+        interpret_test_ks(program, execute_knitout=False)
 
     def test_Back_Loops(self):
         program = r"""
@@ -83,7 +83,7 @@ class TestNeedle_Set_Expression(TestCase):
         xfer Back_Loops across sliders;
         print Front_Slider_Loops;
         """
-        interpret_test_ks(program, execute_knitout=False)  # Todo: Ensure that updated knitout interpreter is parsing sliders.
+        interpret_test_ks(program, execute_knitout=False)
 
     def test_Loops(self):
         program = r"""

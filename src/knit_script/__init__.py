@@ -23,7 +23,7 @@ Example:
 from ._version import __version__
 
 # Core functionality - the main public API
-from .interpret_knit_script import knit_script_to_knitout
+from knit_script.interpret_knit_script import knit_script_to_knitout
 
 # Define the minimal public API - only core functions
 __all__ = [
