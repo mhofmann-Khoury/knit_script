@@ -42,22 +42,3 @@ through Python's warning system:
 - Custom warning handlers for logging or processing
 
 """
-
-from __future__ import annotations
-
-# Warning classes
-from .Knit_Script_Warning import (
-    Knit_Script_Warning,
-    Shadow_Variable_Warning,
-    Sheet_Beyond_Gauge_Warning
-)
-
-# Define what gets imported with "from knit_script.knit_script_warnings import *"
-__all__ = [
-    # Base warning class
-    'Knit_Script_Warning',
-
-    # Specific warning types
-    'Shadow_Variable_Warning',
-    'Sheet_Beyond_Gauge_Warning',
-]

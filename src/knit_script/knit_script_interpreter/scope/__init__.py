@@ -71,21 +71,3 @@ Variable resolution follows Python-like semantics:
 4. Check Python built-in scope.
 5. Raise NameError if not found.
 """
-
-from __future__ import annotations
-
-# Core scope management classes
-from .global_scope import Knit_Script_Globals
-from .local_scope import Knit_Script_Scope
-from .machine_scope import Machine_Scope
-
-# Define what gets imported with "from knit_script.scope import *"
-__all__ = [
-    # Primary scope management classes
-    'Knit_Script_Scope',
-    'Knit_Script_Globals',
-
-    # Machine-specific scope management
-    'Machine_Scope',
-
-]

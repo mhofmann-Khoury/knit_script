@@ -71,16 +71,3 @@ The package includes robust error handling for common knitting scenarios:
 - **Sheet_Peeling_Blocked_Loops_Exception**: When loops block access to sheets.
 - **Sheet_Value_Exception**: For invalid sheet numbers or configurations.
 """
-
-from __future__ import annotations
-
-# Core sheet management classes
-from .Gauged_Sheet_Record import Gauged_Sheet_Record
-from .Sheet import Sheet
-
-# Define what gets imported with "from knit_script.scope.gauged_sheet_schema import *"
-__all__ = [
-    # Primary classes for gauge and sheet management
-    'Gauged_Sheet_Record',
-    'Sheet',
-]
