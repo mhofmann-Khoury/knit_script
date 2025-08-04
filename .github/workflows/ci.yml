@@ -50,7 +50,7 @@ jobs:
         python-version: '3.12'
 
     # -------------------------------------------------------------------------
-    # STEP 3: Install Poetry
+    # STEP 3: Install Poetry with better Windows compatibility
     # -------------------------------------------------------------------------
     - name: Install Poetry
       uses: snok/install-poetry@v1
@@ -114,12 +114,55 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    # -------------------------------------------------------------------------
+    # FIX: Enhanced Poetry installation with explicit PATH handling for Windows
+    # -------------------------------------------------------------------------
     - name: Install Poetry
       uses: snok/install-poetry@v1
       with:
         version: latest
         virtualenvs-create: true
         virtualenvs-in-project: true
+        installer-parallel: true
+
+    # -------------------------------------------------------------------------
+    # FIX: Explicitly add Poetry to PATH for Windows
+    # -------------------------------------------------------------------------
+    - name: Add Poetry to PATH (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $poetryPath = "${env:APPDATA}\Python\Scripts"
+        echo $poetryPath >> $env:GITHUB_PATH
+
+        # Also try the alternative path
+        $poetryPath2 = "${env:USERPROFILE}\.local\bin"
+        echo $poetryPath2 >> $env:GITHUB_PATH
+
+        # Refresh environment
+        $env:PATH = "$poetryPath;$poetryPath2;$env:PATH"
+
+    # -------------------------------------------------------------------------
+    # FIX: Verify Poetry installation before proceeding
+    # -------------------------------------------------------------------------
+    - name: Verify Poetry installation
+      shell: bash
+      run: |
+        echo "Checking Poetry installation..."
+        if command -v poetry &> /dev/null; then
+          echo "Poetry found at: $(which poetry)"
+          poetry --version
+        else
+          echo "Poetry not found in PATH. Available commands:"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            where poetry || echo "Poetry executable not found"
+            ls "${APPDATA}/Python/Scripts/" || echo "Scripts directory not found"
+            ls "${USERPROFILE}/.local/bin/" || echo "Local bin directory not found"
+          else
+            which poetry || echo "Poetry not in PATH"
+          fi
+          exit 1
+        fi
 
     # -------------------------------------------------------------------------
     # Cache dependencies (separate cache for each matrix combination)
