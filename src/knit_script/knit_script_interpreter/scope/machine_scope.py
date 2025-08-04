@@ -14,7 +14,7 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Se
 
 from knit_script.knit_script_exceptions.ks_exceptions import Gauge_Value_Exception, Sheet_Value_Exception
 from knit_script.knit_script_interpreter import _Context_Base
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_warnings.Knit_Script_Warning import Sheet_Beyond_Gauge_Warning
 
 

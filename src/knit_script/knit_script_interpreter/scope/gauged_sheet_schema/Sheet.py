@@ -8,7 +8,7 @@ from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
-from knit_script.knit_script_exceptions import Sheet_Value_Exception
+from knit_script.knit_script_exceptions.ks_exceptions import Sheet_Value_Exception
 
 
 class Sheet:
