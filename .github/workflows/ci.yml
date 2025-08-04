@@ -89,7 +89,7 @@ jobs:
     # -------------------------------------------------------------------------
     - name: Run mypy type checking
       run: |
-        poetry run mypy src/knitout_interpreter/ --config-file=pyproject.toml
+        poetry run mypy src/knit_script/ --config-file=pyproject.toml
       continue-on-error: true  # Don't fail CI if mypy finds issues (for now)
 
   # ===========================================================================
