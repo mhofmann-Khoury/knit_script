@@ -77,9 +77,7 @@ from __future__ import annotations
 # Core scope management classes
 from .global_scope import Knit_Script_Globals
 from .local_scope import Knit_Script_Scope
-from .machine_scope import Machine_Scope, Machine_Variables
-from .module_scope import Knit_Script_Module
-from .variable_scope import Variable_Scope
+from .machine_scope import Machine_Scope
 
 # Define what gets imported with "from knit_script.scope import *"
 __all__ = [
@@ -89,11 +87,5 @@ __all__ = [
 
     # Machine-specific scope management
     'Machine_Scope',
-    'Machine_Variables',
 
-    # Module management
-    'Knit_Script_Module',
-
-    # Legacy scope support
-    'Variable_Scope'
 ]
