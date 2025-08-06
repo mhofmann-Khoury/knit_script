@@ -165,10 +165,7 @@ class Carriage_Pass_Specification:
                 needs_all_needle_rack = True
 
         if needs_all_needle_rack:
-            if context.racking >= 0:
-                context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking + .25, comment=f"All Needle racking {context.racking} to right"))
-            else:
-                context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking - .25, comment=f"All Needle racking {context.racking} to left"))
+            context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking + .25, comment=f"All Needle racking {context.racking}"))
 
         for needle in needles_in_order:
             instruction_type = self._needle_to_instruction[needle]

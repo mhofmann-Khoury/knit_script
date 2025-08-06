@@ -63,22 +63,30 @@ class Machine_Scope:
         self._sheet: Sheet_Identifier = Sheet_Identifier(0, self._gauge)
         self._gauged_sheet_record: Gauged_Sheet_Record = Gauged_Sheet_Record(self.Gauge, self.machine_state)
         if prior_settings is not None:
-            self.inherit_from_scope(prior_settings)
+            self.inherit_from_scope(prior_settings, inherit_raw_values=True)
 
-    def inherit_from_scope(self, scope: Machine_Scope) -> None:
+    def inherit_from_scope(self, scope: Machine_Scope, inherit_raw_values:bool = False) -> None:
         """Set the machine scope values based on the given scope.
 
         Copies all machine configuration settings from the specified scope to this scope, including direction, carrier, racking, gauge, sheet, and gauged sheet record.
         This method is used to establish initial settings when creating child scopes.
 
         Args:
+            inherit_raw_values (bool): If true, don't use the property setters which may modify the knitout.
             scope (Machine_Scope): The machine scope to inherit the values from.
         """
-        self.direction = scope.direction
-        self.Carrier = scope.Carrier
-        self.Racking = scope.Racking
-        self.Gauge = scope.Gauge
-        self.Sheet = scope.Sheet
+        if inherit_raw_values:
+            self._direction = scope.direction
+            self._working_carrier = scope.Carrier
+            self._working_racking = scope.Racking
+            self._gauge = scope.Gauge
+            self._sheet = scope.Sheet
+        else:
+            self.direction = scope.direction
+            self.Carrier = scope.Carrier
+            self.Racking = scope.Racking
+            self.Gauge = scope.Gauge
+            self.Sheet = scope.Sheet
         self._gauged_sheet_record = scope._gauged_sheet_record
 
     def update_parent_machine_scope(self, parent_scope: Machine_Scope) -> None:
@@ -182,6 +190,24 @@ class Machine_Scope:
             float: Current racking of the machine as a floating-point value.
         """
         return self._working_racking
+
+    @property
+    def Rack(self) -> float:
+        """Get current racking of the machine.
+
+        Returns:
+            float: Current racking of the machine as a floating-point value.
+        """
+        return self.Racking
+
+    @Rack.setter
+    def Rack(self, racking: float) -> None:
+        """
+        Alternate name for setter for the Racking property.
+        Args:
+            racking (float): Current racking of the machine as a floating-point value.:
+        """
+        self.Racking = racking
 
     @Racking.setter
     def Racking(self, value: float) -> None:

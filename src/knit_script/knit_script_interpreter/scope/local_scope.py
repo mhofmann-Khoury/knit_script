@@ -151,6 +151,24 @@ class Knit_Script_Scope:
         self.machine_scope.Carrier = carrier
 
     @property
+    def Rack(self) -> float:
+        """Get current racking of the machine.
+
+        Returns:
+            float: Current racking of the machine as a floating-point value.
+        """
+        return float(self.machine_scope.Racking)
+
+    @Rack.setter
+    def Rack(self, racking: float) -> None:
+        """
+        Alternate name for setter for the Racking property.
+        Args:
+            racking (float): Current racking of the machine as a floating-point value.:
+        """
+        self.Racking = racking
+
+    @property
     def Racking(self) -> float:
         """Get current racking of the machine.
 
