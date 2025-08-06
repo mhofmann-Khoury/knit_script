@@ -12,7 +12,7 @@ build-backend = "poetry.core.masonry.api"  # Use Poetry's build system
 # All the information about your project that will appear on PyPI
 [tool.poetry]
 name = "knit-script"            # Package name on PyPI (use hyphens)
-version = "0.1.28"               # Current version (update this for each release)
+version = "0.1.29"               # Current version (update this for each release)
 description = "Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
 authors = ["Megan Hofmann <m.hofmann@northeastern.edu>"]       # Primary authors
 maintainers = ["Megan Hofmann <m.hofmann@northeastern.edu>"]   # Current maintainers
@@ -93,7 +93,7 @@ exclude = [
 python = ">=3.11,<3.13"                        # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
 parglare = "^0.18"                   # Parser generator library
 virtual-knitting-machine = "^0.0.13"   # Virtual knitting machine
-knitout-interpreter = "^0.0.18"        # Knitout interpreter library
+knitout-interpreter = "^0.0.19"        # Knitout interpreter library
 importlib_resources = "6.5.2"         # For loading parser grammar files
 
 # =============================================================================

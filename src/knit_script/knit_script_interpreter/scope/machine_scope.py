@@ -81,6 +81,18 @@ class Machine_Scope:
         self.Sheet = scope.Sheet
         self._gauged_sheet_record = scope._gauged_sheet_record
 
+    def update_parent_machine_scope(self, parent_scope: Machine_Scope) -> None:
+        """
+        Passes machine status values up to the given parent scope.
+        Args:
+            parent_scope (Machine_Scope): The parent machine scope to pass values up to.
+        """
+        parent_scope.direction = self._direction
+        parent_scope.Racking = self.Racking
+        if parent_scope.Gauge == self.Gauge:  # Gauge did not change, so keep the gauged sheet record.
+            self.Sheet = parent_scope.Sheet  # set back to prior sheet before passing record along.
+            parent_scope._gauged_sheet_record = self._gauged_sheet_record
+
     @property
     def machine_state(self) -> Knitting_Machine:
         """Get the current machine state in the current context.

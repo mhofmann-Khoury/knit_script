@@ -97,10 +97,7 @@ class Carriage_Pass_Specification:
                 if first_instruction_type.requires_second_needle:
                     self._require_second = True
             else:
-                if first_instruction_type is Knitout_Instruction_Type.Miss:  # Todo update knitout interpreter to not need this check
-                    if instruction_type is not Knitout_Instruction_Type.Miss:
-                        raise Incompatible_In_Carriage_Pass_Exception(self._source_statement, first_instruction_type, instruction_type)
-                elif not first_instruction_type.compatible_pass(instruction_type):
+                if not first_instruction_type.compatible_pass(instruction_type):
                     raise Incompatible_In_Carriage_Pass_Exception(self._source_statement, first_instruction_type, instruction_type)
             if instruction_type.directed_pass and self._direction is None:
                 raise Required_Direction_Exception(self._source_statement, instruction_type)

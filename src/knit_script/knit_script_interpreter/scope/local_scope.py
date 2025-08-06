@@ -475,9 +475,10 @@ class Knit_Script_Scope:
             if collapse_into_parent:
                 self._parent.collapse_lower_scope()
             else:
-                parent_machine_scope = self._parent.machine_scope
-                self._parent._machine_scope = self.machine_scope
-                self._parent.machine_scope.inherit_from_scope(parent_machine_scope)  # reset from current variables back to state prior to this scope.
+                self.machine_scope.update_parent_machine_scope(self._parent.machine_scope)
+                # parent_machine_scope = self._parent.machine_scope
+                # self._parent._machine_scope = self.machine_scope
+                # self._parent.machine_scope.inherit_from_scope(parent_machine_scope)  # reset from current variables back to state prior to this scope.
             self._parent._child_scope = None
         return self._parent
 

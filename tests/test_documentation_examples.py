@@ -371,12 +371,12 @@ class Test_Documentation_Examples(TestCase):
        xfer Front_Loops offset to Right to Back bed;
 
        // Transfer to sliders
-       //xfer Front_Needles[1:5] across sliders;
+       xfer Front_Needles[1:5] across sliders;
 
        // Transfer loops moved to sliders back to Front bed.
-       //xfer Last_Pass.values() across to Front bed;
+       xfer Last_Pass.values() across to Front bed;
         """
-        interpret_test_ks(program)  # Todo, fix slider parsing in knitout interpreter
+        interpret_test_ks(program)
 
     def test_mo_splits(self):
         program = r"""
