@@ -93,5 +93,5 @@ class Test_Basic_Examples(TestCase):
         interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True, c=1, pattern_width=6, pattern_height=4)
 
     def test_xfer_rackings(self):
-        program = load_test_resource("xfer_Rackings.ks")
+        program = load_test_resource("xfer_rackings.ks")
         interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True, c=1, pattern_width=6, pattern_height=4)
