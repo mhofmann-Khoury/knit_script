@@ -1,6 +1,6 @@
 """
 Knit Script Interpreter Scope Management Package
-===============================================
+================================================
 
 This package provides comprehensive scope and variable management for the Knit Script interpreter,
  handling global variables, local scopes, machine state, and module imports.
@@ -13,7 +13,7 @@ The scope system manages a hierarchical variable structure that supports:
 - Python scope integration for built-in functions and variables.
 
 Classes Overview
----------------
+----------------
 
 Global Scope Management:
     Knit_Script_Globals: Tracks global variables and program exit values.
@@ -33,7 +33,7 @@ Supporting Classes:
     Gauged_Sheet_Record: Manages sheet configurations for different gauge settings
 
 Key Features
------------
+------------
 
 Hierarchical Scoping:
     - Parent-child scope relationships.
@@ -56,7 +56,7 @@ Error Handling:
     - Graceful handling of undefined variables.
 
 Architecture Notes
------------------
+------------------
 
 The scope system follows a tree-like hierarchy where:
 - Root scope contains global variables and machine state.

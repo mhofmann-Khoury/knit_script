@@ -18,7 +18,7 @@ class Test_Sheet_Gauge_Handling(TestCase):
         Sheet = s1;
         assert len(Front_Loops) == 0;
         in Rightward direction:{
-            knit Back_Needles[0:5];
+            tuck Back_Needles[0:5];
         }
         assert len([n for n in Last_Pass if n.position%2==1]) == len(Last_Pass);
         assert len(Back_Loops) == len(Last_Pass);

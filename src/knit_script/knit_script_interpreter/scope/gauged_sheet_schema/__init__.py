@@ -1,6 +1,6 @@
 """
 Knit Script Gauged Sheet Schema Package
-======================================
+=======================================
 
 This package provides comprehensive sheet and layer management for multi-gauge knitting operations within the Knit Script interpreter.
 It handles the complex task of organizing and tracking loop positions across multiple virtual sheets on a knitting machine.
@@ -13,7 +13,7 @@ The gauged sheet system enables advanced knitting techniques by:
 - Supporting both standard and slider needle operations.
 
 Core Components
---------------
+---------------
 
 Gauged_Sheet_Record:
     The primary orchestrator class that manages multiple sheets within a gauge configuration.
@@ -23,7 +23,7 @@ Sheet:
     Individual sheet representation that tracks loop positions and provides access to needles belonging to that specific sheet within a gauge.
 
 Key Features
------------
+------------
 
 Multi-Sheet Management:
     - Create and manage multiple virtual sheets at a given gauge.
@@ -54,7 +54,7 @@ Needle Access Patterns:
     - Needle bed organization utilities.
 
 Architecture Overview
--------------------
+---------------------
 Sheet Positioning:
 - Sheets are numbered from 0 to gauge-1.
 - Layer positions determine physical needle placement.
@@ -62,7 +62,7 @@ Sheet Positioning:
 - Layer manipulation affects which sheets are accessible.
 
 Error Handling
--------------
+--------------
 
 The package includes robust error handling for common knitting scenarios:
 

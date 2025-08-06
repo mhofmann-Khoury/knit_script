@@ -1,11 +1,11 @@
 """
 Knit Script Interpreter Package
-==============================
+===============================
 
 This package provides the core interpreter infrastructure for the Knit Script language, handling parsing, execution context management, and code generation.
 
 Core Components
---------------
+---------------
 
 Interpreter Classes:
     Knit_Script_Interpreter: Main interpreter class that orchestrates parsing and execution of knit script programs.
@@ -19,7 +19,7 @@ Base Classes:
     KS_Element: Superclass for all knit script language elements, providing location tracking and common functionality.
 
 Architecture Overview
--------------------
+---------------------
 
 The interpreter follows a multi-stage execution model:
 
@@ -32,7 +32,7 @@ The interpreter follows a multi-stage execution model:
 4. **Output Generation**: Final knitout instructions are written to files and knit graphs are generated for visualization.
 
 Key Features
------------
+------------
 
 Language Processing:
     - Complete knit script grammar implementation

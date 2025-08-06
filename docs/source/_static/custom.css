@@ -1,0 +1,118 @@
+/* Custom CSS to match parglare styling */
+
+/* Improve code highlighting */
+.highlight {
+    background: #f8f8f8;
+    border: 1px solid #e1e4e5;
+    padding: 12px;
+    margin: 16px 0;
+    border-radius: 3px;
+}
+
+/* Better API documentation styling */
+.py.class, .py.function, .py.method {
+    border-left: 4px solid #2980b9;
+    padding-left: 12px;
+    margin: 16px 0;
+}
+
+/* Signature styling */
+.sig-name {
+    color: #2980b9;
+    font-weight: bold;
+}
+
+.sig-param {
+    color: #e74c3c;
+    font-style: italic;
+}
+
+/* Docstring parameter lists */
+.field-list dt {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.field-list th {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    font-weight: bold;
+}
+
+.field-list td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+}
+
+/* Module/class headings */
+h1, h2, h3 {
+    color: #2c3e50;
+}
+
+/* Navigation improvements */
+.wy-nav-content {
+    max-width: none;
+}
+
+/* Make the sidebar wider */
+.wy-nav-side {
+    width: 300px;
+}
+
+.wy-nav-content-wrap {
+    margin-left: 300px;
+}
+
+/* Better table styling */
+table.docutils {
+    border-collapse: collapse;
+    border: 1px solid #e1e4e5;
+    margin: 16px 0;
+}
+
+table.docutils th,
+table.docutils td {
+    border: 1px solid #e1e4e5;
+    padding: 8px 12px;
+}
+
+table.docutils th {
+    background-color: #f3f6f6;
+    font-weight: bold;
+}
+
+/* Source code links */
+.viewcode-link {
+    float: right;
+    font-size: 0.8em;
+    color: #27ae60;
+    text-decoration: none;
+}
+
+.viewcode-link:hover {
+    color: #2ecc71;
+}
+
+/* Admonition styling similar to parglare */
+.admonition {
+    margin: 16px 0;
+    padding: 12px;
+    border-left: 4px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+.admonition.note {
+    border-left-color: #3498db;
+    background-color: #ebf5fb;
+}
+
+.admonition.warning {
+    border-left-color: #f39c12;
+    background-color: #fef9e7;
+}
+
+.admonition.important {
+    border-left-color: #e74c3c;
+    background-color: #fdedec;
+}

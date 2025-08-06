@@ -10,10 +10,10 @@ class TestCarrier_Expression(TestCase):
             print c;
         }
         """
-        interpret_test_ks(pattern)
+        interpret_test_ks(pattern, print_k_lines=False)
         for cid in range(1, 10):
-            pattern = f"""print c{cid};"""
-            interpret_test_ks(pattern)
+            pattern = f"""assert c{cid}.carrier_id == {cid};"""
+            interpret_test_ks(pattern, print_k_lines=False)
 
     def test_carrier_position(self):
         pattern = r"""

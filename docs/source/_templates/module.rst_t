@@ -1,0 +1,9 @@
+# Create this file as: docs/_templates/module.rst_t
+
+{{ fullname | escape | underline}}
+
+.. automodule:: {{ fullname }}
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :special-members: __init__

@@ -6,7 +6,7 @@ This package provides warning classes for the Knit Script interpreter,
 alerting users to potentially problematic code patterns that don't cause errors but may lead to unexpected behavior.
 
 Warning Classes
---------------
+---------------
 
 Base Warning:
     Knit_Script_Warning: Base class for all knit script warnings, extends Python's RuntimeWarning with knit script specific formatting and context.
@@ -18,7 +18,7 @@ Machine State Warnings:
     Sheet_Beyond_Gauge_Warning: Raised when sheet settings exceed current gauge limits, causing automatic correction.
 
 Warning System
--------------
+--------------
 
 The warning system follows Python's standard warning framework while providing knit script specific context and formatting.
 All warnings inherit from Knit_Script_Warning which provides:

@@ -1,4 +1,8 @@
-"""Statements that change the layer position of needles"""
+"""Statements that change the layer position of needles.
+
+This module provides the Push_Statement class, which handles layer position modifications for needles in multi-sheet gauge configurations.
+It allows control over the stacking hierarchy of stitches, enabling complex knitting patterns that require specific layer arrangements.
+"""
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
@@ -10,24 +14,25 @@ from knit_script.knit_script_interpreter.statements.Statement import Statement
 class Push_Statement(Statement):
     """Pushes needles to specified layer positions in the stacking hierarchy.
 
-    This statement modifies the layering order of stitches on needles, allowing
-    control over which stitches appear in front or back of others in the final
-    knitted fabric. Supports absolute positioning, relative movement, and
-    front/back positioning.
+    This statement modifies the layering order of stitches on needles, allowing control over which stitches appear in front or back of others in the final knitted fabric.
+    Supports absolute positioning to specific layers, relative movement by distance, and convenient front/back positioning.
+
+    The push operation is essential for complex multi-sheet knitting where the layer ordering affects the final fabric structure and appearance.
+    After modifying layer positions, the statement automatically resets to the current sheet to ensure the changes are properly applied.
+
+    Attributes:
+        _needles (list[Expression]): List of expressions that evaluate to needles whose layers should be repositioned.
+        _push_val (str | Expression | tuple[Expression, str]): The positioning instruction specification.
     """
 
     def __init__(self, parser_node: LRStackNode, needles: list[Expression], push_val: str | Expression | tuple[Expression, str]) -> None:
         """Initialize a push statement.
 
         Args:
-            parser_node: The parser node from the abstract syntax tree.
-            needles: List of expressions that evaluate to needles whose layers
-                should be repositioned.
-            push_val: The positioning instruction, which can be:
-                - str: "front" or "back" for absolute positioning
-                - Expression: Absolute layer position as integer
-                - tuple: (distance_expression, direction_string) for relative movement
-                  where direction is "forward" or "backward"
+            parser_node (LRStackNode): The parser node from the abstract syntax tree.
+            needles (list[Expression]): List of expressions that evaluate to needles whose layers should be repositioned.
+            push_val (str | Expression | tuple[Expression, str]): The positioning instruction, which can be a string for absolute positioning ("front" or "back"),
+            an Expression for absolute layer position as integer, or a tuple of (distance_expression, direction_string) for relative movement where direction is "forward" or "backward".
         """
         super().__init__(parser_node)
         self._needles: list[Expression] = needles
@@ -36,11 +41,11 @@ class Push_Statement(Statement):
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the push operation on the specified needles.
 
-        Evaluates all needle expressions and applies the positioning operation
-        to each needle's layer in the gauged sheet record.
+        Evaluates all needle expressions and applies the positioning operation to each needle's layer in the gauged sheet record.
+        Supports absolute positioning, relative movement, and convenient front/back shortcuts. After all modifications, resets to the current sheet to apply changes.
 
         Args:
-            context: The current execution context of the knit script interpreter.
+            context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         needles = get_expression_value_list(context, self._needles)
         positions = [n.position if isinstance(n, Needle) else int(n) for n in needles]
@@ -68,7 +73,7 @@ class Push_Statement(Statement):
         """Return string representation of the push statement.
 
         Returns:
-            A string showing the needles and push operation.
+            str: A string showing the needles and push operation.
         """
         return f"push {self._needles} {self._push_val}"
 
@@ -76,6 +81,6 @@ class Push_Statement(Statement):
         """Return detailed string representation of the push statement.
 
         Returns:
-            Same as __str__ for this class.
+            str: Same as __str__ for this class.
         """
         return str(self)

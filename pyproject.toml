@@ -138,12 +138,13 @@ colorama = {version = "^0.4.6", markers = "sys_platform == 'win32'"}
 # DOCUMENTATION-SPECIFIC DEPENDENCIES
 # =============================================================================
 # Separate dependency group for building documentation (allows selective installation)
-sphinx-autobuild = "^2024.10.3"
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.1.0"                    # Documentation generator (main tool)
 sphinx-rtd-theme = "^1.3.0"         # Professional-looking theme
 sphinx-autodoc-typehints = "^1.24.0" # Automatically include type hints in docs
+sphinx-autobuild = "^2024.10.3"     # Live reloading for documentation development
 myst-parser = "^2.0.0"              # Support for Markdown files in documentation
+pygments = "^2.17.0"                # Syntax highlighting library (needed for custom lexer)
 
 # =============================================================================
 # COMMAND-LINE INTERFACE SCRIPTS

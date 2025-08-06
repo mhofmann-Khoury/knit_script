@@ -1,4 +1,8 @@
-"""Expressions for accessing standard needle sets from the machine state"""
+"""Expressions for accessing standard needle sets from the machine state.
+
+This module provides expression classes for accessing predefined collections of needles from the knitting machine state.
+It includes the Needle_Sets enumeration that defines available needle collections and the Needle_Set_Expression class that evaluates to these collections based on the current sheet configuration.
+"""
 
 from __future__ import annotations
 from enum import Enum
@@ -13,7 +17,14 @@ from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_
 
 
 class Needle_Sets(Enum):
-    """Naming of Needles sets on Machine State."""
+    """Naming of Needles sets on Machine State.
+
+    The Needle_Sets enumeration defines the available predefined needle collections that can be accessed from the knitting machine state.
+    These collections provide convenient access to commonly used needle groupings for knitting operations.
+
+    The enumeration includes collections for different bed positions (front/back), needle types (regular/slider), and needle states (all needles vs. only those with loops),
+     as well as special collections like the results from the last carriage pass.
+    """
     Last_Pass = "Last_Pass"
     Needles = "Needles"
     Front_Needles = "Front_Needles"
@@ -30,14 +41,24 @@ class Needle_Sets(Enum):
 
 
 class Needle_Set_Expression(Expression):
-    """Evaluates keywords to sets of needles on the machine."""
+    """Evaluates keywords to sets of needles on the machine.
+
+    The Needle_Set_Expression class handles the evaluation of needle set keywords in knit script programs.
+    It converts string identifiers into the corresponding needle collections from the current sheet configuration, providing access to predefined needle groupings.
+
+    This expression type allows knit scripts to easily reference common needle collections without having to manually specify individual needles or ranges.
+    The collections respect the current sheet and gauge settings, returning needles appropriate for the current knitting context.
+
+    Attributes:
+        _set_str (str): The string identifier for the needle set to retrieve.
+    """
 
     def __init__(self, parser_node: LRStackNode, set_str: str) -> None:
         """Initialize the Needle_Set_Expression.
 
         Args:
             parser_node (LRStackNode): The parser node from the parse tree.
-            set_str (str): The string to identify the set.
+            set_str (str): The string identifier for the needle set to retrieve, corresponding to a Needle_Sets enumeration value.
         """
         super().__init__(parser_node)
         self._set_str: str = set_str
@@ -47,18 +68,26 @@ class Needle_Set_Expression(Expression):
         """Get the string for the set of needles to collect.
 
         Returns:
-            str: String for the set of needles to collect.
+            str: String identifier for the set of needles to collect.
         """
         return self._set_str
 
     def evaluate(self, context: Knit_Script_Context) -> list[Needle] | dict[Needle, Needle | None] | list[Slider_Needle]:
-        """Evaluate the expression.
+        """Evaluate the expression to get the specified needle set.
+
+        Converts the needle set string identifier into the corresponding collection of needles from the current sheet configuration.
+        The returned collection type depends on the specific needle set requested.
 
         Args:
             context (Knit_Script_Context): The current context of the knit_script_interpreter.
 
         Returns:
-            list[Needle] | dict[Needle, Needle | None] | list[Slider_Needle]: Specified set of needles.
+            list[Needle] | dict[Needle, Needle | None] | list[Slider_Needle]: The specified set of needles from the current sheet, with type depending on the needle set requested.
+            Dictionary return is used for Last_Pass results which may contain transfer mappings.
+
+        Note:
+            All needle sets except Last_Pass return lists of needles.
+            Last_Pass may return a dictionary mapping source needles to destination needles for transfer operations, or a simple list for other operations.
         """
         kp_set = Needle_Sets[self._set_str]
         if kp_set is Needle_Sets.Front_Needles:

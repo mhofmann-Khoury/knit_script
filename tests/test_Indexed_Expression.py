@@ -9,7 +9,7 @@ class Test_Slicing_and_Indexing(TestCase):
         for _ in range(10):
             pos = random.randint(0, 400)
             program = f"assert Front_Needles[{pos}].position == {pos};"
-            interpret_test_ks(program)
+            interpret_test_ks(program, print_k_lines=False)
 
     def test_full_def_slice(self):
         program = r"""
@@ -17,7 +17,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 3;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_no_spacing(self):
         program = r"""
@@ -25,7 +25,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 5;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_no_start_no_space(self):
         program = r"""
@@ -33,7 +33,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 6;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_no_end_no_space(self):
         program = r"""
@@ -42,7 +42,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 5;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_no_start_spacer(self):
         program = r"""
@@ -50,7 +50,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 3;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_no_end_spacer(self):
         program = r"""
@@ -59,7 +59,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 3;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_negative_start(self):
         program = r"""
@@ -68,7 +68,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 2;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_negative_end(self):
         program = r"""
@@ -77,7 +77,7 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 4;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_negative_space(self):
         program = r"""
@@ -85,4 +85,4 @@ class Test_Slicing_and_Indexing(TestCase):
         print needles;
         assert len(needles) == 6;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)

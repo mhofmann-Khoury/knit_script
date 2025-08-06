@@ -6,7 +6,7 @@ This package contains all statement types for the Knit Script interpreter.
 Statements are executable language constructs that perform actions or control program flow but do not return values (unlike expressions).
 
 Statement Categories
--------------------
+--------------------
 
 Core Language Statements:
     Statement: Base class for all statements.
@@ -51,7 +51,7 @@ Output and Debugging:
     Assertion: Tests conditions with optional error messages.
 
 Architecture
------------
+------------
 
 All statement classes inherit from the base Statement class and implement the execute() method to define their behavior.
 Statements operate within a Knit_Script_Context that provides access to:

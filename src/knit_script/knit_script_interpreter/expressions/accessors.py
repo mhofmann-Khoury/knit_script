@@ -1,11 +1,18 @@
-"""Used to access attributes from instances in code"""
+"""Used to access attributes from instances in code.
+
+This module provides the Attribute_Accessor_Expression class, which handles attribute access operations for knit script expressions.
+It supports accessing attributes from both knit script objects and underlying Python objects, including method calls, property access,
+and specialized handling for machine and sheet-specific needle collections.
+"""
 from typing import Any
 
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, Sheet_Identifier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_AttributeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
@@ -15,15 +22,25 @@ from knit_script.knit_script_interpreter.statements.function_dec_statement impor
 
 
 class Attribute_Accessor_Expression(Expression):
-    """Accesses attributes of expression either from knit-script or underlying python."""
+    """Accesses attributes of expression either from knit-script or underlying python.
+
+    This class handles complex attribute access operations in knit script, supporting both direct attribute access and method calls.
+    It can access attributes from Python objects as well as specialized knit script objects like machines and sheet identifiers.
+    The class supports chained attribute access and provides specialized handling for needle set expressions.
+
+    Attributes:
+        is_method_call (bool): True if the attribute being accessed is a method call.
+        parent (list[Expression]): List of parent expressions in the access chain.
+        attribute (Expression): The attribute being accessed from the parent.
+    """
 
     def __init__(self, parser_node: LRStackNode, parent_path: list[Expression] | Expression, attribute: Expression) -> None:
         """Initialize the Attribute_Accessor_Expression.
 
         Args:
             parser_node (LRStackNode): The parser node from the parse tree.
-            parent_path (Union[list[Expression], Expression]): The expression to access and attribute from.
-            attribute (Expression): The attribute of the parent expression. May produce more accessors.
+            parent_path (list[Expression] | Expression): The expression to access an attribute from. Can be a single expression or a chain of expressions.
+            attribute (Expression): The attribute of the parent expression. May produce more nested accessors.
         """
         super().__init__(parser_node)
         self.is_method_call = False
@@ -40,16 +57,21 @@ class Attribute_Accessor_Expression(Expression):
             self.is_method_call = True
 
     def _parent_expression(self) -> Expression:
+        """Get the parent expression for evaluation.
+
+        Returns:
+            Expression: The parent expression, either as a single expression or nested accessor.
+        """
         if len(self.parent) == 1:
             return self.parent[0]
         else:
             return Attribute_Accessor_Expression(self.parser_node, self.parent[:-1], self.parent[1])
 
     def parent_path(self) -> str:
-        """Get the path to parent value.
+        """Get the path to parent value as a dot-separated string.
 
         Returns:
-            str: Path to parent value.
+            str: Path to parent value with expressions separated by dots.
         """
         parent_source_str = ""
         for p in self.parent:
@@ -58,6 +80,14 @@ class Attribute_Accessor_Expression(Expression):
         return parent_source_str
 
     def _evaluate_parent(self, context: Knit_Script_Context) -> Any:
+        """Evaluate the parent expression to get the object to access attributes from.
+
+        Args:
+            context (Knit_Script_Context): The current execution context.
+
+        Returns:
+            Any: The evaluated parent object.
+        """
         if len(self.parent) == 1:  # one parent expression
             parent_source: Expression = self.parent[0]
             parent = parent_source.evaluate(context)
@@ -73,13 +103,16 @@ class Attribute_Accessor_Expression(Expression):
         return str(self)
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
-        """Evaluate the expression.
+        """Evaluate the expression to access the specified attribute.
 
         Args:
             context (Knit_Script_Context): The current context of the knit_script_interpreter.
 
         Returns:
-            Any: Accessed attribute of parent expression.
+            Any: The accessed attribute value from the parent expression.
+
+        Raises:
+            AttributeError: If the attribute cannot be accessed from the parent object.
         """
         parent = self._evaluate_parent(context)
         if isinstance(self.attribute, Variable_Expression):  # variable name, access directly from parent instance
@@ -141,14 +174,12 @@ class Attribute_Accessor_Expression(Expression):
                 elif kp_set is Needle_Sets.Slider_Loops:
                     return context.gauged_sheet_record.all_slider_loops(parent.sheet)
             else:
-                raise AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>")
+                raise Knit_Script_AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>", self)
         elif isinstance(self.attribute, Function_Call):
             method_name = self.attribute.func_name.variable_name
             attribute = getattr(parent, method_name)
             if isinstance(attribute, Function_Signature):
-                return_value = attribute.execute(context,
-                                                 self.attribute.args,
-                                                 self.attribute.kwargs)
+                return_value = attribute.execute(context, self.attribute.args, self.attribute.kwargs)
                 return return_value
             else:  # attempt to treat method as python class method
                 args = [arg.evaluate(context) for arg in self.attribute.args]
@@ -165,5 +196,7 @@ class Attribute_Accessor_Expression(Expression):
                 elif isinstance(parent, Sheet_Identifier):
                     sheet_needle = parent.get_needle(attribute)
                     return context.machine_state[sheet_needle]
+            elif isinstance(attribute, Yarn_Carrier_Set) and len(attribute) == 1:
+                return context.machine_state.carrier_system[attribute[0]]
             else:
                 return getattr(parent, attribute)

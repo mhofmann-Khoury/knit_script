@@ -6,11 +6,11 @@ from resources.interpret_test_ks import interpret_test_ks
 class Test_Containers(TestCase):
     def test_needle_list(self):
         program = r"""print [f1,f2,f3];"""
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_mixed_list(self):
         program = r"""print [f1,"f2",3, c1];"""
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_simple_list_comp(self):
         program = r"""
@@ -18,7 +18,7 @@ class Test_Containers(TestCase):
         print l;
         assert len(l) == 10;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_conditioned_list_comp(self):
         program = r"""
@@ -26,7 +26,7 @@ class Test_Containers(TestCase):
         print l;
         assert len(l) == 5;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_multiple_vars_comp(self):
         program = r"""
@@ -35,15 +35,15 @@ class Test_Containers(TestCase):
         print l;
         assert len(l) == 5;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_needle_dict(self):
         program = r"""print {f1:1,f2:2,f3:3};"""
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_mixed_dict(self):
         program = r"""print {"f1":1,"cat":2,f3:c3};"""
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_simple_dict_comp(self):
         program = r"""
@@ -51,7 +51,7 @@ class Test_Containers(TestCase):
         print l;
         assert len(l) == 10;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_conditioned_dict_comp(self):
         program = r"""
@@ -62,7 +62,7 @@ class Test_Containers(TestCase):
             assert not v;
         }
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
 
     def test_multiple_vars_dict_comp(self):
         program = r"""
@@ -70,4 +70,4 @@ class Test_Containers(TestCase):
         print l;
         assert len(l) == 5;
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, print_k_lines=False)
