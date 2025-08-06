@@ -18,6 +18,6 @@ with p as "bird", Racking as 2:{
 	assert p == "bird", p;
 }
 print f"Racking after with-2: {Racking}";
-assert Racking == 0.0;
+assert Racking == 0.0, f"Expected racking of 0.0 but got {Racking}";
 print f"p after with-2: {p}";
 assert p == "bird", p;

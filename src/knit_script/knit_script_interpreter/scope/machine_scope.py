@@ -65,7 +65,7 @@ class Machine_Scope:
         if prior_settings is not None:
             self.inherit_from_scope(prior_settings, inherit_raw_values=True)
 
-    def inherit_from_scope(self, scope: Machine_Scope, inherit_raw_values:bool = False) -> None:
+    def inherit_from_scope(self, scope: Machine_Scope, inherit_raw_values: bool = False) -> None:
         """Set the machine scope values based on the given scope.
 
         Copies all machine configuration settings from the specified scope to this scope, including direction, carrier, racking, gauge, sheet, and gauged sheet record.
@@ -95,8 +95,8 @@ class Machine_Scope:
         Args:
             parent_scope (Machine_Scope): The parent machine scope to pass values up to.
         """
+        self.Racking = parent_scope.Racking  # will trigger a rack instruction to be added if there is a shift back to a prior racking
         parent_scope.direction = self._direction
-        parent_scope.Racking = self.Racking
         if parent_scope.Gauge == self.Gauge:  # Gauge did not change, so keep the gauged sheet record.
             self.Sheet = parent_scope.Sheet  # set back to prior sheet before passing record along.
             parent_scope._gauged_sheet_record = self._gauged_sheet_record
