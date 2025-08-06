@@ -602,7 +602,7 @@ def if_statement(parser_node: LRStackNode, __: list, condition: Expression, true
 
 @action
 def while_statement(parser_node: LRStackNode, __: list, condition: Expression, while_block: Code_Block) -> While_Statement:
-    """Create a while statement.
+    """Create a while-statement.
 
     Args:
         parser_node (LRStackNode): The parser element that created this value.
