@@ -194,6 +194,3 @@ fabric.properties
 
 #ignore vs code files
 .vscode/
-launch.json
-stst_10.dat
-stst.ks
