@@ -11,7 +11,7 @@ from typing import Any
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.knit_script_exception import Knit_Script_Located_Exception
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 

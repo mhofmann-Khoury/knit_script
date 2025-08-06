@@ -9,7 +9,7 @@ from __future__ import annotations
 from parglare import ParseError
 from parglare.common import Location, position_context
 
-from knit_script.knit_script_exceptions.knit_script_exception import Knit_Script_Exception
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
 
 
 class Parsing_Exception(Knit_Script_Exception):
