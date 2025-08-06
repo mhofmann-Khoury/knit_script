@@ -11,7 +11,7 @@ from typing import Iterable
 from parglare.parser import LRStackNode
 
 import knit_script.knit_script_std_library as ks_library
-from knit_script.knit_script_exceptions.knit_script_exception import Knit_Script_Located_Exception
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
 from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_ImportError
 from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
