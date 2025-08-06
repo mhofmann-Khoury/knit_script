@@ -37,7 +37,7 @@ jobs:
     - name: Generate API documentation
       run: |
         cd docs
-        sphinx-apidoc -o source ../src/knitout_interpreter --force --separate --no-toc
+        sphinx-apidoc -o source ../src/knit_script --force --separate --no-toc
 
     - name: Build documentation
       run: |
