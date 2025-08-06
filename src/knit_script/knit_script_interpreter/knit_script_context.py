@@ -20,6 +20,8 @@ from virtual_knitting_machine.machine_components.needles.Slider_Needle import Sl
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set, Yarn_Carrier
 
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception, Knit_Script_Located_Exception
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError, Knit_Script_NameError, Knit_Script_AttributeError, Knit_Script_IndexError, Knit_Script_KeyError, \
+    Knit_Script_ImportError, Knit_Script_ValueError
 from knit_script.knit_script_interpreter._Context_Base import _Context_Base
 from knit_script.knit_script_interpreter._parser_base import _Parser_Base
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
@@ -275,7 +277,22 @@ class Knit_Script_Context(_Context_Base):
                             error_comments = [Knitout_Comment_Line(e.message)]
                             out.writelines([str(ec) for ec in error_comments])
                 if not isinstance(e, Knit_Script_Located_Exception):
-                    raise Knit_Script_Located_Exception(e, statement)
+                    if isinstance(e, TypeError):
+                        raise Knit_Script_TypeError(str(e), statement)
+                    elif isinstance(e, NameError):
+                        raise Knit_Script_NameError(str(e), statement)
+                    elif isinstance(e, AttributeError):
+                        raise Knit_Script_AttributeError(str(e), statement)
+                    elif isinstance(e, IndexError):
+                        raise Knit_Script_IndexError(str(e), statement)
+                    elif isinstance(e, KeyError):
+                        raise Knit_Script_KeyError(str(e), statement)
+                    elif isinstance(e, ImportError):
+                        raise Knit_Script_ImportError(str(e), statement)
+                    elif isinstance(e, ValueError):
+                        raise Knit_Script_ValueError(str(e), statement)
+                    else:
+                        raise Knit_Script_Located_Exception(e, statement)
                 else:
                     raise e
 
