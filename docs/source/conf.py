@@ -6,6 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from importlib.metadata import version, PackageNotFoundError
 import os
 import sys
 
@@ -35,8 +36,16 @@ def setup_knitscript_lexer(app):
 project = 'Knit Script'
 copyright = '2025, Megan Hofmann'
 author = 'Megan Hofmann'
-release = '1.0.0'
-version = '0.1'
+try:
+    # Get version from installed package metadata
+    # This reads from pyproject.toml when the package is installed
+    version = version("knit-script")
+except PackageNotFoundError:
+    # Package is not installed (e.g., during development)
+    # This happens when running from source without installation
+    version = "0.0.0+dev"
+
+release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

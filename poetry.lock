@@ -866,14 +866,14 @@ plotly = ">=5.22.0,<5.23.0"
 
 [[package]]
 name = "knitout-interpreter"
-version = "0.0.19"
+version = "0.0.20"
 description = "Support for interpreting knitout files used for controlling automatic V-Bed Knitting machines."
 optional = false
 python-versions = "<3.13,>=3.11"
 groups = ["main"]
 files = [
-    {file = "knitout_interpreter-0.0.19-py3-none-any.whl", hash = "sha256:d4e02520db223c2245d26ef24ea48f040073be1f530b3cd18803cd92e8ddaee3"},
-    {file = "knitout_interpreter-0.0.19.tar.gz", hash = "sha256:8cd892caade8ace4e54a7d0e1af5f59cff388408b5b01bf64af27c3dab2810ae"},
+    {file = "knitout_interpreter-0.0.20-py3-none-any.whl", hash = "sha256:d63eac35507f3b5a5d9d6bc6f3e38fbec83a6a2051c408ac97beddad15619d4f"},
+    {file = "knitout_interpreter-0.0.20.tar.gz", hash = "sha256:4865d7e627e046e5b109f12de3a44436327af6cb7ccd7312d1b12100343e2bdb"},
 ]
 
 [package.dependencies]
@@ -2514,4 +2514,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "1195611e91f405e6df8d4ad5104dfe28fdea4a3c5ee884aff32565334a6d715d"
+content-hash = "9b3bec93147e94eac47899789c6a94b33dd6492218835d0b9410cfaa68ab98a2"
