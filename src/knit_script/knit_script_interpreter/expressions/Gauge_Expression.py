@@ -5,10 +5,10 @@ It allows knit script programs to specify sheet and gauge combinations for multi
 """
 from __future__ import annotations
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 
 
 class Gauge_Expression(Expression):
@@ -59,5 +59,5 @@ class Gauge_Expression(Expression):
         if gauge is None:
             gauge = context.gauge
         if sheet >= gauge:
-            sheet = gauge-1
+            sheet = gauge - 1
         return Sheet_Identifier(int(sheet), int(gauge))

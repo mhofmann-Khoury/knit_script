@@ -5,11 +5,11 @@ It supports both layer-based swapping and sheet-based swapping for complex stitc
 """
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier
 
 from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression, get_expression_value_list
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 

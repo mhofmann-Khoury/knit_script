@@ -866,21 +866,21 @@ plotly = ">=5.22.0,<5.23.0"
 
 [[package]]
 name = "knitout-interpreter"
-version = "0.0.20"
+version = "0.0.21"
 description = "Support for interpreting knitout files used for controlling automatic V-Bed Knitting machines."
 optional = false
 python-versions = "<3.13,>=3.11"
 groups = ["main"]
 files = [
-    {file = "knitout_interpreter-0.0.20-py3-none-any.whl", hash = "sha256:d63eac35507f3b5a5d9d6bc6f3e38fbec83a6a2051c408ac97beddad15619d4f"},
-    {file = "knitout_interpreter-0.0.20.tar.gz", hash = "sha256:4865d7e627e046e5b109f12de3a44436327af6cb7ccd7312d1b12100343e2bdb"},
+    {file = "knitout_interpreter-0.0.21-py3-none-any.whl", hash = "sha256:043fe78ec571a218fe6fb2cc2ceae4ed66ccb30ada6e80a80fdc757d26cc010b"},
+    {file = "knitout_interpreter-0.0.21.tar.gz", hash = "sha256:3d508a57c0ab0a222269d19aec2848f1bf036a4c6c8df1c75eeb68026743e8e3"},
 ]
 
 [package.dependencies]
 importlib_resources = ">=6.5,<7.0"
-knit-graphs = ">=0.0.6,<0.0.7"
-parglare = ">=0.18,<0.19"
-virtual-knitting-machine = ">=0.0.13,<0.0.14"
+knit-graphs = ">=0.0.6"
+parglare = ">=0.18.0,<0.19.0"
+virtual-knitting-machine = ">=0.0.15"
 
 [[package]]
 name = "lxml"
@@ -2246,19 +2246,18 @@ standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)
 
 [[package]]
 name = "virtual-knitting-machine"
-version = "0.0.13"
+version = "0.0.16"
 description = "A data structure representing the state and operations of a virtual V-Bed with sliders whole garment knitting machine based on the whole garment knitting machines made by Shima Seiki."
 optional = false
-python-versions = ">=3.11"
+python-versions = "<3.13,>=3.11"
 groups = ["main"]
 files = [
-    {file = "virtual_knitting_machine-0.0.13-py3-none-any.whl", hash = "sha256:1ab82b6014592003236e97aba1fd11b52da3ceafb8d89958a080fb87d402c80c"},
-    {file = "virtual_knitting_machine-0.0.13.tar.gz", hash = "sha256:f20380db0e2fab7d26f7714afc84ede713240fcaa1f09fe1ceb00943d7653fa7"},
+    {file = "virtual_knitting_machine-0.0.16-py3-none-any.whl", hash = "sha256:e3fb48c0016def82b8d0fe83e91f184c264272c6ef63ce3d54edad869364bf29"},
+    {file = "virtual_knitting_machine-0.0.16.tar.gz", hash = "sha256:d6f19d7c4ddcd316464eb3a79bbbcf08b1f3e07e6022086f3564da791d86529b"},
 ]
 
 [package.dependencies]
-knit-graphs = ">=0.0.4,<0.1.0"
-networkx = ">=3.2.1,<3.3.0"
+knit-graphs = ">=0.0.6"
 
 [[package]]
 name = "virtualenv"
@@ -2514,4 +2513,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "9b3bec93147e94eac47899789c6a94b33dd6492218835d0b9410cfaa68ab98a2"
+content-hash = "2f57e5a420a2172f8738709298d89d8b616226a69bc5ef06efe42f37d6255f53"

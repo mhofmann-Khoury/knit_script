@@ -271,3 +271,83 @@ class Sheet:
              all ordered by position within their respective beds.
         """
         return [*self.front_slider_loops(), *self.back_slider_loops()]
+
+
+class Sheet_Identifier:
+    """
+    Used to convert needles given a defined sheet
+    ...
+
+    Attributes
+    ----------
+
+    """
+
+    def __init__(self, sheet: int, gauge: int):
+        assert gauge > 0, f"Knit Pass Error: Cannot make sheets for gauge {gauge}"
+        assert 0 <= sheet < gauge, f"Cannot identify sheet {sheet} at gauge {gauge}"
+        self._sheet: int = sheet
+        self._gauge: int = gauge
+
+    @property
+    def sheet(self) -> int:
+        """
+        :return: The position of the sheet in the gauge
+        """
+        return self._sheet
+
+    @property
+    def gauge(self) -> int:
+        """
+        :return: The number of active sheets
+        """
+        return self._gauge
+
+    def get_needle(self, needle: Needle) -> Sheet_Needle:
+        """
+        :param needle: Needle to access from sheet. Maybe a sheet needle which will be retargeted to this sheet
+        :return: the sheet needle at the given needle index and bed
+        """
+        pos = needle.position
+        if isinstance(needle, Sheet_Needle):
+            pos = needle.sheet_pos
+        if isinstance(needle, Slider_Needle):
+            return Slider_Sheet_Needle(needle.is_front, pos, self.sheet, self.gauge)
+        else:
+            return Sheet_Needle(needle.is_front, pos, self.sheet, self.gauge)
+
+    def needle(self, is_front: bool, position: int) -> Sheet_Needle:
+        """
+        Gets a needle within the sheet with specified position
+        :param is_front: True if needle is on front bed
+        :param position: position within the sheet
+        :return: the specified sheet needle
+        """
+        return Sheet_Needle(is_front, position, self.sheet, self.gauge)
+
+    def __str__(self) -> str:
+        return f"s{self.sheet}:g{self.gauge}"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __int__(self) -> int:
+        return self.sheet
+
+    def __lt__(self, other: Sheet_Identifier | int) -> bool:
+        return self.sheet < int(other)
+
+    def __eq__(self, other: Sheet_Identifier | int) -> bool:
+        if isinstance(other, Sheet_Identifier):
+            return self.sheet == other.sheet and self.gauge == other.gauge
+        else:
+            return self.sheet == int(other)
+
+    # def __add__(self, other: int | Needle | Sheet_Identifier):
+    #     return self.sheet + int(other)
+    #
+    # def __radd__(self, other):
+    #     return self + other
+    #
+    # def __sub__(self, other):
+    #     return self.sheet - int(other)

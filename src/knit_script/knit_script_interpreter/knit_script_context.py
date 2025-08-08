@@ -15,9 +15,10 @@ from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Mac
 from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import Knitting_Machine_Exception
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Identifier, Slider_Sheet_Needle, Sheet_Needle
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Slider_Sheet_Needle, Sheet_Needle
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set, Yarn_Carrier
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception, Knit_Script_Located_Exception
 from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError, Knit_Script_NameError, Knit_Script_AttributeError, Knit_Script_IndexError, Knit_Script_KeyError, \
@@ -70,8 +71,8 @@ class _Carriers_Header_Line(Knitout_Header_Line):
         Returns:
             bool: True if execution was successful.
         """
-        carrier_count = len(self.header_value)
-        machine_state.carrier_system = carrier_count
+        _carrier_count = len(self.header_value)
+        # machine_state.carrier_system = carrier_count # Todo: allow dynamic setting of machine state
         return True
 
 
