@@ -351,5 +351,3 @@ Pause Operations
    * - Pause
      - ``pause``
      - Stop machine execution
-
-Next: Learn about :doc:`modules` for detailed API documentation.
