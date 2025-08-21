@@ -94,9 +94,7 @@ class Knit_Script_Scope:
         Returns:
             Knit_Script_Scope: The module scope for this variable scope.
         """
-        if self.is_module:
-            return self
-        elif self._module_scope is not None:
+        if self._module_scope is not None:
             return self._module_scope
         elif self._parent is None:
             return None
