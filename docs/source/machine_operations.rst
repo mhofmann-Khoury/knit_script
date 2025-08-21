@@ -31,10 +31,10 @@ The ``tuck`` operation creates new loops while keeping old ones on the specified
 
    // Alternating tuck cast-on
    in Leftward direction:{
-       tuck Front_Needles[0:width:2];  // Even needles
+	   tuck Front_Needles[0:width:2];  // Even needles
    }
    in Rightward direction:{
-       tuck Front_Needles[1:width:2];  // Odd needles
+	   tuck Front_Needles[1:width:2];  // Odd needles
    }
 
 Missing
@@ -46,7 +46,7 @@ The ``miss`` operation moves carriers to a specified needle without forming loop
 
    // Miss needles to position carrier
    in Rightward direction:{
-       miss Front_Needles[5:15];
+	   miss Front_Needles[5:15];
    }
 
 🔄 Transfer Operations
@@ -109,7 +109,7 @@ The ``split`` operation creates loops on one needle while moving existing loops 
 .. code-block:: knitscript
 
    in Rightward direction:{
-       split Front_Needles[5:10];  // Splits loops and creates new ones on the opposite position
+	   split Front_Needles[5:10];  // Splits loops and creates new ones on the opposite position
    }
 
 🗑️ Drop Operations
@@ -148,7 +148,7 @@ Setting Active Carrier
 
    // Using with statement for scoped carrier work
    with Carrier as c2:{
-       in reverse direction:{ knit Loops; }
+	   in reverse direction:{ knit Loops; }
    }
 
 Carrier Operations
@@ -180,8 +180,8 @@ Direction Keywords
    in reverse direction:{ knit Loops; }    // Opposite of last directed carriage pass (ignores xfer passes)
    in current direction:{ knit Loops; }    // Same as last directed carriage pass (ignores xfer passes)
 
-    //Preserve a direction in a variable
-    var_dir = current;
+	//Preserve a direction in a variable
+	var_dir = current;
 	with Carrier as c1:{
 		in Leftward direction: {knit Front_Loops;}
 	}
@@ -211,8 +211,8 @@ If operations require all-needle racking, KnitScript will automatically adjust t
 
    // Operations that might need all-needle racking
    in Rightward direction:{
-       knit Front_Needles[10];
-       knit Back_Needles[10];  // Same position - needs all-needle
+	   knit Front_Needles[10];
+	   knit Back_Needles[10];  // Same position - needs all-needle
    }
 
 📊 Multi-Sheet Operations
@@ -242,33 +242,33 @@ Sheet-Scoped Operations
 .. code-block:: knitscript
 
    // comment fixes with warning in pycharm?
-        with Gauge as 2:{
-           // Work on sheet 0
-           with Sheet as s0:{
-               in Leftward direction:{
-                tuck Front_Needles[0:width:2]; // note that front_needles is localized to the working sheet
-                tuck Back_Needles[1:width:2]; // note that back_needles is localized to the working sheet
-               }
-           }
+		with Gauge as 2:{
+		   // Work on sheet 0
+		   with Sheet as s0:{
+			   in Leftward direction:{
+				tuck Front_Needles[0:width:2]; // note that front_needles is localized to the working sheet
+				tuck Back_Needles[1:width:2]; // note that back_needles is localized to the working sheet
+			   }
+		   }
 
-           // Work on sheet 1
-           with Sheet as s1:{
-               in reverse direction:{
-                tuck Front_Needles[0:width:2]; // note that front_needles is localized to the working sheet
-                tuck Back_Needles[1:width:2]; // note that back_needles is localized to the working sheet
-               }
-           }
+		   // Work on sheet 1
+		   with Sheet as s1:{
+			   in reverse direction:{
+				tuck Front_Needles[0:width:2]; // note that front_needles is localized to the working sheet
+				tuck Back_Needles[1:width:2]; // note that back_needles is localized to the working sheet
+			   }
+		   }
 
-           // Knit both sheets alternately to form a tube
-           for row in range(height):{
-               with Sheet as s0:{
-                   in reverse direction:{ knit Loops; }
-               }
-               with Sheet as s1:{
-                   in reverse direction:{ knit Loops; }
-               }
-           }
-       }
+		   // Knit both sheets alternately to form a tube
+		   for row in range(height):{
+			   with Sheet as s0:{
+				   in reverse direction:{ knit Loops; }
+			   }
+			   with Sheet as s1:{
+				   in reverse direction:{ knit Loops; }
+			   }
+		   }
+	   }
 
 Layer Management
 ~~~~~~~~~~~~~~~~
@@ -277,9 +277,9 @@ Control the layering order of sheets:
 
 .. code-block:: knitscript
 
-    Gauge = 2;
+	Gauge = 2;
 	Sheet = 0;
-    // Push needles to different layers
+	// Push needles to different layers
    push Front_Needles[0:10] to Front;    // Bring to first 10 needle slots of this sheet to the front of the sheet layers.
    push Front_Needles[10:20] to Back;    // Send the next 10 needle slots of this sheet to the back of the sheet layers.
 
@@ -319,35 +319,35 @@ Pause Operations
    :header-rows: 1
 
    * - Operation
-     - Syntax
-     - Description
+	 - Syntax
+	 - Description
    * - Knit
-     - ``knit needles``
-     - Form new loops, consume old ones
+	 - ``knit needles``
+	 - Form new loops, consume old ones
    * - Tuck
-     - ``tuck needles``
-     - Form new loops, keep old ones
+	 - ``tuck needles``
+	 - Form new loops, keep old ones
    * - Miss
-     - ``miss needles``
-     - Move carrier without forming loops
+	 - ``miss needles``
+	 - Move carrier without forming loops
    * - Split
-     - ``split needles``
-     - Create loop and move existing loops
+	 - ``split needles``
+	 - Create loop and move existing loops
    * - Transfer
-     - ``xfer needles [offset] to bed``
-     - Move loops between needles
+	 - ``xfer needles [offset] to bed``
+	 - Move loops between needles
    * - Drop
-     - ``drop needles``
-     - Remove loops from needles
+	 - ``drop needles``
+	 - Remove loops from needles
    * - Cut
-     - ``cut carriers``
-     - Permanently remove carriers
+	 - ``cut carriers``
+	 - Permanently remove carriers
    * - Remove
-     - ``remove carriers``
-     - Temporarily remove carriers
+	 - ``remove carriers``
+	 - Temporarily remove carriers
    * - Release
-     - ``releasehook``
-     - Release yarn inserting hook
+	 - ``releasehook``
+	 - Release yarn inserting hook
    * - Pause
-     - ``pause``
-     - Stop machine execution
+	 - ``pause``
+	 - Stop machine execution

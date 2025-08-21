@@ -164,7 +164,7 @@ include_trailing_comma = true       # Add trailing commas (Black-compatible)
 force_grid_wrap = 0                 # Don't force wrapping
 use_parentheses = true              # Use parentheses for multi-line imports
 ensure_newline_before_comments = true  # Clean comment spacing
-known_first_party = ["virtual_knitting_machine"]  # Your project modules (sorted first)
+known_first_party = ["knit_script"]  # Your project modules (sorted first)
 known_third_party = []              # Third-party modules (auto-detected)
 
 # =============================================================================
