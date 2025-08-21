@@ -3,15 +3,25 @@
 This module provides statement classes for managing yarn carrier operations in knit script programs.
 It includes statements for cutting carriers (permanently removing them), releasing the yarn hook, and removing carriers from the working area without cutting the yarn.
 """
-from knitout_interpreter.knitout_operations.carrier_instructions import Releasehook_Instruction, Outhook_Instruction, Out_Instruction
+from knitout_interpreter.knitout_operations.carrier_instructions import (
+    Out_Instruction,
+    Outhook_Instruction,
+    Releasehook_Instruction,
+)
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_TypeError,
+)
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import (
+    Yarn_Carrier,
+)
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
+    Yarn_Carrier_Set,
+)
 
 
 class Cut_Statement(Statement):

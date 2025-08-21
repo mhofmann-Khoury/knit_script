@@ -3,18 +3,35 @@
 This module provides the Carriage_Pass_Specification class, which coordinates the execution of multiple knitting operations that occur during a single pass of the carriage across the needle bed.
 It ensures proper sequencing, compatibility checking, and execution of operations while handling complex scenarios like all-needle operations and drop pass separation.
 """
+from knitout_interpreter.knitout_operations.knitout_instruction import (
+    Knitout_Instruction_Type,
+)
+from knitout_interpreter.knitout_operations.knitout_instruction_factory import (
+    build_instruction,
+)
+from knitout_interpreter.knitout_operations.needle_instructions import (
+    Needle_Instruction,
+)
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
-from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
-from knitout_interpreter.knitout_operations.knitout_instruction_factory import build_instruction
-from knitout_interpreter.knitout_operations.needle_instructions import Needle_Instruction
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.ks_exceptions import Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception, Repeated_Needle_Exception, All_Needle_Operation_Exception
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
-from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_exceptions.ks_exceptions import (
+    All_Needle_Operation_Exception,
+    Incompatible_In_Carriage_Pass_Exception,
+    Repeated_Needle_Exception,
+    Required_Direction_Exception,
+)
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_TypeError,
+)
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
+from knit_script.knit_script_interpreter.Machine_Specification import (
+    Machine_Bed_Position,
+)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
+    Carriage_Pass_Direction,
+)
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
 class Carriage_Pass_Specification:

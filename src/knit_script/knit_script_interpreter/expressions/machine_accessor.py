@@ -4,11 +4,13 @@ This module provides expression classes for accessing machine state and sheet co
 It includes the Machine_Accessor for direct machine access and Sheet_Expression for referencing specific sheets with gauge configurations.
 """
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
+    Sheet_Identifier,
+)
 
 
 class Machine_Accessor(Expression):

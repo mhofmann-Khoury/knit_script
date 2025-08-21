@@ -21,9 +21,11 @@ Attributes:
 from typing import Any, Tuple
 
 from knit_graphs.Knit_Graph import Knit_Graph
-from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
-from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
+from knit_script.knit_script_interpreter.Knit_Script_Interpreter import (
+    Knit_Script_Interpreter,
+)
+from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
 
 def knit_script_to_knitout( pattern: str,  out_file_name: str,  pattern_is_filename: bool = True,  **python_variables: Any) -> Tuple[Knit_Graph, Knitting_Machine]:

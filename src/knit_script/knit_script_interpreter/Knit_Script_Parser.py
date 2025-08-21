@@ -6,11 +6,11 @@ It handles grammar loading, parser configuration, and provides debugging capabil
 from __future__ import annotations
 
 import importlib_resources
-from parglare import Parser, Grammar
+from parglare import Grammar, Parser
 
 import knit_script
-from knit_script.knit_script_interpreter.knit_script_actions import action
 from knit_script.knit_script_interpreter._parser_base import _Parser_Base
+from knit_script.knit_script_interpreter.knit_script_actions import action
 
 
 class Knit_Script_Parser(_Parser_Base):

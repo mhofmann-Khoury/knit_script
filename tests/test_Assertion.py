@@ -1,7 +1,10 @@
 from unittest import TestCase
 
-from knit_script.knit_script_exceptions.ks_exceptions import Knit_Script_Assertion_Exception
 from resources.interpret_test_ks import interpret_test_ks
+
+from knit_script.knit_script_exceptions.ks_exceptions import (
+    Knit_Script_Assertion_Exception,
+)
 
 
 class TestAssertion(TestCase):

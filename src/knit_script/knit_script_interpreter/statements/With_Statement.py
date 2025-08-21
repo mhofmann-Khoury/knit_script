@@ -7,8 +7,8 @@ It allows variables to be temporarily assigned new values within a specific scop
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
+from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class With_Statement(Statement):

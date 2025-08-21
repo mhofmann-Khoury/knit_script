@@ -1,79 +1,324 @@
-name: Build and Deploy Documentation
+# =============================================================================
+# DOCUMENTATION BUILD AND DEPLOYMENT WORKFLOW
+# =============================================================================
+# This GitHub Actions workflow automatically builds Sphinx documentation
+# and deploys it to GitHub Pages.
+#
+# Triggered on:
+# - Push to main branch (updates docs automatically)
+# - Manual workflow dispatch (for testing)
+# - Releases (ensures docs are updated for new versions)
+#
+# The workflow:
+# 1. Builds Sphinx documentation from source code and docstrings
+# 2. Generates API documentation automatically
+# 3. Deploys to GitHub Pages for public access
+# 4. Handles versioning for releases
 
+name: Documentation
+
+# =============================================================================
+# WORKFLOW TRIGGERS
+# =============================================================================
 on:
+  # Build docs on pushes to main branch
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+    paths:
+      - 'docs/source/**'            # Documentation source files (corrected path)
+      - 'src/**'                    # Source code changes (affects API docs)
+      - 'pyproject.toml'            # Dependency changes
+      - '.github/workflows/docs.yml'  # Workflow changes
 
+  # Build docs on releases for version-specific documentation
+  release:
+    types: [published]
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+# =============================================================================
+# WORKFLOW-LEVEL ENVIRONMENT VARIABLES
+# =============================================================================
+env:
+  PYTHON_VERSION: "3.11"           # Python version for building docs
+  POETRY_VERSION: "1.8.3"          # Updated Poetry version
+
+# =============================================================================
+# WORKFLOW PERMISSIONS
+# =============================================================================
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read                    # Read repository contents
+  pages: write                      # Write to GitHub Pages
+  id-token: write                   # Required for GitHub Pages deployment
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
+# =============================================================================
+# JOB DEFINITIONS
+# =============================================================================
 jobs:
-  build:
+  # ===========================================================================
+  # BUILD DOCUMENTATION
+  # ===========================================================================
+  # Build Sphinx documentation with API auto-generation
+  build-docs:
+    name: Build Documentation
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # Fetch full history for version info
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5  # Updated from v4 to v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install documentation dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install sphinx>=7.1.0
-        pip install sphinx-rtd-theme>=1.3.0
-        pip install sphinx-autodoc-typehints>=1.24.0
-        pip install sphinx-autobuild>=2024.10.3
-        pip install myst-parser>=2.0.0
-        pip install pygments>=2.17.0
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-    - name: Install project dependencies
-      run: |
-        pip install parglare>=0.18
-        pip install virtual-knitting-machine>=0.0.13
-        pip install knitout-interpreter>=0.0.18
-        pip install importlib_resources==6.5.2
+      - name: Load cached dependencies
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4       # Updated from v3 to v4
+        with:
+          path: .venv
+          key: venv-docs-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
-    - name: Install project in development mode
-      run: |
-        pip install -e .
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with docs
 
-    - name: Generate API documentation
-      run: |
-        cd docs
-        sphinx-apidoc -o source ../src/knit_script --force --separate --no-toc
+      - name: Install project
+        run: poetry install --no-interaction
 
-    - name: Build documentation
-      run: |
-        cd docs
-        sphinx-build -M html source build
-        touch build/html/.nojekyll
+      - name: Set up documentation environment
+        run: |
+          # Create docs directories if they don't exist
+          mkdir -p docs/source/_static
+          mkdir -p docs/source/api
 
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./docs/build/html
+          # TODO: Update package name and source directory
+          # Generate API documentation from source code without creating modules.rst
+          poetry run sphinx-apidoc -o docs/source/api src/knit_script/ --force --module-first --separate --no-toc
 
-  deploy:
+          echo "📚 Building documentation..."
+
+      - name: Build Sphinx documentation
+        run: |
+          # Build HTML documentation using docs/source as source and docs/build/html as output
+          poetry run sphinx-build -b html docs/source/ docs/build/html/ -W --keep-going
+
+          # Create .nojekyll file to ensure GitHub Pages serves all files
+          touch docs/build/html/.nojekyll
+
+          # Add custom 404 page if it doesn't exist
+          if [ ! -f "docs/build/html/404.html" ]; then
+            echo '<!DOCTYPE html>
+            <html>
+            <head>
+              <title>Page Not Found</title>
+              <meta http-equiv="refresh" content="0; url=/" />
+            </head>
+            <body>
+              <p>Redirecting to documentation home...</p>
+            </body>
+            </html>' > docs/build/html/404.html
+          fi
+
+      - name: Validate documentation
+        run: |
+          # Check that important files exist
+          echo "🔍 Validating documentation build..."
+
+          if [ ! -f "docs/build/html/index.html" ]; then
+            echo "❌ index.html not found in build output"
+            exit 1
+          fi
+
+          # Check for broken internal links (basic validation)
+          echo "✅ Documentation validation passed"
+
+          # Display build summary
+          echo "📊 Documentation build summary:"
+          echo "Total HTML files: $(find docs/build/html -name "*.html" | wc -l)"
+          echo "API files: $(find docs/build/html/api -name "*.html" 2>/dev/null | wc -l || echo "0")"
+          echo "Build size: $(du -sh docs/build/html)"
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4  # Updated from v3 to v4
+        with:
+          name: documentation-html
+          path: docs/build/html/
+
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v5  # Updated from v3 to v5
+
+      - name: Upload to GitHub Pages
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3  # Updated from v2 to v3
+        with:
+          path: docs/build/html/
+
+  # ===========================================================================
+  # DEPLOY TO GITHUB PAGES
+  # ===========================================================================
+  # Deploy the built documentation to GitHub Pages
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-docs
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4   # Updated from v2 to v4
+
+      - name: Post deployment summary
+        run: |
+          echo "✅ Documentation deployed successfully!"
+          echo "🔗 Documentation URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📝 Documentation will be available within a few minutes"
+
+  # ===========================================================================
+  # DOCUMENTATION LINK CHECKER
+  # ===========================================================================
+  # Optional job to check for broken links in documentation
+  link-check:
+    name: Check Documentation Links
+    runs-on: ubuntu-latest
+    needs: build-docs
+    if: github.event_name == 'pull_request'  # Only run on PRs to avoid rate limits
+
+    steps:
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v4  # Updated from v3 to v4
+        with:
+          name: documentation-html
+          path: docs/build/html/
+
+      - name: Check for broken links
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: |
+            --base docs/build/html/
+            --exclude-mail
+            --exclude-path docs/build/html/_static/
+            --max-concurrency 4
+            docs/build/html/**/*.html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create link check report
+        if: always()
+        run: |
+          echo "🔗 Link checking completed"
+          echo "Check the job output above for any broken links"
+
+# =============================================================================
+# CHECKLIST FOR DOCUMENTATION SETUP
+# =============================================================================
+# When using this template, complete the following setup:
+#
+# 1. ENABLE GITHUB PAGES:
+#    Repository Settings → Pages:
+#    - [ ] Source: "GitHub Actions"
+#    - [ ] Custom domain (optional): your-domain.com
+#    - [ ] Enforce HTTPS: ✅ Enabled
+#
+# 2. SPHINX DOCUMENTATION SETUP:
+#    Create these files in your docs/ directory:
+#    - [ ] docs/conf.py (Sphinx configuration)
+#    - [ ] docs/index.rst or docs/index.md (main documentation page)
+#    - [ ] docs/api/ (auto-generated API docs directory - created by workflow)
+#    - [ ] docs/_static/ (static files like CSS, images)
+#    - [ ] docs/_templates/ (custom HTML templates, optional)
+#
+# 3. SPHINX CONFIGURATION (docs/conf.py):
+#    Essential settings to include:
+#    - [ ] project = 'Your Project Name'
+#    - [ ] author = 'Your Name'
+#    - [ ] extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode', 'sphinx.ext.napoleon']
+#    - [ ] html_theme = 'sphinx_rtd_theme'
+#    - [ ] html_static_path = ['_static']
+#
+# 4. PROJECT STRUCTURE:
+#    Correct directory structure matching your setup:
+#    ```
+#    your-project/
+#    ├── src/your_project_name/
+#    │   ├── __init__.py
+#    │   └── your_modules.py
+#    ├── docs/
+#    │   ├── source/              # Source files for Sphinx
+#    │   │   ├── conf.py         # Sphinx configuration
+#    │   │   ├── index.rst       # Main documentation page
+#    │   │   ├── installation.rst # Installation guide
+#    │   │   ├── usage.rst       # Usage examples
+#    │   │   ├── api/            # Auto-generated by sphinx-apidoc
+#    │   │   │   ├── modules.rst
+#    │   │   │   └── your_project_name.rst
+#    │   │   ├── _static/        # Static files (CSS, images)
+#    │   │   └── _templates/     # Custom templates (optional)
+#    │   └── build/              # Generated by Sphinx (ignored in git)
+#    │       └── html/           # Final HTML output
+#    └── pyproject.toml
+#    ```
+#
+# 5. CUSTOMIZE WORKFLOW:
+#    - [ ] Update branch names if not using main/master
+#    - [ ] Update package name in sphinx-apidoc command
+#    - [ ] Update docs source/build directories if different from docs/ and docs/_build/
+#    - [ ] Enable/disable API auto-generation as needed
+#    - [ ] Customize link checking settings
+#
+# 6. DOCUMENTATION CONTENT:
+#    - [ ] Write clear docstrings in your Python code
+#    - [ ] Create user guides and tutorials
+#    - [ ] Add installation and usage instructions
+#    - [ ] Include examples and code samples
+#
+# 7. ADVANCED FEATURES (Optional):
+#    - [ ] Add documentation versioning for releases
+#    - [ ] Set up custom CSS/themes
+#    - [ ] Add search functionality
+#    - [ ] Include notebooks or interactive examples
+#
+# 8. TESTING DOCUMENTATION LOCALLY:
+#    Commands to test docs before pushing (matching your structure):
+#    ```bash
+#    poetry install --with docs
+#    # Generate API docs
+#    poetry run sphinx-apidoc -o docs/source/api/ src/your_project_name/ --force --module-first --separate
+#    # Build documentation
+#    poetry run sphinx-build docs/source/ docs/build/html/
+#    open docs/build/html/index.html  # View locally
+#    ```
+#
+# 9. TROUBLESHOOTING:
+#    Common issues and solutions:
+#    - [ ] Import errors: Ensure your package is installable
+#    - [ ] Missing modules: Check that all dependencies are in docs group
+#    - [ ] Build warnings: Address all Sphinx warnings (workflow treats them as errors)
+#    - [ ] 404 errors: Ensure .nojekyll file is present
+#
+# 10. DOCUMENTATION URL:
+#     After setup, your docs will be available at:
+#     https://your-username.github.io/your-repository-name/
+#
+# USEFUL SPHINX COMMANDS:
+#   poetry run sphinx-quickstart docs/source/   # Initialize Sphinx docs in source directory
+#   poetry run sphinx-apidoc -o docs/source/api/ src/your_project_name/ --force --module-first --separate  # Generate API docs
+#   poetry run sphinx-build docs/source/ docs/build/html/  # Build documentation
+#   poetry run sphinx-autobuild docs/source/ docs/build/html/ # Live reload during development

@@ -6,7 +6,7 @@ The class handles the conversion from parglare ParseError exceptions to KnitScri
 """
 from typing import Any, cast
 
-from parglare import Parser, Grammar, ParseError
+from parglare import Grammar, ParseError, Parser
 
 from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
 

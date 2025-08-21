@@ -4,10 +4,12 @@ This module provides the Pass_Direction_Expression class, which handles the pars
 It supports various direction keywords and contextual direction references, converting them into the appropriate Carriage_Pass_Direction objects.
 """
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
+    Carriage_Pass_Direction,
+)
 
 
 class Pass_Direction_Expression(Expression):

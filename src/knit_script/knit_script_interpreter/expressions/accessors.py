@@ -7,19 +7,36 @@ and specialized handling for machine and sheet-specific needle collections.
 from typing import Any
 
 from parglare.parser import LRStackNode
+
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_AttributeError,
+)
+from knit_script.knit_script_interpreter.expressions.expressions import Expression
+from knit_script.knit_script_interpreter.expressions.function_expressions import (
+    Function_Call,
+)
+from knit_script.knit_script_interpreter.expressions.needle_set_expression import (
+    Needle_Set_Expression,
+    Needle_Sets,
+)
+from knit_script.knit_script_interpreter.expressions.variables import (
+    Variable_Expression,
+)
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.statements.function_dec_statement import (
+    Function_Signature,
+)
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
-
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_AttributeError
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
-from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
-from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
-from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Signature
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
+    Sheet_Identifier,
+)
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
+    Sheet_Needle,
+)
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
+    Yarn_Carrier_Set,
+)
 
 
 class Attribute_Accessor_Expression(Expression):

@@ -20,12 +20,16 @@ Core Knitting Libraries
    - **Repository**: `knit-graphs on PyPI <https://pypi.org/project/knit-graphs/>`_
 
 **virtual-knitting-machine** |vkm_version|
-   Virtual machine simulation for knitting operations.
+   A simulation of a knitting machine.
 
-   - **Purpose**: Simulates V-bed knitting machine behavior and constraints
-   - **Key Features**: Machine state tracking, operation validation, carrier management
-   - **Integration**: Provides the execution environment for KnitScript patterns
+   - **Purpose**: Used to verify knitting operations and construct knit graphs.
    - **Repository**: `virtual-knitting-machine on PyPI <https://pypi.org/project/virtual-knitting-machine/>`_
+
+**knit-script** |ks_version|
+   A general purpose machine knitting langauge
+
+   - **Purpose**: Fully programmatic support to control knitting machines.
+   - **Repository**: `knit-script on PyPI <https://pypi.org/project/knit-script/>`_
 
 **knitout-interpreter** |knitout_interp_version|
    Knitout processing and execution framework.
@@ -33,7 +37,7 @@ Core Knitting Libraries
    - **Purpose**: Processes and validates knitout instruction files
    - **Key Features**: Instruction parsing, carriage pass organization, error detection
    - **Integration**: Processes KnitScript's generated knitout output
-   - **Repository**: `knitout-interpreter on PyPI <https://pypi.org/project/knitout-interpreter/>`_
+   - **Repository**: `knitout-interpreter on PyPI <https://pypi.org/project/knitout-interpreter/>`
 
 Optimization and Analysis Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,6 +53,9 @@ Optimization and Analysis Tools
 .. |knit_graphs_version| image:: https://img.shields.io/pypi/v/knit-graphs.svg
    :target: https://pypi.org/project/knit-graphs/
 
+.. |ks_version| image:: https://img.shields.io/pypi/v/knit-script.svg
+   :target: https://pypi.org/project/knit-script/
+
 .. |vkm_version| image:: https://img.shields.io/pypi/v/virtual-knitting-machine.svg
    :target: https://pypi.org/project/virtual-knitting-machine/
 
@@ -57,65 +64,3 @@ Optimization and Analysis Tools
 
 .. |koda_version| image:: https://img.shields.io/pypi/v/koda-knitout.svg
    :target: https://pypi.org/project/koda-knitout/
-
-🏛️ CMU Textiles Lab
---------------------
-
-KnitScript builds upon foundational work from Carnegie Mellon University's Textiles Lab, which created the knitout specification and ecosystem.
-
-Original Knitout Specification
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**knitout**
-   The original knitout specification and reference implementation.
-
-   - **Purpose**: Low-level instruction format for V-bed knitting machines
-   - **Key Features**: Machine-independent instruction set, standardized format
-   - **Documentation**: `Knitout Specification <https://textiles-lab.github.io/knitout/knitout.html>`_
-
-🎓 Educational and Research Use
--------------------------------
-
-Academic Adoption
-~~~~~~~~~~~~~~~~~
-
-KnitScript is used in educational and research contexts:
-
-**Courses and Workshops:**
-   - Digital fabrication courses
-   - Computational design programs
-   - Textile engineering curricula
-   - Creative coding workshops
-
-**Research Applications:**
-   - Smart textile development
-   - Automated pattern generation
-   - Machine learning for knitting
-   - Optimization algorithm research
-
-**Student Projects:**
-   - Senior capstone projects
-   - Graduate research theses
-   - Hackathon and competition entries
-   - Cross-disciplinary collaborations
-
-Collaboration Opportunities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**For Researchers:**
-   - Access to advanced knitting programming tools
-   - Integration with existing research workflows
-   - Collaboration with ACT Lab team
-   - Publication and conference opportunities
-
-**For Educators:**
-   - Course material and example patterns
-   - Workshop templates and curricula
-   - Student project ideas and frameworks
-   - Assessment rubrics and evaluation tools
-
-**For Industry:**
-   - Rapid prototyping capabilities
-   - Custom pattern development tools
-   - Integration with existing workflows
-   - Training and consulting services

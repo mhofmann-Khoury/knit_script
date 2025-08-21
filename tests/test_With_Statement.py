@@ -1,8 +1,7 @@
 from unittest import TestCase
 
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
-
-from resources.interpret_test_ks import interpret_test_ks, count_lines
+from resources.interpret_test_ks import count_lines, interpret_test_ks
 from resources.load_test_resources import load_test_resource
 
 

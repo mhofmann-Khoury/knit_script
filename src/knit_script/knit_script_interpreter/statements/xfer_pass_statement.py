@@ -5,16 +5,24 @@ It manages the complex racking requirements and bed-specific processing needed f
 """
 from typing import Iterable
 
-from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from knitout_interpreter.knitout_operations.knitout_instruction import (
+    Knitout_Instruction_Type,
+)
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
-from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_TypeError,
+)
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.statements.Carriage_Pass_Specification import Carriage_Pass_Specification
+from knit_script.knit_script_interpreter.Machine_Specification import (
+    Machine_Bed_Position,
+)
+from knit_script.knit_script_interpreter.statements.Carriage_Pass_Specification import (
+    Carriage_Pass_Specification,
+)
 from knit_script.knit_script_interpreter.statements.Statement import Statement
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
 class Xfer_Pass_Statement(Statement):

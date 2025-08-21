@@ -5,15 +5,18 @@ It includes the Needle_Sets enumeration that defines available needle collection
 """
 
 from __future__ import annotations
+
 from enum import Enum
 from typing import cast
 
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
+    Slider_Needle,
+)
 
 
 class Needle_Sets(Enum):

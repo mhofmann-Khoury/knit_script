@@ -7,7 +7,12 @@ from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError, Knit_Script_IndexError, Knit_Script_KeyError, Knit_Script_ValueError
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_IndexError,
+    Knit_Script_KeyError,
+    Knit_Script_TypeError,
+    Knit_Script_ValueError,
+)
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 

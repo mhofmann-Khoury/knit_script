@@ -7,8 +7,8 @@ from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
+from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Try_Catch_Statement(Statement):

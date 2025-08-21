@@ -7,7 +7,9 @@ The warning system helps developers write more robust knit script programs by id
 from parglare.common import Location
 
 from knit_script.knit_script_interpreter.ks_element import KS_Element
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
+    Sheet_Identifier,
+)
 
 
 class Knit_Script_Warning(RuntimeWarning):

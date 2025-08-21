@@ -1,7 +1,7 @@
 from unittest import TestCase
-from knitout_interpreter.knitout_operations.needle_instructions import Tuck_Instruction
 
-from resources.interpret_test_ks import interpret_test_ks, count_lines
+from knitout_interpreter.knitout_operations.needle_instructions import Tuck_Instruction
+from resources.interpret_test_ks import count_lines, interpret_test_ks
 
 
 class TestFunctions(TestCase):

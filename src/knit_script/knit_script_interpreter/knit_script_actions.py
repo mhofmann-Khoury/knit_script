@@ -5,56 +5,140 @@ These actions are called during the parsing process to transform the parsed synt
 The module provides comprehensive support for all KnitScript language constructs including expressions, statements, control flow, functions, and machine operations.
 """
 from __future__ import annotations
+
 import codecs
 from enum import Enum
 from typing import Any, Iterable
 
-from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from knitout_interpreter.knitout_operations.knitout_instruction import (
+    Knitout_Instruction_Type,
+)
 from parglare import get_collector
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type, Knitting_Position
 
-from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
-from knit_script.knit_script_interpreter.expressions.Indexed_Expression import Slice_Index, Indexed_Expression
-from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
+from knit_script.knit_script_interpreter.expressions.accessors import (
+    Attribute_Accessor_Expression,
+)
 from knit_script.knit_script_interpreter.expressions.carrier import Carrier_Expression
-from knit_script.knit_script_interpreter.expressions.direction import Pass_Direction_Expression
+from knit_script.knit_script_interpreter.expressions.direction import (
+    Pass_Direction_Expression,
+)
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.formatted_string import Formatted_String_Value
-from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
-from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp
-from knit_script.knit_script_interpreter.expressions.list_expression import Knit_Script_List, Knit_Script_Dictionary, List_Comp, Dictionary_Comprehension, Unpack
-from knit_script.knit_script_interpreter.expressions.machine_accessor import Machine_Accessor, Sheet_Expression
-from knit_script.knit_script_interpreter.expressions.needle_expression import Needle_Expression
-from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Sets, Needle_Set_Expression
-from knit_script.knit_script_interpreter.expressions.not_expression import Not_Expression
-from knit_script.knit_script_interpreter.expressions.operator_expressions import Operator_Expression
-from knit_script.knit_script_interpreter.expressions.values import (Boolean_Value, Bed_Value, Float_Value, Int_Value, String_Value, None_Value,
-                                                                    Machine_Position_Value, Machine_Type_Value, Header_ID_Value)
-from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
-from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
-from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_interpreter.expressions.formatted_string import (
+    Formatted_String_Value,
+)
+from knit_script.knit_script_interpreter.expressions.function_expressions import (
+    Function_Call,
+)
+from knit_script.knit_script_interpreter.expressions.Gauge_Expression import (
+    Gauge_Expression,
+)
+from knit_script.knit_script_interpreter.expressions.Indexed_Expression import (
+    Indexed_Expression,
+    Slice_Index,
+)
+from knit_script.knit_script_interpreter.expressions.instruction_expression import (
+    Needle_Instruction_Exp,
+)
+from knit_script.knit_script_interpreter.expressions.list_expression import (
+    Dictionary_Comprehension,
+    Knit_Script_Dictionary,
+    Knit_Script_List,
+    List_Comp,
+    Unpack,
+)
+from knit_script.knit_script_interpreter.expressions.machine_accessor import (
+    Machine_Accessor,
+    Sheet_Expression,
+)
+from knit_script.knit_script_interpreter.expressions.needle_expression import (
+    Needle_Expression,
+)
+from knit_script.knit_script_interpreter.expressions.needle_set_expression import (
+    Needle_Set_Expression,
+    Needle_Sets,
+)
+from knit_script.knit_script_interpreter.expressions.not_expression import (
+    Not_Expression,
+)
+from knit_script.knit_script_interpreter.expressions.operator_expressions import (
+    Operator_Expression,
+)
+from knit_script.knit_script_interpreter.expressions.values import (
+    Bed_Value,
+    Boolean_Value,
+    Float_Value,
+    Header_ID_Value,
+    Int_Value,
+    Machine_Position_Value,
+    Machine_Type_Value,
+    None_Value,
+    String_Value,
+)
+from knit_script.knit_script_interpreter.expressions.variables import (
+    Variable_Expression,
+)
+from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import (
+    Xfer_Pass_Racking,
+)
 from knit_script.knit_script_interpreter.ks_element import KS_Element
+from knit_script.knit_script_interpreter.Machine_Specification import (
+    Machine_Bed_Position,
+)
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
+from knit_script.knit_script_interpreter.statements.assignment import Assignment
+from knit_script.knit_script_interpreter.statements.branch_statements import (
+    If_Statement,
+)
+from knit_script.knit_script_interpreter.statements.carrier_statements import (
+    Cut_Statement,
+    Release_Statement,
+    Remove_Statement,
+)
+from knit_script.knit_script_interpreter.statements.code_block_statements import (
+    Code_Block,
+)
+from knit_script.knit_script_interpreter.statements.control_loop_statements import (
+    For_Each_Statement,
+    While_Statement,
+)
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
-from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
+from knit_script.knit_script_interpreter.statements.function_dec_statement import (
+    Function_Declaration,
+)
+from knit_script.knit_script_interpreter.statements.Import_Statement import (
+    Import_Statement,
+)
+from knit_script.knit_script_interpreter.statements.in_direction_statement import (
+    In_Direction_Statement,
+)
+from knit_script.knit_script_interpreter.statements.instruction_statements import (
+    Pause_Statement,
+)
 from knit_script.knit_script_interpreter.statements.Print import Print
 from knit_script.knit_script_interpreter.statements.Push_Statement import Push_Statement
-from knit_script.knit_script_interpreter.statements.Statement import Statement, Expression_Statement
+from knit_script.knit_script_interpreter.statements.return_statement import (
+    Return_Statement,
+)
+from knit_script.knit_script_interpreter.statements.Statement import (
+    Expression_Statement,
+    Statement,
+)
 from knit_script.knit_script_interpreter.statements.Swap_Statement import Swap_Statement
-from knit_script.knit_script_interpreter.statements.Variable_Declaration import Variable_Declaration
+from knit_script.knit_script_interpreter.statements.try_catch_statements import (
+    Try_Catch_Statement,
+)
+from knit_script.knit_script_interpreter.statements.Variable_Declaration import (
+    Variable_Declaration,
+)
 from knit_script.knit_script_interpreter.statements.With_Statement import With_Statement
-from knit_script.knit_script_interpreter.statements.assignment import Assignment
-from knit_script.knit_script_interpreter.statements.branch_statements import If_Statement
-from knit_script.knit_script_interpreter.statements.carrier_statements import Cut_Statement, Remove_Statement, Release_Statement
-from knit_script.knit_script_interpreter.statements.code_block_statements import Code_Block
-from knit_script.knit_script_interpreter.statements.control_loop_statements import While_Statement, For_Each_Statement
-from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Declaration
-from knit_script.knit_script_interpreter.statements.in_direction_statement import In_Direction_Statement
-from knit_script.knit_script_interpreter.statements.instruction_statements import Pause_Statement
-from knit_script.knit_script_interpreter.statements.return_statement import Return_Statement
-from knit_script.knit_script_interpreter.statements.try_catch_statements import Try_Catch_Statement
-from knit_script.knit_script_interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
+from knit_script.knit_script_interpreter.statements.xfer_pass_statement import (
+    Xfer_Pass_Statement,
+)
+from virtual_knitting_machine.Knitting_Machine_Specification import (
+    Knitting_Machine_Type,
+    Knitting_Position,
+)
 
 action = get_collector()  # some boiler plate parglare code
 

@@ -4,11 +4,14 @@ This module provides the Gauge_Expression class, which handles the creation of s
 It allows knit script programs to specify sheet and gauge combinations for multi-sheet knitting operations.
 """
 from __future__ import annotations
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
+    Sheet_Identifier,
+)
 
 
 class Gauge_Expression(Expression):

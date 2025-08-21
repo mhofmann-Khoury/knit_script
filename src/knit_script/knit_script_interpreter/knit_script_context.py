@@ -8,72 +8,52 @@ from __future__ import annotations
 
 from typing import Any
 
-from knitout_interpreter.knitout_operations import Knitout_Comment_Line
-from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line, Knitout_Header_Line_Type
-from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Specification
-from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import Knitting_Machine_Exception
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Slider_Sheet_Needle, Sheet_Needle
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set, Yarn_Carrier
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line
 
-from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception, Knit_Script_Located_Exception
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError, Knit_Script_NameError, Knit_Script_AttributeError, Knit_Script_IndexError, Knit_Script_KeyError, \
-    Knit_Script_ImportError, Knit_Script_ValueError
+from knit_script.knit_script_exceptions.Knit_Script_Exception import (
+    Knit_Script_Exception,
+    Knit_Script_Located_Exception,
+)
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_AttributeError,
+    Knit_Script_ImportError,
+    Knit_Script_IndexError,
+    Knit_Script_KeyError,
+    Knit_Script_NameError,
+    Knit_Script_TypeError,
+    Knit_Script_ValueError,
+)
 from knit_script.knit_script_interpreter._Context_Base import _Context_Base
 from knit_script.knit_script_interpreter._parser_base import _Parser_Base
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import Gauged_Sheet_Record
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import (
+    Gauged_Sheet_Record,
+)
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
-
-
-class _Carriers_Header_Line(Knitout_Header_Line):
-    """Header line for carrier information in knitout format.
-
-    This class generates knitout header lines that specify the available yarn carriers for the knitting machine.
-    It handles the formatting and execution of carrier configuration information in the knitout output.
-
-    Attributes:
-        _carrier_ids (list[int]): List of carrier IDs available on the machine.
-    """
-
-    def __init__(self, carrier_ids: list[int], comment: str | None = None) -> None:
-        """Initialize carrier header line.
-
-        Args:
-            carrier_ids (list[int]): List of carrier IDs to include in the header.
-            comment (str | None, optional): Optional comment string for the header. Defaults to None.
-        """
-        self._carrier_ids = carrier_ids
-        super().__init__(Knitout_Header_Line_Type.Carriers, carrier_ids, comment)
-
-    def __str__(self) -> str:
-        """Return string representation of carrier header.
-
-        Returns:
-            str: Formatted carrier header string in knitout format.
-        """
-        carrier_str = ""
-        for cid in self._carrier_ids:
-            carrier_str += f"{cid} "
-        carrier_str = carrier_str[:-1]  # removing the space.
-        return f";;{self.header_type}: {carrier_str}{self.comment_str}"
-
-    def execute(self, machine_state: Knitting_Machine) -> bool:
-        """Execute the carrier header on the machine state.
-
-        Args:
-            machine_state (Knitting_Machine): The knitting machine to configure.
-
-        Returns:
-            bool: True if execution was successful.
-        """
-        _carrier_count = len(self.header_value)
-        # machine_state.carrier_system = carrier_count # Todo: allow dynamic setting of machine state
-        return True
+from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import (
+    Knitting_Machine_Exception,
+)
+from virtual_knitting_machine.Knitting_Machine_Specification import (
+    Knitting_Machine_Specification,
+)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
+    Carriage_Pass_Direction,
+)
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
+    Sheet_Identifier,
+)
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
+    Sheet_Needle,
+    Slider_Sheet_Needle,
+)
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
+    Slider_Needle,
+)
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
+    Yarn_Carrier,
+    Yarn_Carrier_Set,
+)
 
 
 class Knit_Script_Context(_Context_Base):

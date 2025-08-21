@@ -4,6 +4,7 @@ This module provides classes for handling binary operator expressions in knit sc
 It includes the Operator enumeration that defines available operators and their behavior, and the Operator_Expression class that evaluates binary operations between two expressions.
 """
 from __future__ import annotations
+
 from enum import Enum
 from typing import Any
 

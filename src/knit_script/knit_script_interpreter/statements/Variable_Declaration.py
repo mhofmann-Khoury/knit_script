@@ -6,8 +6,8 @@ It wraps assignment operations with scope-specific behavior for both local and g
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
+from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Variable_Declaration(Statement):

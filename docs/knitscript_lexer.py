@@ -5,8 +5,15 @@ Save this as: docs/knitscript_lexer.py or docs/source/knitscript_lexer.py
 
 from pygments.lexer import RegexLexer, words
 from pygments.token import (
-    Keyword, Name, Number, String, Comment, Operator, Punctuation,
-    Text, Error
+    Comment,
+    Error,
+    Keyword,
+    Name,
+    Number,
+    Operator,
+    Punctuation,
+    String,
+    Text,
 )
 
 __all__ = ['KnitScriptLexer']

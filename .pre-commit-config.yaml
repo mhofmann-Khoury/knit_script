@@ -1,25 +1,142 @@
-# Note: to use this run from terminal:  poetry run pre-commit install
-repos:
-  # Basic file quality checks
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace        # Remove trailing spaces
-      - id: end-of-file-fixer         # Ensure files end with newline
-      - id: check-yaml                # Validate YAML files
-      - id: check-added-large-files   # Prevent huge files
-        exclude: ^docs/                # Allow large files in docs directory
-      - id: check-merge-conflict      # Catch merge conflict markers
+# =============================================================================
+# PRE-COMMIT HOOKS CONFIGURATION
+# =============================================================================
+# This file configures pre-commit hooks that run automatically before each commit
+# to ensure code quality and consistency.
+#
+# Setup instructions:
+# 1. Install pre-commit: pip install pre-commit (or use poetry install)
+# 2. Install hooks: pre-commit install
+# 3. Run on all files: pre-commit run --all-files
+#
+# The hooks will run automatically on changed files before each commit.
+# To skip hooks temporarily: git commit -m "message" --no-verify
 
-  # Type checking with MyPy
+repos:
+  # ==========================================================================
+  # BASIC FILE QUALITY AND FORMATTING CHECKS
+  # ==========================================================================
+  # General file hygiene and common issues
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0  # Update to latest version periodically
+    hooks:
+      - id: trailing-whitespace        # Remove trailing whitespace from all files
+        args: [--markdown-linebreak-ext=md]  # Preserve markdown line breaks
+      - id: end-of-file-fixer         # Ensure all files end with a newline
+      - id: check-yaml                # Validate YAML syntax
+      - id: check-toml                # Validate TOML syntax (pyproject.toml)
+      - id: check-added-large-files   # Prevent accidentally committing large files
+        args: ['--maxkb=1000']         # Max file size in KB
+      - id: check-merge-conflict      # Detect merge conflict markers
+      - id: check-case-conflict       # Detect case-sensitive filename conflicts
+      - id: check-docstring-first     # Ensure docstrings come first in modules
+      - id: fix-byte-order-marker     # Remove UTF-8 byte order markers
+
+  # ==========================================================================
+  # IMPORT ORGANIZATION
+  # ==========================================================================
+  # isort: Automatically sort and organize import statements
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0  # Update to latest version periodically
+    hooks:
+      - id: isort
+        name: isort
+        description: "Sort Python imports"
+        args: [--settings-path=pyproject.toml]
+
+  # ==========================================================================
+  # STATIC TYPE CHECKING
+  # ==========================================================================
+  # MyPy: Static type checker (catches type-related errors)
   - repo: local
     hooks:
       - id: mypy
         name: mypy
+        description: "Static type checking with MyPy"
         entry: poetry run mypy
         language: system
         types: [python]
-        args: [--config-file=pyproject.toml, src/]
-        exclude: ^(docs/|tests/)
-        files: ^src/
-        pass_filenames: false
+        args: [--config-file=pyproject.toml, src/]  # Explicitly specify src/ directory
+        exclude: ^(docs/|tests/)      # Skip documentation and test files
+        pass_filenames: false         # Run on entire codebase, not individual files
+        require_serial: true          # Don't run in parallel (can cause issues)
+
+
+# =============================================================================
+# PRE-COMMIT GLOBAL CONFIGURATION
+# =============================================================================
+# Global settings that apply to all hooks
+default_install_hook_types: [pre-commit, pre-push]  # Install for both commit and push
+default_stages: [commit]            # Run hooks on commit by default
+
+# Fail fast: stop on first hook failure (useful for development)
+fail_fast: false                    #  Set to true if you want to stop on first failure
+
+# =============================================================================
+# EXCLUSION PATTERNS
+# =============================================================================
+# Files and directories to exclude from ALL hooks (unless overridden)
+exclude: |
+  (?x)^(
+      \.git/.*|                     # Git internal files
+      \.venv/.*|                    # Virtual environment
+      \.mypy_cache/.*|              # MyPy cache
+      \.pytest_cache/.*|            # Pytest cache
+      __pycache__/.*|               # Python cache
+      .*\.egg-info/.*|              # Python build artifacts
+      dist/.*|                      # Distribution files
+      build/.*|                     # Build files
+      docs/_build/.*|               # Built documentation
+      htmlcov/.*|                   # Coverage HTML reports
+      \.coverage.*|                 # Coverage data files
+      # TODO: Add project-specific exclusions here
+  )$
+
+# =============================================================================
+# DEVELOPMENT WORKFLOW INTEGRATION
+# =============================================================================
+# Commands to integrate pre-commit with your development workflow:
+#
+# SETUP (run once):
+#   poetry install                    # Install dependencies including pre-commit
+#   pre-commit install               # Install git hooks
+#   pre-commit install --hook-type pre-push  # Also install pre-push hooks
+#
+# MANUAL EXECUTION:
+#   pre-commit run --all-files       # Run all hooks on all files
+#   pre-commit run mypy              # Run specific hook
+#   pre-commit run --files src/module.py  # Run on specific files
+#
+# UPDATING HOOKS:
+#   pre-commit autoupdate            # Update hook versions
+#   pre-commit clean                 # Clear hook caches
+#
+# TEMPORARILY SKIP HOOKS:
+#   git commit -m "message" --no-verify     # Skip all pre-commit hooks
+#   SKIP=mypy git commit -m "message"       # Skip specific hook
+#
+# CONFIGURATION IN CI/CD:
+#   Include in GitHub Actions with: pre-commit run --all-files
+#   This ensures the same quality checks run locally and in CI
+
+# =============================================================================
+#  CHECKLIST FOR NEW PROJECTS
+# =============================================================================
+# When using this template, customize the following:
+#
+# 1. UPDATE VERSIONS:
+#    - [ ] Update all 'rev' fields to latest versions
+#    - [ ] Check for new hooks that might be useful
+#
+# 2. CUSTOMIZE PATHS:
+#    - [ ] Update source directory in mypy hook if not using src/
+#    - [ ] Update documentation path in sphinx-build if not using docs/
+#
+# 3. CONFIGURE TOOL-SPECIFIC SETTINGS:
+#    - [ ] Update Python version in black hook
+#    - [ ] Remove pytest-related args if using unittest
+#    - [ ] Add project-specific exclusions
+#
+# 4. GITHUB INTEGRATION:
+#    - [ ] Add pre-commit to your GitHub Actions workflow
+#    - [ ] Consider using pre-commit.ci for automatic hook updates

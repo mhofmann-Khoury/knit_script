@@ -12,7 +12,7 @@ build-backend = "poetry.core.masonry.api"  # Use Poetry's build system
 # All the information about your project that will appear on PyPI
 [tool.poetry]
 name = "knit-script"            # Package name on PyPI (use hyphens)
-version = "0.1.31"               # Current version (update this for each release)
+version = "0.1.32"               # Current version (update this for each release)
 description = "Knit Script is a domain specific programming language for writing v-bed knitting machine instructions. The language is loosely based on conventions from Python 3 but includes support for controlling a knitting machine. The code is interpreted into knitout which can then be processed into instructions for different types of knitting machines."
 authors = ["Megan Hofmann <m.hofmann@northeastern.edu>"]       # Primary authors
 maintainers = ["Megan Hofmann <m.hofmann@northeastern.edu>"]   # Current maintainers
@@ -67,9 +67,7 @@ include = [
     "README.md",                    # Project description
     "LICENSE",                      # License file
     "docs/**/*",                    # All documentation files
-    "examples/**/*.ks",             # Example knit script files
     "src/knit_script/**/*.pg",      # Grammar files
-    "src/knit_script/**/*.ks",      # Knit script example files
 ]
 
 # Exclude files from the distribution package (keeps package size down)
@@ -82,7 +80,6 @@ exclude = [
     "htmlcov",                      # No coverage HTML reports
     "requirements.txt",             # No old requirements file
     ".gitignore",                   # No git ignore file
-    "*.PNG",                        # No PNG image files
 ]
 
 # =============================================================================
@@ -92,45 +89,34 @@ exclude = [
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"                        # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
 parglare = "^0.18"                   # Parser generator library
-virtual-knitting-machine = ">=0.0.16"   # Virtual knitting machine
-knitout-interpreter = ">=0.0.21"        # Knitout interpreter library
-importlib_resources = "6.5.2"         # For loading parser grammar files
+virtual-knitting-machine = ">=0.0.18"   # Virtual knitting machine
+knitout-interpreter = ">=0.0.22"        # Knitout interpreter library
+importlib_resources = "^6.5"         # For loading parser grammar files
 
-# =============================================================================
-# DEVELOPMENT DEPENDENCIES
-# =============================================================================
-# These packages are only needed during development and testing
 [tool.poetry.group.dev.dependencies]
+importlib-resources = ">=6.5.2"
 
 # -------------------------------------------------------------------------
 # TESTING FRAMEWORK AND PLUGINS
 # -------------------------------------------------------------------------
-coverage = "^7.3.0"              # Coverage measurement for unittest
-unittest-xml-reporting = "^3.2.0"  # XML test reporting for CI/CD
+coverage = "^7.3.0"                # Coverage measurement for unittest
 
 # -------------------------------------------------------------------------
-# CODE QUALITY AND ANALYSIS TOOLS
+# CODE QUALITY AND FORMATTING TOOLS
 # -------------------------------------------------------------------------
-mypy = "^1.5.0"                 # Static type checker (catches type errors)
-pre-commit = "^3.4.0"           # Git hook framework for code quality checks
+isort = "^5.12.0"                  # Import statement sorter
+mypy = "^1.5.0"                    # Static type checker (catches type errors)
+pre-commit = "^3.4.0"              # Git hook framework for automated code quality checks
 
 # -------------------------------------------------------------------------
 # SECURITY AND PACKAGE VALIDATION
 # -------------------------------------------------------------------------
-safety = "^2.3.0"               # Scans dependencies for security vulnerabilities
-twine = "^4.0.0"                # Validates and uploads packages to PyPI
+twine = "^4.0.0"                   # Tool for uploading packages to PyPI (validates before upload)
 
 # -------------------------------------------------------------------------
-# DOCUMENTATION GENERATION
+# RELEASE AND BUILD TOOLS
 # -------------------------------------------------------------------------
-sphinx = "^7.1.0"               # Documentation generator
-sphinx-rtd-theme = "^1.3.0"     # Read the Docs theme for Sphinx
-myst-parser = "^2.0.0"          # Allows Markdown files in Sphinx documentation
-
-# -------------------------------------------------------------------------
-# DEVELOPMENT TOOLS AND UTILITIES
-# -------------------------------------------------------------------------
-ipython = "^8.14.0"             # Enhanced interactive Python shell
+build = "^0.10.0"                  # PEP 517 build tool (for creating distributions)
 
 # -------------------------------------------------------------------------
 # PLATFORM-SPECIFIC DEPENDENCIES
@@ -146,120 +132,134 @@ colorama = {version = "^0.4.6", markers = "sys_platform == 'win32'"}
 sphinx = "^7.1.0"                    # Documentation generator (main tool)
 sphinx-rtd-theme = "^1.3.0"         # Professional-looking theme
 sphinx-autodoc-typehints = "^1.24.0" # Automatically include type hints in docs
-sphinx-autobuild = "^2024.10.3"     # Live reloading for documentation development
+sphinx-autoapi = "^3.0.0"           # Automatically generates API documentation
 myst-parser = "^2.0.0"              # Support for Markdown files in documentation
-pygments = "^2.17.0"                # Syntax highlighting library (needed for custom lexer)
 
 # =============================================================================
-# COMMAND-LINE INTERFACE SCRIPTS
+# COMMAND LINE SCRIPTS
 # =============================================================================
-# Define console scripts that get installed when users install your package
-# [tool.poetry.scripts]
-# Add command-line scripts here if your package provides any
-# knit-script = "knit_script.cli:main"
+# Define command-line entry points for your package
+#[tool.poetry.scripts]
+# Example:
+# your-command = "your_project_name.cli:main"  # Creates 'your-command' executable
 
 # =============================================================================
-# ADDITIONAL PROJECT URLS
+# PROJECT URLS FOR PYPI
 # =============================================================================
-# Extra links that appear on your PyPI project page
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/mhofmann-Khoury/knit_script/issues"        # Where to report bugs
-"Documentation" = "https://github.com/mhofmann-Khoury/knit_script#readme"
+# Additional URLs that will be displayed on your PyPI project page
+#[tool.poetry.urls]
+#"Bug Tracker" = "https://github.com/mhofmann-Khoury/knit-graphs/issues"
+#"Changelog" = "https://github.com/mhofmann-Khoury/knit-graphs/blob/main/CHANGELOG.md"
+#"Discussions" = "https://github.com/your-username/your-project-name/discussions"
+
+# =============================================================================
+# ISORT IMPORT SORTER CONFIGURATION
+# =============================================================================
+# isort automatically organizes and sorts your import statements
+[tool.isort]
+profile = "black"                   # Use Black-compatible settings
+multi_line_output = 3              # Vertical hanging indent style
+line_length = 88                    # Match Black's line length
+include_trailing_comma = true       # Add trailing commas (Black-compatible)
+force_grid_wrap = 0                 # Don't force wrapping
+use_parentheses = true              # Use parentheses for multi-line imports
+ensure_newline_before_comments = true  # Clean comment spacing
+known_first_party = ["virtual_knitting_machine"]  # Your project modules (sorted first)
+known_third_party = []              # Third-party modules (auto-detected)
 
 # =============================================================================
 # MYPY STATIC TYPE CHECKER CONFIGURATION
 # =============================================================================
 # MyPy analyzes your code for type errors without running it
-# This configuration enables strict type checking for better code quality
 [tool.mypy]
-python_version = "3.11"              # Target Python version for type checking
-warn_return_any = true               # Warn when function returns 'Any' type
-warn_unused_configs = true           # Warn about unused configuration options
-disallow_untyped_defs = true         # Require type annotations on all functions
-disallow_incomplete_defs = true      # Require complete type annotations (no partial)
+python_version = "3.11"             # Update target Python version
+warn_return_any = true              # Warn when function returns 'Any' type
+warn_unused_configs = true          # Warn about unused MyPy configuration options
+disallow_untyped_defs = true        # Require type annotations on all functions
+disallow_incomplete_defs = true     # Require complete type annotations
 check_untyped_defs = true           # Type-check functions even without annotations
-disallow_untyped_decorators = true   # Require type annotations on decorators
-no_implicit_optional = true          # Don't automatically make arguments Optional
-warn_redundant_casts = true          # Warn about unnecessary type casts
-warn_unused_ignores = true           # Warn about unused # type: ignore comments
-warn_no_return = true               # Don't warn about functions that don't return
+disallow_untyped_decorators = true  # Require type annotations on decorators
+no_implicit_optional = true         # Don't automatically make arguments Optional
+warn_redundant_casts = true         # Warn about unnecessary type casts
+warn_unused_ignores = true          # Warn about unused # type: ignore comments
+warn_no_return = false              # Don't warn about functions that don't return
 warn_unreachable = true             # Warn about unreachable code
 strict_equality = true              # Use strict equality checks
-show_error_codes = true             # Show error codes in output (helpful for ignoring specific errors)
-ignore_missing_imports = true       # Ignore untyped library imports
+show_error_codes = true             # Show error codes (helpful for targeted ignoring)
+ignore_missing_imports = true       # Ignore untyped third-party library imports
 
-# Settings to allow attributes defined outside __init__
+# Enhanced settings for better compatibility
 allow_redefinition = true           # Allow variables to be redefined with different types
-
-# Enhanced error code disabling to handle subclassing and inheritance issues
-disable_error_code = [             # Disable specific error codes that are problematic
-    "attr-defined",                # Don't error on attributes that might not be defined
-    "no-redef",                    # Don't error on redefined attributes/methods
-    "misc",                        # Disable miscellaneous errors (includes subclassing Any errors)
-    "type-arg",                    # Disable generic type argument errors
-    "valid-type",                  # Disable "not a valid type" errors for complex inheritance
-    "override",                    # Disable method override signature mismatches
-]
-
-# Additional settings to be more permissive with third-party library integration
-allow_untyped_globals = true        # Allow untyped global variables (common in third-party libs)
-allow_subclassing_any = true        # Explicitly allow subclassing from Any types
+allow_untyped_globals = true        # Allow untyped global variables
+allow_subclassing_any = true        # Allow subclassing from Any types
 implicit_reexport = true            # Allow implicit re-exports from modules
 
-# Override settings for specific modules (less strict for tests)
+# Disable specific error codes that can be problematic in template projects
+disable_error_code = [
+    "attr-defined",                 # Don't error on potentially undefined attributes
+    "no-redef",                     # Don't error on redefined attributes/methods
+    "misc",                         # Disable miscellaneous errors (includes subclassing Any)
+    "type-arg",                     # Disable generic type argument errors
+    "valid-type",                   # Disable "not a valid type" errors
+    "override",                     # Disable method override signature mismatches
+]
+
+# Less strict settings for test files (unittest.TestCase methods)
 [[tool.mypy.overrides]]
 module = [
     "tests.*",                      # Apply to all test files
-    "tests",                        # Apply to tests module itself
+    "tests",                        # Apply to tests module
 ]
-disallow_untyped_defs = false      # Allow untyped test functions (tests can be less strict)
-disallow_incomplete_defs = false   # Allow incomplete type annotations in tests
-check_untyped_defs = false         # Don't type-check untyped test functions
-warn_return_any = false            # Don't warn about returning 'Any' in tests
-warn_unused_ignores = false        # Don't warn about unused type ignores in tests
+disallow_untyped_defs = false       # Allow untyped test methods in unittest.TestCase
+disallow_incomplete_defs = false    # Allow incomplete type annotations in tests
+check_untyped_defs = false          # Don't type-check untyped test methods
+warn_return_any = false             # Don't warn about returning 'Any' in tests
+warn_unused_ignores = false         # Don't warn about unused type ignores in tests
 
-# Specific overrides for third-party knitting libraries that may have type issues
-[[tool.mypy.overrides]]
-module = [
-    "parglare.*",                   # Parser generator library
-    "virtual_knitting_machine.*",   # Virtual knitting machine library
-    "knitout_interpreter.*",        # Knitout interpreter library
-    "knitout-interpreter.*",
-    "importlib_resources.*",        # Resource management
-]
-ignore_errors = true              # Completely ignore all mypy errors in these modules
-ignore_missing_imports = true     # Ignore missing imports from these modules
-follow_imports = "skip"           # Don't follow imports into these modules
+# Add overrides for specific third-party libraries that may have type issues
+# Example:
+# [[tool.mypy.overrides]]
+# module = ["problematic_library.*"]
+# ignore_errors = true
 
 # =============================================================================
-# COVERAGE.PY CONFIGURATION FOR UNITTEST
+# UNITTEST TESTING FRAMEWORK CONFIGURATION
 # =============================================================================
-# Detailed configuration for measuring code coverage with unittest
+# Configuration for Python's built-in unittest framework
 
-# -------------------------------------------------------------------------
-# COVERAGE MEASUREMENT SETTINGS
-# -------------------------------------------------------------------------
+# Note: unittest uses discovery pattern by default
+# Test files should be named test_*.py or *_test.py
+# Test classes should inherit from unittest.TestCase
+# Test methods should start with 'test_'
+
+# Coverage integration for unittest
+# Run tests with coverage using: python -m coverage run -m unittest discover
+# Generate reports with: python -m coverage report or python -m coverage html
+
+# =============================================================================
+# COVERAGE.PY CONFIGURATION
+# =============================================================================
+# Configuration for measuring code coverage
+
+# Coverage measurement settings
 [tool.coverage.run]
-source = ["src"]                    # Only measure coverage for source code (not tests)
+source = ["src/virtual_knitting_machine"]
 omit = [                           # Files to exclude from coverage measurement
-    "*/tests/*",                    # Don't measure coverage of test files themselves
-    "*/test_*",                     # Don't measure coverage of any test files
+    "*/tests/*",                    # Don't measure coverage of test files
+    "*/test_*",                     # Don't measure coverage of test files
     "*/__pycache__/*",              # Ignore Python cache files
-#    "*/site-packages/*",            # Ignore installed packages
+    "*/site-packages/*",            # Ignore installed packages
     "*/venv/*",                     # Ignore virtual environment
 ]
-branch = true                       # Enable branch coverage (more comprehensive than line coverage)
+branch = true                       # Enable branch coverage (more comprehensive)
 
-# -------------------------------------------------------------------------
-# COVERAGE REPORTING SETTINGS
-# -------------------------------------------------------------------------
+# Coverage reporting settings
 [tool.coverage.report]
-# Lines to exclude from coverage analysis (patterns that are hard to test)
 exclude_lines = [
     "pragma: no cover",             # Explicit exclusion comment
     "def __repr__",                 # String representation methods
     "if self.debug:",               # Debug-only code
-    "if settings.DEBUG",            # Django-style debug code
+    "if settings.DEBUG",            # Framework debug code
     "raise AssertionError",         # Should never be reached
     "raise NotImplementedError",    # Abstract method placeholders
     "if 0:",                        # Never-executed debug code
@@ -267,18 +267,65 @@ exclude_lines = [
     "class .*\\bProtocol\\):",      # Protocol classes (typing)
     "@(abc\\.)?abstractmethod",     # Abstract methods
 ]
-
-# Coverage quality settings
-fail_under = 0                      # Don't fail if coverage is low (for development)
+fail_under = 0                     # Set minimum coverage percentage (fail if coverage below this)
 show_missing = true                 # Show which lines are missing coverage
 skip_covered = false                # Show covered files in report
 skip_empty = true                   # Skip empty files in report
 
-# -------------------------------------------------------------------------
-# COVERAGE OUTPUT FORMATS
-# -------------------------------------------------------------------------
-[tool.coverage.html]
-directory = "htmlcov"               # Directory for HTML coverage reports (open htmlcov/index.html to view)
+# =============================================================================
+# WHEEL BUILDING CONFIGURATION
+# =============================================================================
+# Configuration for building wheel distributions
+[tool.wheel]
+universal = false                   # Set to true only if your package supports both Python 2 and 3
 
-[tool.coverage.xml]
-output = "coverage.xml"             # XML coverage report file (used by CI/CD and external tools)
+# =============================================================================
+# CHECKLIST FOR NEW PROJECTS
+# =============================================================================
+# When using this template, update the following:
+#
+# 1. PROJECT METADATA:
+#    - [ ] name: Update project name (use hyphens)
+#    - [ ] version: Set initial version
+#    - [ ] description: Write clear project description
+#    - [ ] authors: Add your information
+#    - [ ] maintainers: Add maintainer information
+#    - [ ] homepage: Update project homepage URL
+#    - [ ] repository: Update repository URL
+#    - [ ] documentation: Update documentation URL
+#    - [ ] keywords: Add relevant keywords
+#    - [ ] classifiers: Update development status and topics
+#
+# 2. PACKAGE STRUCTURE:
+#    - [ ] packages: Update package name and location
+#    - [ ] include: Add any additional files to include
+#    - [ ] scripts: Add command-line entry points if needed
+#
+# 3. DEPENDENCIES:
+#    - [ ] python: Update Python version requirements
+#    - [ ] dependencies: Add runtime dependencies
+#    - [ ] extras: Define optional dependency groups
+#    - [ ] dev dependencies: Add/remove development tools as needed
+#
+# 4. TOOL CONFIGURATIONS:
+#    - [ ] mypy: Update Python version and add library overrides
+#    - [ ] pytest: Update coverage source path and minimum coverage
+#    - [ ] coverage: Update source directory if needed
+#    - [ ] bumpversion: Update version file locations
+#
+# 5. FILE STRUCTURE:
+#    - [ ] Create src/your_project_name/ directory
+#    - [ ] Create tests/ directory
+#    - [ ] Create docs/ directory
+#    - [ ] Add README.md, LICENSE, CHANGELOG.md files
+#    - [ ] Add .gitignore file
+#    - [ ] Add GitHub Actions workflows
+#
+# 6. GITHUB ACTIONS:
+#    - [ ] Create .github/workflows/ci.yml for continuous integration
+#    - [ ] Create .github/workflows/release.yml for automated releases
+#    - [ ] Set up PyPI and TestPyPI tokens in GitHub secrets
+#    - [ ] Configure CI to run: python -m unittest discover tests
+#    - [ ] Configure CI to run: python -m coverage run -m unittest discover
+#
+# Remember to run 'poetry install' after updating this file!

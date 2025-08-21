@@ -3,16 +3,21 @@
 This module provides expression classes for handling various container data structures in knit script programs.
 It includes support for lists, dictionaries, tuples, list comprehensions, dictionary comprehensions, and unpacking operations, following Python conventions for syntax and behavior.
 """
-from typing import Iterable, Any
+from typing import Any, Iterable
 
 from parglare.parser import LRStackNode
+
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_KeyError,
+    Knit_Script_TypeError,
+)
+from knit_script.knit_script_interpreter.expressions.expressions import Expression
+from knit_script.knit_script_interpreter.expressions.variables import (
+    Variable_Expression,
+)
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_KeyError, Knit_Script_TypeError
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
 class Unpack(Expression):

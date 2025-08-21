@@ -1,15 +1,16 @@
 from typing import Any
 
 from knit_graphs.Knit_Graph import Knit_Graph
-from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from knitout_interpreter.run_knitout import run_knitout
-from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line
-from knit_script import knit_script_to_knitout
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
+from knitout_interpreter.run_knitout import run_knitout
+
+from knit_script.interpret_knit_script import knit_script_to_knitout
+from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
 
 def interpret_test_ks(ks_pattern: str, out_file_name: str = 'test.k', pattern_is_filename: bool = False,
-                      print_k_lines:bool = True, execute_knitout:bool = True,
+                      print_k_lines: bool = True, execute_knitout: bool = True,
                       **python_variables: dict[str: Any]) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
     """
     Process the given knit script pattern and printout the resulting knitout file.

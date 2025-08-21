@@ -56,11 +56,11 @@ The language compiles to standard knitout format, making it compatible with any 
    machine_operations
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: API Reference
    :hidden:
 
-   modules.rst
+   api/knit_script
 
 .. toctree::
    :maxdepth: 1
@@ -70,17 +70,3 @@ The language compiles to standard knitout format, making it compatible with any 
    dependencies
    related_projects
    acknowledgments
-
-Quick Navigation
-================
-
-**Getting Started**
-
-* :doc:`installation` - Installation instructions for different environments
-* :doc:`quickstart` - Your first KnitScript pattern in 5 minutes
-* :doc:`language_reference` - Complete language syntax reference
-* :doc:`machine_operations` - Needle operations and machine control
-
-**API Documentation**
-
-* :doc:`knit_script` - Complete API reference

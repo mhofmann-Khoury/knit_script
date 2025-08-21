@@ -1,6 +1,15 @@
+import warnings
 from unittest import TestCase
 
 from resources.interpret_test_ks import interpret_test_ks
+
+from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import (
+    Knit_on_Empty_Needle_Warning,
+)
+from virtual_knitting_machine.knitting_machine_warnings.Yarn_Carrier_System_Warning import (
+    In_Active_Carrier_Warning,
+    Yarn_Carrier_Warning,
+)
 
 
 class Test_Documentation_Examples(TestCase):
@@ -157,19 +166,21 @@ class Test_Documentation_Examples(TestCase):
         interpret_test_ks(program, print_k_lines=False)
 
     def test_lr_basic_stitching(self):
-        program = r"""
-        // Knit all loops in Rightward direction
-        Carrier = c1;
-       in Rightward direction:{ knit Loops; }
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=Knit_on_Empty_Needle_Warning)  # Ignore all warnings within this block
+            program = r"""
+            // Knit all loops in Rightward direction
+            Carrier = c1;
+           in Rightward direction:{ knit Loops; }
 
-       // Knit and Tuck specific needles
-       in Leftward direction:{
-           knit Front_Needles[0:10];
-           tuck Back_Needles[5:15];
-       }
-       releasehook;
-        """
-        interpret_test_ks(program)
+           // Knit and Tuck specific needles
+           in Leftward direction:{
+               knit Front_Needles[0:10];
+               tuck Back_Needles[5:15];
+           }
+           releasehook;
+            """
+            interpret_test_ks(program)
 
     def test_lr_transfer_ops(self):
         program = r"""
@@ -306,19 +317,21 @@ class Test_Documentation_Examples(TestCase):
         interpret_test_ks(program, print_k_lines=False)
 
     def test_mo_knit(self):
-        program = r"""
-        Carrier = c1;
-        // Knit all loops on Front bed
-       in Rightward direction:{ knit Front_Loops; }
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=Knit_on_Empty_Needle_Warning)  # Ignore all warnings within this block
+            program = r"""
+            Carrier = c1;
+            // Knit all loops on Front bed
+           in Rightward direction:{ knit Front_Loops; }
 
-       // Knit specific needles
-       in Leftward direction:{ knit Front_Needles[0:10]; }
+           // Knit specific needles
+           in Leftward direction:{ knit Front_Needles[0:10]; }
 
-       // Knit all loops regardless of bed
-       in reverse direction:{ knit Loops; }
-       releasehook;
-        """
-        interpret_test_ks(program)
+           // Knit all loops regardless of bed
+           in reverse direction:{ knit Loops; }
+           releasehook;
+            """
+            interpret_test_ks(program)
 
     def test_mo_tuck(self):
         program = r"""
@@ -403,28 +416,30 @@ class Test_Documentation_Examples(TestCase):
         interpret_test_ks(program)
 
     def test_mo_carrier_ops(self):
-        program = r"""
-        // Single carrier
-        Carrier = c1;
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=Yarn_Carrier_Warning)  # Ignore all warnings within this block
+            program = r"""
+            // Single carrier
+            Carrier = c1;
 
-       // Multiple carriers for platting
-       Carrier = [c1, c2];
+           // Multiple carriers for platting
+           Carrier = [c1, c2];
 
-       // Using with statement for scoped carrier work
-       with Carrier as c2:{
-           in Leftward direction:{ tuck Front_Needles[0:10]; }
-       }
-       releasehook;
+           // Using with statement for scoped carrier work
+           with Carrier as c2:{
+               in Leftward direction:{ tuck Front_Needles[0:10]; }
+           }
+           releasehook;
 
-       // Cut carriers (outhook)
-       cut c1;              // Cut specific carrier
-       cut [c1, c2];        // Cut multiple carriers
-       cut Carrier;         // Cut current working carrier
+           // Cut carriers (outhook)
+           cut c1;              // Cut specific carrier
+           cut [c1, c2];        // Cut multiple carriers
+           cut Carrier;         // Cut current working carrier
 
-       // Release yarn hook
-       releasehook;         // Release current hooked carrier. If no yarn is hooked, this is a safe no-op.
-        """
-        interpret_test_ks(program)
+           // Release yarn hook
+           releasehook;         // Release current hooked carrier. If no yarn is hooked, this is a safe no-op.
+            """
+            interpret_test_ks(program)
 
     def test_mo_directions(self):
         program = r"""
@@ -449,15 +464,17 @@ class Test_Documentation_Examples(TestCase):
         interpret_test_ks(program)
 
     def test_mo_all_needle(self):
-        program = r"""
-        Carrier = c1;
-        // Operations that might need all-needle racking
-        in Rightward direction:{
-           knit Front_Needles[10];
-           knit Back_Needles[10];  // Same position - needs all-needle
-        }
-        """
-        interpret_test_ks(program)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=Knit_on_Empty_Needle_Warning)  # Ignore all warnings within this block
+            program = r"""
+            Carrier = c1;
+            // Operations that might need all-needle racking
+            in Rightward direction:{
+               knit Front_Needles[10];
+               knit Back_Needles[10];  // Same position - needs all-needle
+            }
+            """
+            interpret_test_ks(program)
 
     def test_mo_gauge(self):
         program = r"""

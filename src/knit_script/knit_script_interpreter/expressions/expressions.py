@@ -4,6 +4,7 @@ This module provides the Expression base class, which serves as the foundation f
 It also includes utility functions for working with expression collections and converting them to value lists for execution.
 """
 from __future__ import annotations
+
 from typing import Any
 
 from parglare.parser import LRStackNode

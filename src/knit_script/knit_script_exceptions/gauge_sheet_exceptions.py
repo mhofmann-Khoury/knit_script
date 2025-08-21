@@ -5,9 +5,10 @@ The exceptions provide detailed information about gauge limits, sheet boundaries
 """
 from __future__ import annotations
 
+from knit_script.knit_script_exceptions.Knit_Script_Exception import (
+    Knit_Script_Exception,
+)
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-
-from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
 
 
 class Gauge_Value_Exception(Knit_Script_Exception):

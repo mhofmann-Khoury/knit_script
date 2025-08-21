@@ -1,7 +1,12 @@
+import warnings
 from unittest import TestCase
 
-from resources.interpret_test_ks import interpret_test_ks, count_lines
 from knitout_interpreter.knitout_operations.needle_instructions import *
+from resources.interpret_test_ks import count_lines, interpret_test_ks
+
+from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import (
+    Knit_on_Empty_Needle_Warning,
+)
 
 
 class Test_Needle_Instructions(TestCase):
@@ -17,15 +22,17 @@ class Test_Needle_Instructions(TestCase):
         assert count_lines(klines, include_types={Tuck_Instruction}) == 5
 
     def test_knit(self):
-        program = r"""
-        Carrier = c1;
-        in Leftward direction:{
-            knit Front_Needles[0:5];
-        }
-        releasehook;
-        """
-        klines, _, __ = interpret_test_ks(program)
-        assert count_lines(klines, include_types={Knit_Instruction}) == 5
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=Knit_on_Empty_Needle_Warning)  # Ignore all warnings within this block
+            program = r"""
+            Carrier = c1;
+            in Leftward direction:{
+                knit Front_Needles[0:5];
+            }
+            releasehook;
+            """
+            klines, _, __ = interpret_test_ks(program)
+            assert count_lines(klines, include_types={Knit_Instruction}) == 5
 
     def test_split(self):
         program = r"""
@@ -42,7 +49,7 @@ class Test_Needle_Instructions(TestCase):
         program = r"""
         Carrier = c1;
         in Leftward direction:{
-            knit Front_Needles[0:5];
+            tuck Front_Needles[0:5];
         }
         releasehook;
         in reverse direction:{
@@ -56,7 +63,7 @@ class Test_Needle_Instructions(TestCase):
         program = r"""
         Carrier = c1;
         in Leftward direction:{
-            knit Front_Needles[0:5];
+            tuck Front_Needles[0:5];
         }
         releasehook;
         xfer Loops across to Back bed;
