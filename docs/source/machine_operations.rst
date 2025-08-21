@@ -319,35 +319,35 @@ Pause Operations
    :header-rows: 1
 
    * - Operation
-	 - Syntax
-	 - Description
+     - Syntax
+     - Description
    * - Knit
-	 - ``knit needles``
-	 - Form new loops, consume old ones
+     - ``knit needles``
+     - Form new loops, consume old ones
    * - Tuck
-	 - ``tuck needles``
-	 - Form new loops, keep old ones
+     - ``tuck needles``
+     - Form new loops, keep old ones
    * - Miss
-	 - ``miss needles``
-	 - Move carrier without forming loops
+     - ``miss needles``
+     - Move carrier without forming loops
    * - Split
-	 - ``split needles``
-	 - Create loop and move existing loops
+     - ``split needles``
+     - Create loop and move existing loops
    * - Transfer
-	 - ``xfer needles [offset] to bed``
-	 - Move loops between needles
+     - ``xfer needles [offset] to bed``
+     - Move loops between needles
    * - Drop
-	 - ``drop needles``
-	 - Remove loops from needles
+     - ``drop needles``
+     - Remove loops from needles
    * - Cut
-	 - ``cut carriers``
-	 - Permanently remove carriers
+     - ``cut carriers``
+     - Permanently remove carriers
    * - Remove
-	 - ``remove carriers``
-	 - Temporarily remove carriers
+     - ``remove carriers``
+     - Temporarily remove carriers
    * - Release
-	 - ``releasehook``
-	 - Release yarn inserting hook
+     - ``releasehook``
+     - Release yarn inserting hook
    * - Pause
-	 - ``pause``
-	 - Stop machine execution
+     - ``pause``
+     - Stop machine execution
