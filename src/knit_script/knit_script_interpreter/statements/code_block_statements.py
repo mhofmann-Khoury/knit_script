@@ -5,6 +5,9 @@ It manages scope creation, statement execution, and proper handling of return va
 """
 from parglare.parser import LRStackNode
 
+from knit_script.knit_script_exceptions.add_exception_information import (
+    add_exception_to_statement,
+)
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
@@ -42,18 +45,14 @@ class Code_Block(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         context.enter_sub_scope()
-        had_return = False
-        return_value = None
         for statement in self._statements:
-            statement.execute(context)
+            try:
+                statement.execute(context)
+            except Exception as e:
+                raise add_exception_to_statement(e, statement)
             if context.variable_scope.returned:  # executed statement updated scope with return value
-                had_return = True
-                return_value = context.variable_scope.return_value
                 break  # don't continue to execute block statements
         context.exit_current_scope(collapse_into_parent=True)  # Collapse change upward, let next level decide if value changes are passed on.
-        if had_return:
-            context.variable_scope._returned = True
-            context.variable_scope.return_value = return_value
 
     def __str__(self) -> str:
         """Return string representation of the code block.

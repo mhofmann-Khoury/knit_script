@@ -6,10 +6,17 @@ The functions are designed to simplify common needle operations and provide intu
 """
 from typing import cast
 
+from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
     Carriage_Pass_Direction,
 )
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
+    Slider_Needle,
+)
+from virtual_knitting_machine.machine_constructed_knit_graph.Machine_Knit_Loop import (
+    Machine_Knit_Loop,
+)
 
 
 def needle(is_front: bool, index: int) -> Needle:
@@ -52,3 +59,33 @@ def direction_sorted_needles(needles: list[Needle], direction: Carriage_Pass_Dir
         This represents the standard practice in knitting machine operations where racking is typically specified in whole needle positions.
     """
     return cast(list[Needle], direction.sort_needles(needles, racking=int(racking)))
+
+
+def loops_to_current_needles(machine_state: Knitting_Machine) -> dict[Machine_Knit_Loop, Needle]:
+    """
+    Access the current location of loops on the knitting machine needles (excluding sliders).
+    Args:
+        machine_state (Knitting_Machine): The current state of the knitting machine.
+
+    Returns:
+        dict[Machine_Knit_Loop, Needle]: A dictionary of all loops currently held on a needle keyed to the needle that holds them.
+    """
+    result: dict[Machine_Knit_Loop, Needle] = {}
+    for n in machine_state.all_loops():
+        result.update({loop: n for loop in n.held_loops})
+    return result
+
+
+def loops_to_current_sliders(machine_state: Knitting_Machine) -> dict[Machine_Knit_Loop, Slider_Needle]:
+    """
+    Access the current location of loops on the knitting machine slider needles.
+    Args:
+        machine_state (Knitting_Machine): The current state of the knitting machine.
+
+    Returns:
+        dict[Machine_Knit_Loop, Slider_Needle]: A dictionary of all loops currently held on a slider needle keyed to the slider that holds them.
+    """
+    result: dict[Machine_Knit_Loop, Slider_Needle] = {}
+    for n in machine_state.all_slider_loops():
+        result.update({loop: n for loop in n.held_loops})
+    return result

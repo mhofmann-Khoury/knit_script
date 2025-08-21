@@ -223,11 +223,9 @@ class Carriage_Pass_Specification:
         if self._target_bed is not None:  # throw out needles that are on target bed already
             if not isinstance(self._target_bed, Machine_Bed_Position):
                 raise Knit_Script_TypeError(f"Expected xfer to Front or Back Bed but got {self._target_bed}", self._source_statement)
-            match_front = self._target_bed is Machine_Bed_Position.Back  # xfer from front to back
-            match_needles = []
-            for n in needles:
-                if (match_front and n.is_front) or \
-                        (not match_front and not n.is_front):
-                    match_needles.append(n)
-            needles = match_needles
-        return needles
+            if self._target_bed is Machine_Bed_Position.Front:
+                return [n for n in needles if n.is_back]
+            else:
+                return [n for n in needles if n.is_front]
+        else:
+            return needles

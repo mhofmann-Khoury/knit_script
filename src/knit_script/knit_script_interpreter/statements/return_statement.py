@@ -43,7 +43,6 @@ class Return_Statement(Statement):
         """
         value = self._exp.evaluate(context)
         context.variable_scope.return_value = value
-        context.variable_scope.has_return = True
 
     def __str__(self) -> str:
         """Return string representation of the return statement.

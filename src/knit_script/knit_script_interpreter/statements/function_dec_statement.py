@@ -41,7 +41,7 @@ class Function_Signature:
         _module_scope (Knit_Script_Scope): The scope in which the function was defined.
     """
 
-    def __init__(self, name: str, parameter_names: list[str], body: Statement, defaults: dict[str, Any], module_scope: Knit_Script_Scope, source_statement: KS_Element):
+    def __init__(self, name: str, parameter_names: list[str], body: Statement, defaults: dict[str, Any], module_scope: Knit_Script_Scope | None, source_statement: KS_Element):
         """Initialize a function signature.
 
         Args:
@@ -57,7 +57,7 @@ class Function_Signature:
         self._parameter_names: list[str] = parameter_names
         self._body: Statement = body
         self._defaults: dict[str, Any] = defaults
-        self._module_scope: Knit_Script_Scope = module_scope
+        self._module_scope: Knit_Script_Scope | None = module_scope
 
     def execute(self, context: Knit_Script_Context, args: list[Expression], kwargs: list[Assignment]) -> Any:
         """Execute the function with the given arguments.
@@ -177,5 +177,5 @@ class Function_Declaration(Statement):
                 warnings.warn(Shadow_Variable_Warning(kwarg.variable_name), self)
             defaults[kwarg.variable_name] = kwarg.value(context)
 
-        function = Function_Signature(self._func_name, params, self._body, defaults, context.variable_scope, self)
+        function = Function_Signature(self._func_name, params, self._body, defaults, context.variable_scope.module_scope, self)
         context.variable_scope[self._func_name] = function  # assign to current scope

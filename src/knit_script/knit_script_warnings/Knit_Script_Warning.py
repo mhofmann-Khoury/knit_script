@@ -35,15 +35,44 @@ class Knit_Script_Warning(RuntimeWarning):
             ks_element (KS_Element | None): The KnitScript element that triggered the warning. Used to identify the location in the knitscript code.
             message (str): The warning message to display. This will be prefixed with "KnitScript Warning:" in the final formatted message.
         """
+        self._ks_element: KS_Element | None = ks_element
+        self.message = message
+        super().__init__(self.full_message)
+
+    @property
+    def full_message(self) -> str:
+        """
+        Returns:
+            str: The full warning including the prefix and message.
+        """
+        return f"{self.prefix}: {self.message}"
+
+    @property
+    def prefix(self) -> str:
+        """
+        Returns:
+            str: The prefix of the warning message based on the name of the warning and if the ks_element that triggered it is known.
+        """
         prefix = f"\n{self.__class__.__name__}"
-        if ks_element is not None:
-            error_location: Location = ks_element.location
+        if self.ks_element is not None:
+            error_location: Location = self.ks_element.location
             if error_location.file_name is not None:
                 prefix += f" (File {error_location.file_name} on line {error_location.line})"
             else:
                 prefix += f" (Line {error_location.line})"
-        self.message = f"{prefix}: {message}"
-        super().__init__(self.message)
+        return prefix
+
+    @property
+    def ks_element(self) -> KS_Element | None:
+        """
+        Returns:
+            None | KS_Element: The element that triggered this warning, or None if that was not known.
+        """
+        return self._ks_element
+
+    @ks_element.setter
+    def ks_element(self, element: KS_Element) -> None:
+        self._ks_element = element
 
 
 class Shadow_Variable_Warning(Knit_Script_Warning):
@@ -51,6 +80,9 @@ class Shadow_Variable_Warning(Knit_Script_Warning):
 
     This warning is issued when a variable is defined in a local scope that has the same name as a variable in an outer scope, potentially hiding the outer variable and causing confusion.
     Variable shadowing can lead to unexpected behavior when developers intend to access the outer variable but inadvertently access the inner one instead.
+
+    Attributes:
+        variable_name (str): The variable that shadows a higher scope.
     """
 
     def __init__(self, variable_name: str, ks_element: KS_Element | None = None):
@@ -60,6 +92,7 @@ class Shadow_Variable_Warning(Knit_Script_Warning):
             ks_element (KS_Element | None): The KnitScript element that triggered the warning. Used to identify the location in the knitscript code.
             variable_name (str): The name of the variable that is shadowing another variable in an outer scope.
         """
+        self.variable_name: str = variable_name
         super().__init__(f"Variable <{variable_name}> shadows a variable in the outer scope.", ks_element)
 
 

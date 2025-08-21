@@ -39,6 +39,9 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Se
     Yarn_Carrier_Set,
 )
 
+from knit_script.knit_script_exceptions.add_exception_information import (
+    add_exception_to_statement,
+)
 from knit_script.knit_script_exceptions.Knit_Script_Exception import (
     Knit_Script_Exception,
     Knit_Script_Located_Exception,
@@ -296,25 +299,7 @@ class Knit_Script_Context:
                         if isinstance(e, (Knitting_Machine_Exception, Knit_Script_Exception)):
                             error_comments = [Knitout_Comment_Line(e.message)]
                             out.writelines([str(ec) for ec in error_comments])
-                if not isinstance(e, Knit_Script_Located_Exception):
-                    if isinstance(e, TypeError):
-                        raise Knit_Script_TypeError(str(e), statement)
-                    elif isinstance(e, NameError):
-                        raise Knit_Script_NameError(str(e), statement)
-                    elif isinstance(e, AttributeError):
-                        raise Knit_Script_AttributeError(str(e), statement)
-                    elif isinstance(e, IndexError):
-                        raise Knit_Script_IndexError(str(e), statement)
-                    elif isinstance(e, KeyError):
-                        raise Knit_Script_KeyError(str(e), statement)
-                    elif isinstance(e, ImportError):
-                        raise Knit_Script_ImportError(str(e), statement)
-                    elif isinstance(e, ValueError):
-                        raise Knit_Script_ValueError(str(e), statement)
-                    else:
-                        raise Knit_Script_Located_Exception(e, statement)
-                else:
-                    raise e
+                raise add_exception_to_statement(e, statement)
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False, global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """Get a needle based on current gauging configuration.
