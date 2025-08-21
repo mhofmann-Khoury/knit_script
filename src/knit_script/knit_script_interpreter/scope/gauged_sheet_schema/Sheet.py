@@ -10,9 +10,6 @@ from __future__ import annotations
 
 from typing import cast
 
-from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
-    Sheet_Value_Exception,
-)
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
@@ -21,6 +18,10 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
 )
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
     Slider_Needle,
+)
+
+from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
+    Sheet_Value_Exception,
 )
 
 

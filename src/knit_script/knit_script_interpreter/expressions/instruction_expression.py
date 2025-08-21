@@ -9,6 +9,7 @@ from knitout_interpreter.knitout_operations.knitout_instruction import (
     Knitout_Instruction_Type,
 )
 from parglare.parser import LRStackNode
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_exceptions.ks_exceptions import (
     Needle_Instruction_Type_Exception,
@@ -18,7 +19,6 @@ from knit_script.knit_script_exceptions.python_style_exceptions import (
 )
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
 class Needle_Instruction_Exp(Expression):

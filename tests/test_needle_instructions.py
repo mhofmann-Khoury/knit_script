@@ -3,7 +3,6 @@ from unittest import TestCase
 
 from knitout_interpreter.knitout_operations.needle_instructions import *
 from resources.interpret_test_ks import count_lines, interpret_test_ks
-
 from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import (
     Knit_on_Empty_Needle_Warning,
 )

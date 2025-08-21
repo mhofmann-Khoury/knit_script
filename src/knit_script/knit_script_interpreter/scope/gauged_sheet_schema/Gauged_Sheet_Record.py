@@ -14,13 +14,6 @@ from knitout_interpreter.knitout_operations.Knitout_Line import (
     Knitout_Line,
 )
 from knitout_interpreter.knitout_operations.needle_instructions import Xfer_Instruction
-
-from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
-    Lost_Sheet_Loops_Exception,
-    Sheet_Peeling_Blocked_Loops_Exception,
-    Sheet_Peeling_Stacked_Loops_Exception,
-)
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Sheet import Sheet
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
@@ -30,6 +23,13 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
     Slider_Needle,
 )
+
+from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
+    Lost_Sheet_Loops_Exception,
+    Sheet_Peeling_Blocked_Loops_Exception,
+    Sheet_Peeling_Stacked_Loops_Exception,
+)
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Sheet import Sheet
 
 
 class Gauged_Sheet_Record:

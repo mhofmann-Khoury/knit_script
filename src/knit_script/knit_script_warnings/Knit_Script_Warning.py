@@ -5,11 +5,11 @@ These warnings alert developers to potentially problematic code patterns, config
 The warning system helps developers write more robust knit script programs by identifying common pitfalls and questionable practices during execution.
 """
 from parglare.common import Location
-
-from knit_script.knit_script_interpreter.ks_element import KS_Element
 from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
     Sheet_Identifier,
 )
+
+from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 
 class Knit_Script_Warning(RuntimeWarning):

@@ -8,7 +8,6 @@ from knitout_interpreter.knitout_operations.carrier_instructions import (
     Outhook_Instruction,
     Releasehook_Instruction,
 )
-
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import (
     Yarn_Carrier,

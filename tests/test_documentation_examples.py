@@ -2,7 +2,6 @@ import warnings
 from unittest import TestCase
 
 from resources.interpret_test_ks import interpret_test_ks
-
 from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import (
     Knit_on_Empty_Needle_Warning,
 )

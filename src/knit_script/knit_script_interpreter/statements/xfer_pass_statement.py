@@ -9,6 +9,7 @@ from knitout_interpreter.knitout_operations.knitout_instruction import (
     Knitout_Instruction_Type,
 )
 from parglare.parser import LRStackNode
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_exceptions.python_style_exceptions import (
     Knit_Script_TypeError,
@@ -22,7 +23,6 @@ from knit_script.knit_script_interpreter.statements.Carriage_Pass_Specification 
     Carriage_Pass_Specification,
 )
 from knit_script.knit_script_interpreter.statements.Statement import Statement
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
 class Xfer_Pass_Statement(Statement):

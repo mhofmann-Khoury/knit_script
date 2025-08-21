@@ -9,27 +9,6 @@ from __future__ import annotations
 from typing import Any
 
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line
-
-from knit_script.knit_script_exceptions.Knit_Script_Exception import (
-    Knit_Script_Exception,
-    Knit_Script_Located_Exception,
-)
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_AttributeError,
-    Knit_Script_ImportError,
-    Knit_Script_IndexError,
-    Knit_Script_KeyError,
-    Knit_Script_NameError,
-    Knit_Script_TypeError,
-    Knit_Script_ValueError,
-)
-from knit_script.knit_script_interpreter._Context_Base import _Context_Base
-from knit_script.knit_script_interpreter._parser_base import _Parser_Base
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import (
-    Gauged_Sheet_Record,
-)
-from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
-from knit_script.knit_script_std_library.carriers import cut_active_carriers
 from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import (
     Knitting_Machine_Exception,
 )
@@ -54,6 +33,27 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Se
     Yarn_Carrier,
     Yarn_Carrier_Set,
 )
+
+from knit_script.knit_script_exceptions.Knit_Script_Exception import (
+    Knit_Script_Exception,
+    Knit_Script_Located_Exception,
+)
+from knit_script.knit_script_exceptions.python_style_exceptions import (
+    Knit_Script_AttributeError,
+    Knit_Script_ImportError,
+    Knit_Script_IndexError,
+    Knit_Script_KeyError,
+    Knit_Script_NameError,
+    Knit_Script_TypeError,
+    Knit_Script_ValueError,
+)
+from knit_script.knit_script_interpreter._Context_Base import _Context_Base
+from knit_script.knit_script_interpreter._parser_base import _Parser_Base
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import (
+    Gauged_Sheet_Record,
+)
+from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
+from knit_script.knit_script_std_library.carriers import cut_active_carriers
 
 
 class Knit_Script_Context(_Context_Base):

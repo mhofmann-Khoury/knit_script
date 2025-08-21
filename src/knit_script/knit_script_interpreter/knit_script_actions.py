@@ -15,6 +15,10 @@ from knitout_interpreter.knitout_operations.knitout_instruction import (
 )
 from parglare import get_collector
 from parglare.parser import LRStackNode
+from virtual_knitting_machine.Knitting_Machine_Specification import (
+    Knitting_Machine_Type,
+    Knitting_Position,
+)
 
 from knit_script.knit_script_interpreter.expressions.accessors import (
     Attribute_Accessor_Expression,
@@ -134,10 +138,6 @@ from knit_script.knit_script_interpreter.statements.Variable_Declaration import 
 from knit_script.knit_script_interpreter.statements.With_Statement import With_Statement
 from knit_script.knit_script_interpreter.statements.xfer_pass_statement import (
     Xfer_Pass_Statement,
-)
-from virtual_knitting_machine.Knitting_Machine_Specification import (
-    Knitting_Machine_Type,
-    Knitting_Position,
 )
 
 action = get_collector()  # some boiler plate parglare code

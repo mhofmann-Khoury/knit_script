@@ -13,6 +13,10 @@ from knitout_interpreter.knitout_operations.needle_instructions import (
     Needle_Instruction,
 )
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
+    Carriage_Pass_Direction,
+)
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_exceptions.ks_exceptions import (
     All_Needle_Operation_Exception,
@@ -28,10 +32,6 @@ from knit_script.knit_script_interpreter.ks_element import KS_Element
 from knit_script.knit_script_interpreter.Machine_Specification import (
     Machine_Bed_Position,
 )
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
 class Carriage_Pass_Specification:

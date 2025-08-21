@@ -10,13 +10,13 @@ from enum import Enum
 from typing import cast
 
 from parglare.parser import LRStackNode
-
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
     Slider_Needle,
 )
+
+from knit_script.knit_script_interpreter.expressions.expressions import Expression
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
 class Needle_Sets(Enum):

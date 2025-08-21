@@ -11,17 +11,17 @@ from typing import Any
 
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line_Type
 from parglare.parser import LRStackNode
-
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.Machine_Specification import (
-    Machine_Bed_Position,
-)
 from virtual_knitting_machine.Knitting_Machine_Specification import (
     Knitting_Machine_Type,
 )
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
     Carriage_Pass_Direction,
+)
+
+from knit_script.knit_script_interpreter.expressions.expressions import Expression
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.Machine_Specification import (
+    Machine_Bed_Position,
 )
 
 

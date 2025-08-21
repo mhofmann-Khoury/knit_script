@@ -16,18 +16,6 @@ from knitout_interpreter.knitout_operations.carrier_instructions import (
 )
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
-
-from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
-    Gauge_Value_Exception,
-    Sheet_Value_Exception,
-)
-from knit_script.knit_script_interpreter import _Context_Base
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import (
-    Gauged_Sheet_Record,
-)
-from knit_script.knit_script_warnings.Knit_Script_Warning import (
-    Sheet_Beyond_Gauge_Warning,
-)
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
     Carriage_Pass_Direction,
@@ -40,6 +28,18 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier im
 )
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
     Yarn_Carrier_Set,
+)
+
+from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
+    Gauge_Value_Exception,
+    Sheet_Value_Exception,
+)
+from knit_script.knit_script_interpreter import _Context_Base
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import (
+    Gauged_Sheet_Record,
+)
+from knit_script.knit_script_warnings.Knit_Script_Warning import (
+    Sheet_Beyond_Gauge_Warning,
 )
 
 

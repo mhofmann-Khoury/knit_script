@@ -4,12 +4,12 @@ This module provides the Carrier_Expression class, which handles the parsing and
 It converts carrier string identifiers (like "c1", "c2", etc.) into the corresponding Yarn_Carrier objects from the knitting machine's carrier system.
 """
 from parglare.parser import LRStackNode
-
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import (
     Yarn_Carrier,
 )
+
+from knit_script.knit_script_interpreter.expressions.expressions import Expression
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
 class Carrier_Expression(Expression):

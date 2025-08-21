@@ -9,13 +9,6 @@ from __future__ import annotations
 import warnings
 from typing import Any
 
-from knit_script.knit_script_interpreter import _Context_Base
-from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
-from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope
-from knit_script.knit_script_warnings.Knit_Script_Warning import (
-    Shadow_Variable_Warning,
-    Shadows_Global_Variable_Warning,
-)
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
     Carriage_Pass_Direction,
@@ -25,6 +18,14 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import
 )
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
     Yarn_Carrier_Set,
+)
+
+from knit_script.knit_script_interpreter import _Context_Base
+from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
+from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope
+from knit_script.knit_script_warnings.Knit_Script_Warning import (
+    Shadow_Variable_Warning,
+    Shadows_Global_Variable_Warning,
 )
 
 

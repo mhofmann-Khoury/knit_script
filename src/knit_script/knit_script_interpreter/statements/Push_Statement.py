@@ -4,6 +4,7 @@ This module provides the Push_Statement class, which handles layer position modi
 It allows control over the stacking hierarchy of stitches, enabling complex knitting patterns that require specific layer arrangements.
 """
 from parglare.parser import LRStackNode
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_interpreter.expressions.expressions import (
     Expression,
@@ -11,7 +12,6 @@ from knit_script.knit_script_interpreter.expressions.expressions import (
 )
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
-from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 
 class Push_Statement(Statement):

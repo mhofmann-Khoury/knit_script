@@ -7,13 +7,13 @@ from __future__ import annotations
 
 from knitout_interpreter.knitout_operations.Header_Line import get_machine_header
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
-
-from knit_script.knit_script_interpreter._parser_base import _Parser_Base
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.Knitting_Machine_Specification import (
     Knitting_Machine_Specification,
 )
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
+
+from knit_script.knit_script_interpreter._parser_base import _Parser_Base
 
 
 class _Context_Base:

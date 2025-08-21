@@ -4,9 +4,9 @@ from knit_graphs.Knit_Graph import Knit_Graph
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
 from knitout_interpreter.run_knitout import run_knitout
+from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
 from knit_script.interpret_knit_script import knit_script_to_knitout
-from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
 
 def interpret_test_ks(ks_pattern: str, out_file_name: str = 'test.k', pattern_is_filename: bool = False,
