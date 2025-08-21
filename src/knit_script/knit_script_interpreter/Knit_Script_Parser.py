@@ -5,15 +5,18 @@ It handles grammar loading, parser configuration, and provides debugging capabil
 """
 from __future__ import annotations
 
+from typing import cast
+
 import importlib_resources
-from parglare import Grammar, Parser
+from parglare import Grammar, ParseError, Parser
 
 import knit_script
-from knit_script.knit_script_interpreter._parser_base import _Parser_Base
+from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
 from knit_script.knit_script_interpreter.knit_script_actions import action
+from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
-class Knit_Script_Parser(_Parser_Base):
+class Knit_Script_Parser:
     """Parser for reading knit script files using parglare library.
 
     The Knit_Script_Parser class provides the concrete implementation of knit script parsing using the parglare parsing framework.
@@ -36,5 +39,30 @@ class Knit_Script_Parser(_Parser_Base):
             Defaults to False.
         """
         pg_resource_stream = importlib_resources.files(knit_script.knit_script_interpreter).joinpath('knit_script.pg')
-        grammar = Grammar.from_file(pg_resource_stream, debug=debug_grammar, ignore_case=True)
-        super().__init__(grammar=grammar, parser=Parser(grammar, debug=debug_parser, debug_layout=debug_parser_layout, actions=action.all))
+        self._grammar = Grammar.from_file(pg_resource_stream, debug=debug_grammar, ignore_case=True)
+        self._parser = Parser(self._grammar, debug=debug_parser, debug_layout=debug_parser_layout, actions=action.all)
+
+    def parse(self, pattern: str, pattern_is_file: bool = False) -> list[Statement]:
+        """Execute the parsing code for the parglare parser.
+
+        Parses the provided knit script code or file and returns the resulting abstract syntax tree. Handles both string-based parsing and file-based parsing based on the pattern_is_file parameter.
+
+        Args:
+            pattern (str): Either a file path or the knit script string to be parsed, depending on the pattern_is_file parameter.
+            pattern_is_file (bool, optional): If True, treats pattern as a file path and reads the content from that file.
+            If False, treats pattern as the actual knit script code to parse. Defaults to False.
+
+        Returns:
+            list[Statement]: List of statements parsed from the input, representing the abstract syntax tree of the knit script program.
+
+        Raises:
+            Parsing_Exception: If parsing fails due to syntax errors or other parsing issues. This wraps the original parglare ParseError with additional KnitScript-specific context and formatting.
+        """
+        try:
+            if pattern_is_file:
+                return cast(list[Statement], self._parser.parse_file(pattern))
+            else:
+                parse_results = self._parser.parse(pattern)
+                return cast(list[Statement], parse_results)
+        except ParseError as e:
+            raise Parsing_Exception(e)

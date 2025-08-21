@@ -6,9 +6,14 @@ The context integrates scope management with machine operations to provide a uni
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line
+from knitout_interpreter.knitout_operations.Header_Line import get_machine_header
+from knitout_interpreter.knitout_operations.Knitout_Line import (
+    Knitout_Comment_Line,
+    Knitout_Line,
+)
+from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import (
     Knitting_Machine_Exception,
 )
@@ -47,16 +52,19 @@ from knit_script.knit_script_exceptions.python_style_exceptions import (
     Knit_Script_TypeError,
     Knit_Script_ValueError,
 )
-from knit_script.knit_script_interpreter._Context_Base import _Context_Base
-from knit_script.knit_script_interpreter._parser_base import _Parser_Base
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import (
     Gauged_Sheet_Record,
 )
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
 
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.Knit_Script_Parser import (
+        Knit_Script_Parser,
+    )
 
-class Knit_Script_Context(_Context_Base):
+
+class Knit_Script_Context:
     """Manages the state of the Knitting machine during program execution.
 
     The Knit_Script_Context class serves as the primary execution context for knit script programs.
@@ -67,12 +75,16 @@ class Knit_Script_Context(_Context_Base):
     It offers convenient properties for accessing and modifying machine parameters while maintaining proper scope isolation and inheritance.
 
     Attributes:
+        machine_state (Knitting_Machine): The current state of the knitting machine.
+        ks_file (str | None): Path to the knit script file being executed.
+        parser (Knit_Script_Parser): Parser instance used for processing knit script code.
+        last_carriage_pass_result (list[Needle] | dict[Needle, Needle | NOne]): Results from the most recent carriage pass operation.
+        knitout (list[Knitout_Line]): List of knitout instructions generated during execution.
         variable_scope (Knit_Script_Scope): The current variable scope for the execution context.
-        last_carriage_pass_result (list[Needle] | dict[Needle, Needle | None]): Results from the most recent carriage pass operation.
     """
 
     def __init__(self, parent_scope: Knit_Script_Scope | None = None, machine_specification: Knitting_Machine_Specification = Knitting_Machine_Specification(), ks_file: str | None = None,
-                 parser: _Parser_Base | None = None):
+                 parser: Knit_Script_Parser | None = None, knitout_version: int = 2):
         """Initialize the knit script context.
 
         Args:
@@ -80,10 +92,37 @@ class Knit_Script_Context(_Context_Base):
             machine_specification (Knitting_Machine_Specification, optional): Specification for the knitting machine configuration. Defaults to Knitting_Machine_Specification().
             ks_file (str | None, optional): Path to the knit script file being executed. Defaults to None.
             parser (Knit_Script_Parser | None, optional): Parser instance for processing knit script syntax. Defaults to None.
+            knitout_version (int, optional): Version number of the knitout format to generate. Defaults to 2.
         """
-        super().__init__(machine_specification, ks_file, parser)
-        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
+
+        self.machine_state: Knitting_Machine = Knitting_Machine(machine_specification=machine_specification)
+        self.ks_file: str | None = ks_file
+        if parser is not None:
+            self.parser: Knit_Script_Parser = parser
+        else:
+            self.parser: Knit_Script_Parser = Knit_Script_Parser()
         self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
+        self._version = knitout_version
+        self.knitout: list[Knitout_Line] = get_machine_header(self.machine_state, self.version)
+        self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
+
+    @property
+    def version(self) -> int:
+        """Get the knitout version being written.
+
+        Returns:
+            int: The knitout version number currently in use for output generation.
+        """
+        return self._version
+
+    @version.setter
+    def version(self, version: int) -> None:
+        """Set the knitout version for output generation.
+
+        Args:
+            version (int): The version number to set for knitout format output.
+        """
+        self._version = version
 
     @property
     def gauged_sheet_record(self) -> Gauged_Sheet_Record:

@@ -8,6 +8,7 @@ The machine scope integrates with the broader scoping system to provide proper i
 from __future__ import annotations
 
 import warnings
+from typing import TYPE_CHECKING
 
 from knitout_interpreter.knitout_operations.carrier_instructions import (
     In_Instruction,
@@ -34,13 +35,17 @@ from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
     Gauge_Value_Exception,
     Sheet_Value_Exception,
 )
-from knit_script.knit_script_interpreter import _Context_Base
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import (
     Gauged_Sheet_Record,
 )
 from knit_script.knit_script_warnings.Knit_Script_Warning import (
     Sheet_Beyond_Gauge_Warning,
 )
+
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.knit_script_context import (
+        Knit_Script_Context,
+    )
 
 
 class Machine_Scope:
@@ -53,28 +58,19 @@ class Machine_Scope:
     This class provides scope-aware machine state management,
     allowing different parts of a knit script program to have different machine configurations while maintaining proper inheritance and isolation.
     It integrates with the gauged sheet system to handle complex multi-sheet knitting operations and ensures that machine state changes are properly reflected in the generated knitout code.
-
-    Attributes:
-        _context (_Context_Base): The execution context for this machine scope.
-        _direction (Carriage_Pass_Direction): Current carriage movement direction.
-        _working_carrier (Yarn_Carrier_Set | None): Currently active yarn carrier set.
-        _working_racking (float): Current racking position of the machine.
-        _gauge (int): Current gauge setting determining number of sheets.
-        _sheet (Sheet_Identifier): Currently active sheet identifier.
-        _gauged_sheet_record (Gauged_Sheet_Record): Record tracking sheet organization and loop positions.
     """
 
-    def __init__(self, context: _Context_Base, prior_settings: Machine_Scope | None = None) -> None:
+    def __init__(self, context: Knit_Script_Context, prior_settings: Machine_Scope | None = None) -> None:
         """Initialize the machine scope with default settings or inherited from prior scope.
 
         Creates a new machine scope with default machine settings, then optionally inherits settings from a parent scope.
         This allows child scopes to start with the same machine configuration as their parent while maintaining the ability to make local changes.
 
         Args:
-            context (_Context_Base): The execution context that this machine scope operates within.
+            context (Knit_Script_Context): The execution context that this machine scope operates within.
             prior_settings (Machine_Scope | None, optional): A parent machine scope to inherit settings from. If provided, all machine settings will be copied from this scope. Defaults to None.
         """
-        self._context: _Context_Base = context
+        self._context: Knit_Script_Context = context
         self._direction: Carriage_Pass_Direction = Carriage_Pass_Direction.Leftward
         self._working_carrier: Yarn_Carrier_Set | None = None
         self._working_racking: float = 0.0

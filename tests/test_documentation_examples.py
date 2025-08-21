@@ -6,7 +6,6 @@ from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import (
     Knit_on_Empty_Needle_Warning,
 )
 from virtual_knitting_machine.knitting_machine_warnings.Yarn_Carrier_System_Warning import (
-    In_Active_Carrier_Warning,
     Yarn_Carrier_Warning,
 )
 

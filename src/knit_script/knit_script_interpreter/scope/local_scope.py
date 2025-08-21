@@ -7,7 +7,7 @@ The scoping system integrates with Python's namespace and provides comprehensive
 from __future__ import annotations
 
 import warnings
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
@@ -20,13 +20,17 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Se
     Yarn_Carrier_Set,
 )
 
-from knit_script.knit_script_interpreter import _Context_Base
 from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope
 from knit_script.knit_script_warnings.Knit_Script_Warning import (
     Shadow_Variable_Warning,
     Shadows_Global_Variable_Warning,
 )
+
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.knit_script_context import (
+        Knit_Script_Context,
+    )
 
 
 class Knit_Script_Scope:
@@ -39,22 +43,9 @@ class Knit_Script_Scope:
     This scoping system enables complex knit script programs to maintain proper variable isolation between functions and modules
      while allowing controlled access to global state and machine configuration.
      It provides comprehensive variable resolution that searches through local scope, parent scopes, module scopes, and global scope in the correct order.
-
-    Attributes:
-        _context (_Context_Base): The execution context for this scope.
-        _is_module (bool): True if this scope represents a module.
-        _is_function (bool): True if this scope represents a function.
-        _returned (bool): True if a return statement has been executed in this scope.
-        _name (str | None): The name of this scope if it's a named function or module.
-        _parent (Knit_Script_Scope | None): The parent scope in the hierarchy.
-        _module_scope (Knit_Script_Scope | None): Associated module scope for this scope.
-        _globals (Knit_Script_Globals): Global variable storage shared across all scopes.
-        _machine_scope (Machine_Scope): Machine state and configuration for this scope.
-        _child_scope (Knit_Script_Scope | None): Current child scope if one exists.
-        _return_value (Any | None): Return value set by return statements in function scopes.
     """
 
-    def __init__(self, context: _Context_Base, parent: Knit_Script_Scope | None = None, name: str | None = None,
+    def __init__(self, context: Knit_Script_Context, parent: Knit_Script_Scope | None = None, name: str | None = None,
                  is_function: bool = False, is_module: bool = False, module_scope: Knit_Script_Scope | None = None):
         """Initialize a new scope with the specified configuration.
 
@@ -69,7 +60,7 @@ class Knit_Script_Scope:
             is_module (bool, optional): If True, this scope represents a module and will be added to the parent's namespace. Defaults to False.
             module_scope (Knit_Script_Scope | None, optional): Associated module scope for variable resolution. Defaults to None.
         """
-        self._context: _Context_Base = context
+        self._context: Knit_Script_Context = context
         self._is_module: bool = is_module
         self._is_function = is_function
         self._returned: bool = False
