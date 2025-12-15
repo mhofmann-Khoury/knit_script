@@ -5,14 +5,31 @@
 
 import os
 import sys
-
-# -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 from importlib.metadata import PackageNotFoundError, version
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("."))
+
+
+# Register custom KnitScript lexer
+def setup_knitscript_lexer(app):
+    """Register the KnitScript lexer with Sphinx."""
+    try:
+        # Import the custom lexer
+        from knitscript_lexer import KnitScriptLexer
+
+        # Register with Sphinx's highlighting system
+        from sphinx.highlighting import lexers
+
+        lexers["knitscript"] = KnitScriptLexer(startinline=True)
+
+        print("KnitScript lexer registered successfully")
+
+    except ImportError as e:
+        print(f"Could not import KnitScript lexer: {e}")
+        print("Using JavaScript highlighting as fallback")
+
 
 project = "knit-script"
 copyright = "2025, Megan Hofmann"
@@ -167,5 +184,8 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 
 def setup(app):
     """Custom Sphinx setup function."""
+    # Register the KnitScript lexer
+    setup_knitscript_lexer(app)
+
     # Connect autodoc skip member function
     app.connect("autodoc-skip-member", autodoc_skip_member)
