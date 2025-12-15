@@ -87,7 +87,7 @@ exclude = [
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"                # Minimum Python version (allows 3.11.x, 3.12.x, etc.)
 parglare = "~0.19.0"           # Parser generator library
-knitout-interpreter = ">=0.0.23"
+knitout-interpreter = ">=0.0.24"
 importlib_resources = ">=6.5" # For loading parglar grammer file
 
 # =============================================================================
