@@ -3,18 +3,14 @@
 This module provides statement classes for implementing loop control flow in knit script programs.
 It includes while loops for condition-based iteration and for-each loops for iterating over collections, both essential for repetitive knitting operations and pattern generation.
 """
-from typing import Iterable
+
+from collections.abc import Iterable
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_TypeError,
-    Knit_Script_ValueError,
-)
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError, Knit_Script_ValueError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.variables import (
-    Variable_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
@@ -122,12 +118,9 @@ class For_Each_Statement(Statement):
             TypeError: If the expression does not evaluate to an iterable.
             ValueError: If unpacking multiple variables and the number of values doesn't match the number of variables.
         """
-        if isinstance(self._iter_expression, list):
-            iterable = [e.evalute(context) for e in self._iter_expression]
-        else:
-            iterable = self._iter_expression.evaluate(context)
+        iterable = [e.evalute(context) for e in self._iter_expression] if isinstance(self._iter_expression, list) else self._iter_expression.evaluate(context)
         if not isinstance(iterable, Iterable):
-            raise Knit_Script_TypeError(f'Cannot iterate over non-iterable value {iterable}', self)
+            raise Knit_Script_TypeError(f"Cannot iterate over non-iterable value {iterable}", self)
         context.enter_sub_scope()  # create new scope that holds iterator variable
         for var in iterable:
             if self.var_name is not None:
@@ -137,9 +130,9 @@ class For_Each_Statement(Statement):
                 if len(iterated_var) > len(self._variables):
                     raise Knit_Script_ValueError(f"Too many values to unpack, expected {len(self._variables)} but got {len(iterated_var)}: {iterated_var}.", self)
                 elif len(iterated_var) < len(self._variables):
-                    raise Knit_Script_ValueError(f"Too few values to unpack, expected {len(self._variables)} but got {len(iterated_var)}: {iterated_var}.",self)
+                    raise Knit_Script_ValueError(f"Too few values to unpack, expected {len(self._variables)} but got {len(iterated_var)}: {iterated_var}.", self)
 
-                for var_name, var_val in zip(self._variables, iterated_var):
+                for var_name, var_val in zip(self._variables, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
 
             self._statement.execute(context)

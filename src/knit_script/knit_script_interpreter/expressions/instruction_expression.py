@@ -3,20 +3,15 @@
 This module provides expression classes for handling knitting machine instructions in knit script programs.
  It includes classes for needle-specific instructions and general machine instructions, with proper type checking and validation.
 """
-from typing import Iterable
 
-from knitout_interpreter.knitout_operations.knitout_instruction import (
-    Knitout_Instruction_Type,
-)
+from collections.abc import Iterable
+
+from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.ks_exceptions import (
-    Needle_Instruction_Type_Exception,
-)
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_TypeError,
-)
+from knit_script.knit_script_exceptions.ks_exceptions import Needle_Instruction_Type_Exception
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 

@@ -4,32 +4,26 @@ This module provides the Knit_Script_Scope class, which manages variable scoping
 It implements a hierarchical scoping system that supports local variables, global variables, function scopes, module scopes, and machine state management.
 The scoping system integrates with Python's namespace and provides comprehensive variable resolution with proper shadowing warnings and scope inheritance.
 """
+
 from __future__ import annotations
 
 import warnings
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
-    Sheet_Identifier,
-)
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
-    Yarn_Carrier_Set,
-)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
+from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
 from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope
-from knit_script.knit_script_warnings.Knit_Script_Warning import (
-    Shadows_Global_Variable_Warning,
-)
+from knit_script.knit_script_warnings.Knit_Script_Warning import Shadows_Global_Variable_Warning
 
 if TYPE_CHECKING:
-    from knit_script.knit_script_interpreter.knit_script_context import (
-        Knit_Script_Context,
-    )
+    from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
 class Knit_Script_Scope:
@@ -43,10 +37,18 @@ class Knit_Script_Scope:
      while allowing controlled access to global state and machine configuration.
      It provides comprehensive variable resolution that searches through local scope, parent scopes, module scopes, and global scope in the correct order.
     """
+
     _SCOPE_COUNT: int = 0
 
-    def __init__(self, context: Knit_Script_Context, parent: Knit_Script_Scope | None = None, name: str | None = None,
-                 is_function: bool = False, is_module: bool = False, module_scope: Knit_Script_Scope | None = None):
+    def __init__(
+        self,
+        context: Knit_Script_Context,
+        parent: Knit_Script_Scope | None = None,
+        name: str | None = None,
+        is_function: bool = False,
+        is_module: bool = False,
+        module_scope: Knit_Script_Scope | None = None,
+    ):
         """Initialize a new scope with the specified configuration.
 
         Creates a new scope in the hierarchy with the given characteristics.
@@ -110,7 +112,7 @@ class Knit_Script_Scope:
         Returns:
             dict[str, Any]: The variables as key value pairs in a dictionary of variables set at this level of scope.
         """
-        return {k: v for k, v in vars(self).items() if not k.startswith('_')}
+        return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
     @property
     def returned(self) -> bool:
@@ -158,11 +160,11 @@ class Knit_Script_Scope:
         return self.machine_scope.Carrier
 
     @Carrier.setter
-    def Carrier(self, carrier: Yarn_Carrier_Set | None) -> None:
+    def Carrier(self, carrier: int | float | Sequence[int | Yarn_Carrier] | Yarn_Carrier_Set | Yarn_Carrier | None) -> None:
         """Set the current carrier being used by the machine.
 
         Args:
-            carrier (Yarn_Carrier_Set | None): The carrier to set as active, or None to clear the active carrier.
+            carrier (int | float | Sequence[int | Yarn_Carrier] | Yarn_Carrier_Set | Yarn_Carrier | None): The carrier to set as active, or None to clear the active carrier.
         """
         self.machine_scope.Carrier = carrier
 
@@ -360,7 +362,7 @@ class Knit_Script_Scope:
         while scope is not None:
             if hasattr(scope, key):
                 if is_global:
-                    warnings.warn(Shadows_Global_Variable_Warning(key))
+                    warnings.warn(Shadows_Global_Variable_Warning(key), stacklevel=get_user_warning_stack_level_from_knitscript_package())
                 return getattr(scope, key)
             elif scope.module_scope is not None:  # don't check modules if this is already found.
                 try:
@@ -403,9 +405,7 @@ class Knit_Script_Scope:
         while scope is not None:
             if hasattr(scope, key):
                 return True
-            elif stop_at_function and scope.is_function:
-                return False
-            elif stop_at_module and scope.is_module:
+            elif stop_at_function and scope.is_function or stop_at_module and scope.is_module:
                 return False
             scope = scope._parent
         return False
@@ -465,7 +465,7 @@ class Knit_Script_Scope:
             assert name is not None, "Functions must be named"
         self._child_scope = Knit_Script_Scope(context=self._context, parent=self, name=name, is_function=is_function, is_module=is_module, module_scope=module_scope)
         if is_module:
-            assert name is not None, f"Modules must be named"
+            assert name is not None, "Modules must be named"
             setattr(self, name, self._child_scope)
         return self._child_scope
 

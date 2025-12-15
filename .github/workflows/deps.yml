@@ -1,0 +1,87 @@
+name: Dependency Range Relaxation
+
+on:
+  # Run manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  relax-dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'  # Use your minimum supported version
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Install poetry-relax
+        run: poetry self add poetry-relax
+
+      - name: Show current dependency constraints
+        run: |
+          echo "================================"
+          echo "CURRENT RUNTIME DEPENDENCIES"
+          echo "================================"
+          poetry show --only main
+
+      - name: Check what can be relaxed (dry-run only)
+        run: |
+          echo ""
+          echo "================================"
+          echo "CHECKING RELAXATION POTENTIAL"
+          echo "================================"
+          poetry relax --check --only main
+
+      - name: Show what would change
+        run: |
+          echo ""
+          echo "================================"
+          echo "GENERATING PROPOSED CHANGES"
+          echo "================================"
+          # Make a backup of original file
+          cp pyproject.toml pyproject.toml.backup
+
+          # Run relax to generate changes
+          poetry relax --only main
+
+          # Show the diff
+          echo "PROPOSED CHANGES TO pyproject.toml:"
+          echo "-----------------------------------"
+          git diff pyproject.toml || echo "No changes proposed"
+
+          # Restore original file (no commits!)
+          mv pyproject.toml.backup pyproject.toml
+
+          echo ""
+          echo "================================"
+          echo "IMPORTANT: NO CHANGES COMMITTED"
+          echo "================================"
+          echo "✅ Your repository remains unchanged"
+          echo "📝 Review the diff above to see proposed relaxations"
+          echo ""
+          echo "To apply these changes manually:"
+          echo "  1. Run locally: poetry self add poetry-relax"
+          echo "  2. Run: poetry relax --only main"
+          echo "  3. Run: poetry lock"
+          echo "  4. Run: poetry install"
+          echo "  5. Run: poetry run pytest tests/ -v"
+          echo "  6. Commit if tests pass"

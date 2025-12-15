@@ -1,8 +1,6 @@
 """Module containting a method to update exceptions with location information about the statement that triggered them."""
 
-from knit_script.knit_script_exceptions.Knit_Script_Exception import (
-    Knit_Script_Located_Exception,
-)
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
 from knit_script.knit_script_exceptions.python_style_exceptions import (
     Knit_Script_AttributeError,
     Knit_Script_ImportError,

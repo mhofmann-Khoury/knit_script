@@ -3,6 +3,7 @@
 This module provides the Needle_Expression class, which handles the parsing and evaluation of needle identifier strings in knit script programs.
 It converts needle string literals into actual Needle objects that respect the current gauging configuration.
 """
+
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 

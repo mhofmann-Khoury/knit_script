@@ -4,70 +4,34 @@ This module contains parser actions that convert parglare parsing elements into 
 These actions are called during the parsing process to transform the parsed syntax tree into appropriate expression, statement, and value objects that can be executed by the KnitScript interpreter.
 The module provides comprehensive support for all KnitScript language constructs including expressions, statements, control flow, functions, and machine operations.
 """
+
 from __future__ import annotations
 
 import codecs
+from collections.abc import Callable, Iterable
 from enum import Enum
-from typing import Any, Iterable
+from typing import Any, TypeVar, cast
 
-from knitout_interpreter.knitout_operations.knitout_instruction import (
-    Knitout_Instruction_Type,
-)
+from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from parglare import get_collector
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.Knitting_Machine_Specification import (
-    Knitting_Machine_Type,
-    Knitting_Position,
-)
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type, Knitting_Position
 
-from knit_script.knit_script_interpreter.expressions.accessors import (
-    Attribute_Accessor_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.carrier import Carrier_Expression
-from knit_script.knit_script_interpreter.expressions.direction import (
-    Pass_Direction_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.direction import Pass_Direction_Expression
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.formatted_string import (
-    Formatted_String_Value,
-)
-from knit_script.knit_script_interpreter.expressions.function_expressions import (
-    Function_Call,
-)
-from knit_script.knit_script_interpreter.expressions.Gauge_Expression import (
-    Gauge_Expression,
-)
-from knit_script.knit_script_interpreter.expressions.Indexed_Expression import (
-    Indexed_Expression,
-    Slice_Index,
-)
-from knit_script.knit_script_interpreter.expressions.instruction_expression import (
-    Needle_Instruction_Exp,
-)
-from knit_script.knit_script_interpreter.expressions.list_expression import (
-    Dictionary_Comprehension,
-    Knit_Script_Dictionary,
-    Knit_Script_List,
-    List_Comp,
-    Unpack,
-)
-from knit_script.knit_script_interpreter.expressions.machine_accessor import (
-    Machine_Accessor,
-    Sheet_Expression,
-)
-from knit_script.knit_script_interpreter.expressions.needle_expression import (
-    Needle_Expression,
-)
-from knit_script.knit_script_interpreter.expressions.needle_set_expression import (
-    Needle_Set_Expression,
-    Needle_Sets,
-)
-from knit_script.knit_script_interpreter.expressions.not_expression import (
-    Not_Expression,
-)
-from knit_script.knit_script_interpreter.expressions.operator_expressions import (
-    Operator_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.formatted_string import Formatted_String_Value
+from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
+from knit_script.knit_script_interpreter.expressions.Gauge_Expression import Gauge_Expression
+from knit_script.knit_script_interpreter.expressions.Indexed_Expression import Indexed_Expression, Slice_Index
+from knit_script.knit_script_interpreter.expressions.instruction_expression import Needle_Instruction_Exp
+from knit_script.knit_script_interpreter.expressions.list_expression import Dictionary_Comprehension, Knit_Script_Dictionary, Knit_Script_List, List_Comp, Unpack
+from knit_script.knit_script_interpreter.expressions.machine_accessor import Machine_Accessor, Sheet_Expression
+from knit_script.knit_script_interpreter.expressions.needle_expression import Needle_Expression
+from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
+from knit_script.knit_script_interpreter.expressions.not_expression import Not_Expression
+from knit_script.knit_script_interpreter.expressions.operator_expressions import Operator_Expression
 from knit_script.knit_script_interpreter.expressions.values import (
     Bed_Value,
     Boolean_Value,
@@ -79,71 +43,50 @@ from knit_script.knit_script_interpreter.expressions.values import (
     None_Value,
     String_Value,
 )
-from knit_script.knit_script_interpreter.expressions.variables import (
-    Variable_Expression,
-)
-from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import (
-    Xfer_Pass_Racking,
-)
+from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
+from knit_script.knit_script_interpreter.expressions.xfer_pass_racking import Xfer_Pass_Racking
 from knit_script.knit_script_interpreter.ks_element import KS_Element
-from knit_script.knit_script_interpreter.Machine_Specification import (
-    Machine_Bed_Position,
-)
+from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
 from knit_script.knit_script_interpreter.statements.Assertion import Assertion
 from knit_script.knit_script_interpreter.statements.assignment import Assignment
-from knit_script.knit_script_interpreter.statements.branch_statements import (
-    If_Statement,
-)
-from knit_script.knit_script_interpreter.statements.carrier_statements import (
-    Cut_Statement,
-    Release_Statement,
-    Remove_Statement,
-)
-from knit_script.knit_script_interpreter.statements.code_block_statements import (
-    Code_Block,
-)
-from knit_script.knit_script_interpreter.statements.control_loop_statements import (
-    For_Each_Statement,
-    While_Statement,
-)
+from knit_script.knit_script_interpreter.statements.branch_statements import If_Statement
+from knit_script.knit_script_interpreter.statements.carrier_statements import Cut_Statement, Release_Statement, Remove_Statement
+from knit_script.knit_script_interpreter.statements.code_block_statements import Code_Block
+from knit_script.knit_script_interpreter.statements.control_loop_statements import For_Each_Statement, While_Statement
 from knit_script.knit_script_interpreter.statements.Drop_Pass import Drop_Pass
-from knit_script.knit_script_interpreter.statements.function_dec_statement import (
-    Function_Declaration,
-)
-from knit_script.knit_script_interpreter.statements.Import_Statement import (
-    Import_Statement,
-)
-from knit_script.knit_script_interpreter.statements.in_direction_statement import (
-    In_Direction_Statement,
-)
-from knit_script.knit_script_interpreter.statements.instruction_statements import (
-    Pause_Statement,
-)
+from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Declaration
+from knit_script.knit_script_interpreter.statements.Import_Statement import Import_Statement
+from knit_script.knit_script_interpreter.statements.in_direction_statement import In_Direction_Statement
+from knit_script.knit_script_interpreter.statements.instruction_statements import Pause_Statement
 from knit_script.knit_script_interpreter.statements.Print import Print
 from knit_script.knit_script_interpreter.statements.Push_Statement import Push_Statement
-from knit_script.knit_script_interpreter.statements.return_statement import (
-    Return_Statement,
-)
-from knit_script.knit_script_interpreter.statements.Statement import (
-    Expression_Statement,
-    Statement,
-)
+from knit_script.knit_script_interpreter.statements.return_statement import Return_Statement
+from knit_script.knit_script_interpreter.statements.Statement import Expression_Statement, Statement
 from knit_script.knit_script_interpreter.statements.Swap_Statement import Swap_Statement
-from knit_script.knit_script_interpreter.statements.try_catch_statements import (
-    Try_Catch_Statement,
-)
-from knit_script.knit_script_interpreter.statements.Variable_Declaration import (
-    Variable_Declaration,
-)
+from knit_script.knit_script_interpreter.statements.try_catch_statements import Try_Catch_Statement
+from knit_script.knit_script_interpreter.statements.Variable_Declaration import Variable_Declaration
 from knit_script.knit_script_interpreter.statements.With_Statement import With_Statement
-from knit_script.knit_script_interpreter.statements.xfer_pass_statement import (
-    Xfer_Pass_Statement,
-)
+from knit_script.knit_script_interpreter.statements.xfer_pass_statement import Xfer_Pass_Statement
 
-action = get_collector()  # some boiler plate parglare code
+action = get_collector()
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
-@action
+def typed_action(func: F) -> F:
+    """
+    Wrapper that applies @action decorator while preserving types.
+
+    Args:
+        func (F): Function to be decorated with the action decorator.
+
+    Returns:
+        F: Wrapped function.
+    """
+    return cast(F, action(func))
+
+
+@typed_action
 def program(_parser_node: LRStackNode, __: list, statements: list[Statement]) -> list[Statement]:
     """Create a program from a list of statements.
 
@@ -177,7 +120,7 @@ def _in_enum(item: str | Enum, enumeration: Iterable) -> bool:
 
 
 # basic expressions and statements
-@action
+@typed_action
 def identifier(parser_node: LRStackNode, node: str) -> Expression:
     """Convert a string identifier into an appropriate expression.
 
@@ -206,7 +149,7 @@ def identifier(parser_node: LRStackNode, node: str) -> Expression:
         return Variable_Expression(parser_node, node)
 
 
-@action
+@typed_action
 def declare_variable(parser_node: LRStackNode, __: list, assign: Assignment) -> Variable_Declaration:
     """Create a variable declaration statement.
 
@@ -221,7 +164,7 @@ def declare_variable(parser_node: LRStackNode, __: list, assign: Assignment) -> 
     return Variable_Declaration(parser_node, assign)
 
 
-@action
+@typed_action
 def declare_global(parser_node: LRStackNode, __: list, assign: Assignment) -> Variable_Declaration:
     """Create a global variable declaration statement.
 
@@ -236,7 +179,7 @@ def declare_global(parser_node: LRStackNode, __: list, assign: Assignment) -> Va
     return Variable_Declaration(parser_node, assign, is_global=True)
 
 
-@action
+@typed_action
 def assertion(parser_node: LRStackNode, __: list, exp: Expression, error: Expression | None = None) -> Assertion:
     """Create an assertion statement.
 
@@ -252,7 +195,7 @@ def assertion(parser_node: LRStackNode, __: list, exp: Expression, error: Expres
     return Assertion(parser_node, exp, error)
 
 
-@action
+@typed_action
 def print_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Print:
     """Create a print statement.
 
@@ -267,7 +210,7 @@ def print_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Prin
     return Print(parser_node, exp)
 
 
-@action
+@typed_action
 def try_catch(parser_node: LRStackNode, __: list, try_block: Statement, catch_block: Statement, errors: list[Expression]) -> Try_Catch_Statement:
     """Create a try-catch statement.
 
@@ -284,7 +227,7 @@ def try_catch(parser_node: LRStackNode, __: list, try_block: Statement, catch_bl
     return Try_Catch_Statement(parser_node, try_block, catch_block, errors=errors)
 
 
-@action
+@typed_action
 def exception_assignment(parser_node: LRStackNode, __: list, except_val: Expression, var_name: Variable_Expression) -> Assignment:
     """Create assignment with reversed syntax for catch statements.
 
@@ -300,7 +243,7 @@ def exception_assignment(parser_node: LRStackNode, __: list, except_val: Express
     return Assignment(parser_node, var_name.variable_name, except_val)
 
 
-@action
+@typed_action
 def pause_statement(parser_node: LRStackNode, __: list) -> Pause_Statement:
     """Create a pause statement.
 
@@ -314,7 +257,7 @@ def pause_statement(parser_node: LRStackNode, __: list) -> Pause_Statement:
     return Pause_Statement(parser_node)
 
 
-@action
+@typed_action
 def assignment(parser_node: LRStackNode, __: list, var_name: Variable_Expression, exp: Expression) -> Assignment:
     """Create an assignment expression.
 
@@ -332,7 +275,8 @@ def assignment(parser_node: LRStackNode, __: list, var_name: Variable_Expression
 
 # NUMBERS #
 
-@action
+
+@typed_action
 def float_exp(parser_node: LRStackNode, node: str) -> Float_Value:
     """Create a float value expression.
 
@@ -346,7 +290,7 @@ def float_exp(parser_node: LRStackNode, node: str) -> Float_Value:
     return Float_Value(parser_node, node)
 
 
-@action
+@typed_action
 def int_exp(parser_node: LRStackNode, node: str) -> Int_Value:
     """Create an integer value expression.
 
@@ -360,7 +304,7 @@ def int_exp(parser_node: LRStackNode, node: str) -> Int_Value:
     return Int_Value(parser_node, node)
 
 
-@action
+@typed_action
 def direction_exp(parser_node: LRStackNode, nodes: list) -> Pass_Direction_Expression:
     """Create a direction expression.
 
@@ -374,7 +318,7 @@ def direction_exp(parser_node: LRStackNode, nodes: list) -> Pass_Direction_Expre
     return Pass_Direction_Expression(parser_node, nodes[0])
 
 
-@action
+@typed_action
 def string(parser_node: LRStackNode, node: str) -> String_Value:
     """Create a string value expression.
 
@@ -385,12 +329,12 @@ def string(parser_node: LRStackNode, node: str) -> String_Value:
     Returns:
         String_Value: Expression storing the decoded string value.
     """
-    string_value = node.strip("\"")
-    decode_string = codecs.decode(string_value, 'unicode_escape')
+    string_value = node.strip('"')
+    decode_string = codecs.decode(string_value, "unicode_escape")
     return String_Value(parser_node, decode_string)
 
 
-@action
+@typed_action
 def f_string_section(parser_node: LRStackNode, __: list, exp: Expression | None = None, string_value: str | None = None) -> Expression:
     """Create an expression from a section of a formatted string.
 
@@ -407,21 +351,18 @@ def f_string_section(parser_node: LRStackNode, __: list, exp: Expression | None 
         return exp
     else:
         assert isinstance(string_value, str)
-        string_value = string_value.encode().decode('unicode_escape')
+        string_value = string_value.encode().decode("unicode_escape")
         prior_char_index = parser_node.start_position - 1
         if prior_char_index >= 0:
             prior_char = parser_node.input_str[prior_char_index]
             while prior_char.isspace():
                 string_value = prior_char + string_value
                 prior_char_index -= 1
-                if prior_char_index >= 0:
-                    prior_char = parser_node.input_str[prior_char_index]
-                else:
-                    prior_char = None
+                prior_char = parser_node.input_str[prior_char_index] if prior_char_index >= 0 else None
         return String_Value(parser_node, string_value)
 
 
-@action
+@typed_action
 def formatted_string(parser_node: LRStackNode, __: list, sections: list[Expression]) -> Formatted_String_Value:
     """Create a formatted string expression.
 
@@ -436,7 +377,7 @@ def formatted_string(parser_node: LRStackNode, __: list, sections: list[Expressi
     return Formatted_String_Value(parser_node, sections)
 
 
-@action
+@typed_action
 def call_list(_parser_node: LRStackNode, __: list, params: list[Expression] | None = None, kwargs: list[Assignment] | None = None) -> tuple[list[Expression], list[Assignment]]:
     """Create a call list with parameters and keyword arguments.
 
@@ -456,7 +397,7 @@ def call_list(_parser_node: LRStackNode, __: list, params: list[Expression] | No
     return params, kwargs
 
 
-@action
+@typed_action
 def function_call(parser_node: LRStackNode, __: list, func_name: Variable_Expression, args: tuple[list[Expression], list[Assignment]] | None) -> Function_Call:
     """Create a function call expression.
 
@@ -478,7 +419,7 @@ def function_call(parser_node: LRStackNode, __: list, func_name: Variable_Expres
     return Function_Call(parser_node, func_name, params, kwargs)
 
 
-@action
+@typed_action
 def list_expression(parser_node: LRStackNode, __: list, exps: list[Expression]) -> Knit_Script_List:
     """Create a list expression.
 
@@ -493,8 +434,8 @@ def list_expression(parser_node: LRStackNode, __: list, exps: list[Expression]) 
     return Knit_Script_List(parser_node, exps)
 
 
-@action
-def list_comp(parser_node: LRStackNode, __: list, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression = None) -> List_Comp:
+@typed_action
+def list_comp(parser_node: LRStackNode, __: list, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None = None) -> List_Comp:
     """Create a list comprehension expression.
 
     Args:
@@ -511,7 +452,7 @@ def list_comp(parser_node: LRStackNode, __: list, fill_exp: Expression, variable
     return List_Comp(parser_node, fill_exp, variables, iter_exp, comp_cond)
 
 
-@action
+@typed_action
 def indexed_value(parser_node: LRStackNode, __: list, item: Expression, key: Slice_Index | Knit_Script_List, assign: Expression) -> Indexed_Expression:
     """Create an indexed value expression.
 
@@ -525,13 +466,12 @@ def indexed_value(parser_node: LRStackNode, __: list, item: Expression, key: Sli
     Returns:
         Indexed_Expression: Expression that evaluates indexed access or assignment.
     """
-    if isinstance(key, Knit_Script_List):
-        key = key.expressions[0]
-    return Indexed_Expression(parser_node, item, key, assign)
+    index_key = key.expressions[0] if isinstance(key, Knit_Script_List) else key
+    return Indexed_Expression(parser_node, item, index_key, assign)
 
 
-@action
-def slice_index(parser_node: LRStackNode, __: list, start: Expression | None, end: Expression | list[Expression | None]) -> Slice_Index:
+@typed_action
+def slice_index(parser_node: LRStackNode, __: list, start: Expression | None, end: Expression | list[Expression | None] | None) -> Slice_Index:
     """Create a slice index expression.
 
     Args:
@@ -543,15 +483,19 @@ def slice_index(parser_node: LRStackNode, __: list, start: Expression | None, en
     Returns:
         Slice_Index: Slice index expression for list/string slicing operations.
     """
-    spacer = None
-    if isinstance(end, list):
+    spacer: Expression | None = None
+    if isinstance(end, Expression):
+        end_slice: Expression | None = end
+    elif end is None:
+        end_slice: Expression | None = None
+    else:
         if len(end) > 1:
             spacer = end[1]
-        end = end[0]
-    return Slice_Index(start, end, spacer, parser_node)
+        end_slice: Expression | None = end[0]
+    return Slice_Index(start, end_slice, spacer, parser_node)
 
 
-@action
+@typed_action
 def dict_assign(_parser_node: LRStackNode, __: list, key: Expression, exp: Expression) -> tuple[Expression, Expression]:
     """Collect key value pair for dictionary construction.
 
@@ -567,7 +511,7 @@ def dict_assign(_parser_node: LRStackNode, __: list, key: Expression, exp: Expre
     return key, exp
 
 
-@action
+@typed_action
 def dict_expression(parser_node: LRStackNode, __: list, kwargs: list[tuple[Expression, Expression]]) -> Knit_Script_Dictionary:
     """Create a dictionary expression.
 
@@ -582,9 +526,10 @@ def dict_expression(parser_node: LRStackNode, __: list, kwargs: list[tuple[Expre
     return Knit_Script_Dictionary(parser_node, kwargs)
 
 
-@action
-def dict_comp(parser_node: LRStackNode, __: list,
-              key: Expression, value: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None = None) -> Dictionary_Comprehension:
+@typed_action
+def dict_comp(
+    parser_node: LRStackNode, __: list, key: Expression, value: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None = None
+) -> Dictionary_Comprehension:
     """Create a dictionary comprehension expression.
 
     Args:
@@ -602,7 +547,7 @@ def dict_comp(parser_node: LRStackNode, __: list,
     return Dictionary_Comprehension(parser_node, key, value, variables, iter_exp, comp_cond)
 
 
-@action
+@typed_action
 def unpack(parser_node: LRStackNode, __: list, exp: Expression) -> Unpack:
     """Create an unpack expression.
 
@@ -617,7 +562,7 @@ def unpack(parser_node: LRStackNode, __: list, exp: Expression) -> Unpack:
     return Unpack(parser_node, exp)
 
 
-@action
+@typed_action
 def code_block(parser_node: LRStackNode, __: list, statements: list[Statement]) -> Code_Block:
     """Create a code block statement.
 
@@ -632,7 +577,7 @@ def code_block(parser_node: LRStackNode, __: list, statements: list[Statement]) 
     return Code_Block(parser_node, statements)
 
 
-@action
+@typed_action
 def elif_statement(_parser_node: LRStackNode, __: list, exp: Expression, stmnt: Statement) -> tuple[Expression, Statement]:
     """Create components of an elif statement.
 
@@ -648,7 +593,7 @@ def elif_statement(_parser_node: LRStackNode, __: list, exp: Expression, stmnt: 
     return exp, stmnt
 
 
-@action
+@typed_action
 def else_statement(_parser_node: LRStackNode, __: list, false_statement: Code_Block) -> Code_Block:
     """Create an else statement.
 
@@ -663,7 +608,7 @@ def else_statement(_parser_node: LRStackNode, __: list, false_statement: Code_Bl
     return false_statement
 
 
-@action
+@typed_action
 def if_statement(parser_node: LRStackNode, __: list, condition: Expression, true_statement: Code_Block, elifs: list[tuple[Expression, Statement]], else_stmt: Code_Block | None) -> If_Statement:
     """Create an if statement with optional elif and else branches.
 
@@ -678,13 +623,14 @@ def if_statement(parser_node: LRStackNode, __: list, condition: Expression, true
     Returns:
         If_Statement: Complete if statement with all conditional branches.
     """
+    false_statement: Statement | None = else_stmt
     while len(elifs) > 0:
         elif_tuple = elifs.pop()
-        else_stmt = If_Statement(parser_node, elif_tuple[0], elif_tuple[1], else_stmt)
-    return If_Statement(parser_node, condition, true_statement, else_stmt)
+        false_statement = If_Statement(parser_node, elif_tuple[0], elif_tuple[1], false_statement)
+    return If_Statement(parser_node, condition, true_statement, false_statement)
 
 
-@action
+@typed_action
 def while_statement(parser_node: LRStackNode, __: list, condition: Expression, while_block: Code_Block) -> While_Statement:
     """Create a while-statement.
 
@@ -700,7 +646,7 @@ def while_statement(parser_node: LRStackNode, __: list, condition: Expression, w
     return While_Statement(parser_node, condition, while_block)
 
 
-@action
+@typed_action
 def for_each_statement(parser_node: LRStackNode, __: list, variables: list[Variable_Expression], iters: list[Expression], block: Code_Block) -> For_Each_Statement:
     """Create a for each statement.
 
@@ -720,7 +666,7 @@ def for_each_statement(parser_node: LRStackNode, __: list, variables: list[Varia
         return For_Each_Statement(parser_node, variables, iters, block)
 
 
-@action
+@typed_action
 def as_assignment(parser_node: LRStackNode, __: list, variable: Variable_Expression, exp: Expression) -> Assignment:
     """Create an assignment using 'as' syntax.
 
@@ -738,7 +684,7 @@ def as_assignment(parser_node: LRStackNode, __: list, variable: Variable_Express
     return Assignment(parser_node, var_name=variable.variable_name, value_expression=exp)
 
 
-@action
+@typed_action
 def with_statement(parser_node: LRStackNode, __: list, assigns: list[Assignment], block: Code_Block) -> With_Statement:
     """Create a with statement for scoped resource management.
 
@@ -754,7 +700,7 @@ def with_statement(parser_node: LRStackNode, __: list, assigns: list[Assignment]
     return With_Statement(parser_node, block, assigns)
 
 
-@action
+@typed_action
 def needle_instruction(_parser_node: LRStackNode, __: list, inst: str) -> Knitout_Instruction_Type:
     """Create a needle instruction type from keyword.
 
@@ -769,7 +715,7 @@ def needle_instruction(_parser_node: LRStackNode, __: list, inst: str) -> Knitou
     return Knitout_Instruction_Type.get_instruction(inst)
 
 
-@action
+@typed_action
 def instruction_assignment(parser_node: LRStackNode, __: list, inst: Expression, needles: list[Expression]) -> Needle_Instruction_Exp:
     """Create a needle instruction expression.
 
@@ -785,7 +731,7 @@ def instruction_assignment(parser_node: LRStackNode, __: list, inst: Expression,
     return Needle_Instruction_Exp(parser_node, inst, needles)
 
 
-@action
+@typed_action
 def carriage_pass(parser_node: LRStackNode, __: list, pass_dir: Expression, instructions: list[Needle_Instruction_Exp]) -> In_Direction_Statement:
     """Create a carriage pass statement.
 
@@ -801,7 +747,7 @@ def carriage_pass(parser_node: LRStackNode, __: list, pass_dir: Expression, inst
     return In_Direction_Statement(parser_node, pass_dir, instructions)
 
 
-@action
+@typed_action
 def needle_id(parser_node: LRStackNode, needle_node: str) -> Needle_Expression:
     """Create a needle expression from identifier.
 
@@ -815,7 +761,7 @@ def needle_id(parser_node: LRStackNode, needle_node: str) -> Needle_Expression:
     return Needle_Expression(parser_node, needle_node)
 
 
-@action
+@typed_action
 def sheet_id(parser_node: LRStackNode, sheet_node: str) -> Sheet_Expression:
     """Create a sheet expression from identifier.
 
@@ -829,7 +775,7 @@ def sheet_id(parser_node: LRStackNode, sheet_node: str) -> Sheet_Expression:
     return Sheet_Expression(parser_node, sheet_node)
 
 
-@action
+@typed_action
 def carrier(parser_node: LRStackNode, carrier_node: str) -> Carrier_Expression:
     """Create a carrier expression from identifier.
 
@@ -843,7 +789,7 @@ def carrier(parser_node: LRStackNode, carrier_node: str) -> Carrier_Expression:
     return Carrier_Expression(parser_node, carrier_node)
 
 
-@action
+@typed_action
 def return_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Return_Statement:
     """Create a return statement.
 
@@ -858,7 +804,7 @@ def return_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Ret
     return Return_Statement(parser_node, exp)
 
 
-@action
+@typed_action
 def param_list(_parser_node: LRStackNode, __: list, args: list[Variable_Expression] | None = None, kwargs: list[Assignment] | None = None) -> tuple[list[Variable_Expression], list[Assignment]]:
     """Create a parameter list for function definitions.
 
@@ -878,9 +824,10 @@ def param_list(_parser_node: LRStackNode, __: list, args: list[Variable_Expressi
     return args, kwargs
 
 
-@action
-def function_declaration(parser_node: LRStackNode, __: list,
-                         func_name: Variable_Expression, params: tuple[list[Variable_Expression], list[Assignment]] | None, block: Statement) -> Function_Declaration:
+@typed_action
+def function_declaration(
+    parser_node: LRStackNode, __: list, func_name: Variable_Expression, params: tuple[list[Variable_Expression], list[Assignment]] | None, block: Statement
+) -> Function_Declaration:
     """Create a function declaration.
 
     Args:
@@ -900,35 +847,35 @@ def function_declaration(parser_node: LRStackNode, __: list,
     return Function_Declaration(parser_node, func_name.variable_name, args, kwargs, block)
 
 
-@action
-def expression(parser_node: LRStackNode, nodes: list[str | KS_Element | Expression]) -> Expression:
+@typed_action
+def expression(parser_node: LRStackNode, nodes: list[str | KS_Element | Expression | None]) -> Expression:
     """Create an expression from parser nodes.
 
     Args:
         parser_node (LRStackNode): The parser element that created this value.
-        nodes (list[str | KS_Element | Expression]): Parser nodes to combine into an expression.
+        nodes (list[str | KS_Element | Expression | None]): Parser nodes to combine into an expression.
 
     Returns:
         Expression: Combined expression based on the parser nodes and operators.
     """
     if len(nodes) == 1:
-        return nodes[0]
+        return cast(Expression, nodes[0])
     if nodes[0] == "(":
-        return nodes[1]
+        return cast(Expression, nodes[1])
     elif len(nodes) == 4:
         if nodes[1] == "is":
-            is_op = Operator_Expression(parser_node, nodes[0], nodes[1], nodes[3])
+            is_op = Operator_Expression(parser_node, cast(Expression, nodes[0]), cast(str, nodes[1]), cast(Expression, nodes[3]))
             if nodes[2] is not None:
                 return Not_Expression(parser_node, is_op)
             else:
                 return is_op
         else:  # not in operation
-            return Not_Expression(parser_node, Operator_Expression(parser_node, nodes[0], nodes[2], nodes[3]))
+            return Not_Expression(parser_node, Operator_Expression(parser_node, cast(Expression, nodes[0]), cast(str, nodes[2]), cast(Expression, nodes[3])))
     else:
-        return Operator_Expression(parser_node, nodes[0], nodes[1], nodes[2])
+        return Operator_Expression(parser_node, cast(Expression, nodes[0]), cast(str, nodes[1]), cast(Expression, nodes[2]))
 
 
-@action
+@typed_action
 def negation(parser_node: LRStackNode, __: list, exp: Expression) -> Not_Expression:
     """Create a negation expression.
 
@@ -943,7 +890,7 @@ def negation(parser_node: LRStackNode, __: list, exp: Expression) -> Not_Express
     return Not_Expression(parser_node, exp)
 
 
-@action
+@typed_action
 def xfer_rack(parser_node: LRStackNode, __: list, is_across: str | None = None, dist_exp: Expression | None = None, side_id: Expression | None = None) -> Xfer_Pass_Racking:
     """Create a transfer racking specification.
 
@@ -962,7 +909,7 @@ def xfer_rack(parser_node: LRStackNode, __: list, is_across: str | None = None, 
     return Xfer_Pass_Racking(parser_node, distance_expression=dist_exp, direction_expression=side_id)
 
 
-@action
+@typed_action
 def xfer_pass(parser_node: LRStackNode, __: list, needles: list[Expression], rack_val: Xfer_Pass_Racking, bed: Expression | None = None, slider: str | None = None) -> Xfer_Pass_Statement:
     """Create a transfer pass statement.
 
@@ -980,7 +927,7 @@ def xfer_pass(parser_node: LRStackNode, __: list, needles: list[Expression], rac
     return Xfer_Pass_Statement(parser_node, rack_val, needles, bed, slider is not None)
 
 
-@action
+@typed_action
 def accessor(parser_node: LRStackNode, __: list, exp: Expression, attribute: Expression) -> Attribute_Accessor_Expression:
     """Create an attribute accessor expression.
 
@@ -996,7 +943,7 @@ def accessor(parser_node: LRStackNode, __: list, exp: Expression, attribute: Exp
     return Attribute_Accessor_Expression(parser_node, exp, attribute)
 
 
-@action
+@typed_action
 def exp_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Expression_Statement:
     """Create an expression statement.
 
@@ -1011,7 +958,7 @@ def exp_statement(parser_node: LRStackNode, __: list, exp: Expression) -> Expres
     return Expression_Statement(parser_node, exp)
 
 
-@action
+@typed_action
 def cut_statement(parser_node: LRStackNode, __: list, exps: list[Expression]) -> Cut_Statement:
     """Create a cut statement for yarn carriers.
 
@@ -1026,7 +973,7 @@ def cut_statement(parser_node: LRStackNode, __: list, exps: list[Expression]) ->
     return Cut_Statement(parser_node, exps)
 
 
-@action
+@typed_action
 def release_statement(parser_node: LRStackNode, __: list) -> Release_Statement:
     """Create a release statement for the current carrier.
 
@@ -1040,7 +987,7 @@ def release_statement(parser_node: LRStackNode, __: list) -> Release_Statement:
     return Release_Statement(parser_node)
 
 
-@action
+@typed_action
 def remove_statement(parser_node: LRStackNode, __: list, exps: list[Expression]) -> Remove_Statement:
     """Create a remove statement for yarn carriers.
 
@@ -1055,7 +1002,7 @@ def remove_statement(parser_node: LRStackNode, __: list, exps: list[Expression])
     return Remove_Statement(parser_node, exps)
 
 
-@action
+@typed_action
 def gauge_exp(parser_node: LRStackNode, __: list, sheet_exp: Expression, gauge: Expression) -> Gauge_Expression:
     """Create a gauge expression.
 
@@ -1071,7 +1018,7 @@ def gauge_exp(parser_node: LRStackNode, __: list, sheet_exp: Expression, gauge: 
     return Gauge_Expression(parser_node, sheet_exp, gauge)
 
 
-@action
+@typed_action
 def drop_pass(parser_node: LRStackNode, __: list, needles: list[Expression]) -> Drop_Pass:
     """Create a drop pass statement.
 
@@ -1086,8 +1033,8 @@ def drop_pass(parser_node: LRStackNode, __: list, needles: list[Expression]) -> 
     return Drop_Pass(parser_node, needles)
 
 
-@action
-def push_to(_parser_node: LRStackNode, __: list, push_val: str | list) -> str | Expression:
+@typed_action
+def push_to(_parser_node: LRStackNode, __: list, push_val: str | list[str]) -> str | Expression:
     """Create a push target specification.
 
     Args:
@@ -1103,7 +1050,7 @@ def push_to(_parser_node: LRStackNode, __: list, push_val: str | list) -> str | 
     return push_val
 
 
-@action
+@typed_action
 def push_dir(_parser_node: LRStackNode, __: list, amount: Expression, direction: str) -> tuple[Expression, str]:
     """Create a push direction specification.
 
@@ -1119,7 +1066,7 @@ def push_dir(_parser_node: LRStackNode, __: list, amount: Expression, direction:
     return amount, direction
 
 
-@action
+@typed_action
 def push_statement(parser_node: LRStackNode, __: list, needles: list[Expression], push_val: str | Expression | tuple[Expression, str]) -> Push_Statement:
     """Create a push statement for layer management.
 
@@ -1135,7 +1082,7 @@ def push_statement(parser_node: LRStackNode, __: list, needles: list[Expression]
     return Push_Statement(parser_node, needles, push_val)
 
 
-@action
+@typed_action
 def swap_statement(parser_node: LRStackNode, __: list, needles: list[Expression], swap_type: str, value: Expression) -> Swap_Statement:
     """Create a swap statement for layer management.
 
@@ -1152,7 +1099,7 @@ def swap_statement(parser_node: LRStackNode, __: list, needles: list[Expression]
     return Swap_Statement(parser_node, needles, swap_type, value)
 
 
-@action
+@typed_action
 def pass_second(_parser_node: LRStackNode, nodes: list[Any]) -> Any:
     """Return the second node in a list.
 
@@ -1166,7 +1113,7 @@ def pass_second(_parser_node: LRStackNode, nodes: list[Any]) -> Any:
     return nodes[1]
 
 
-@action
+@typed_action
 def import_statement(parser_node: LRStackNode, __: list, src: Expression, alias: Expression | None) -> Import_Statement:
     """Create an import statement.
 

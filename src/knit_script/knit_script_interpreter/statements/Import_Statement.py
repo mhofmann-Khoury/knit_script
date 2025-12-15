@@ -6,25 +6,19 @@ It supports both direct imports and aliased imports with comprehensive fallback 
 
 import importlib
 import os.path
-from typing import Iterable
+from collections.abc import Iterable
+from types import ModuleType
 
 from parglare.parser import LRStackNode
 
 import knit_script.knit_script_std_library as ks_library
-from knit_script.knit_script_exceptions.Knit_Script_Exception import (
-    Knit_Script_Located_Exception,
-)
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_ImportError,
-)
-from knit_script.knit_script_interpreter.expressions.accessors import (
-    Attribute_Accessor_Expression,
-)
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_ImportError
+from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.variables import (
-    Variable_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
@@ -67,7 +61,7 @@ class Import_Statement(Statement):
             ImportError: If src is not a module name or path expression, or if alias is not a valid variable expression.
             If the module cannot be found in any location after trying all resolution methods.
         """
-        if not (isinstance(self.src, Attribute_Accessor_Expression) or isinstance(self.src, Variable_Expression)):
+        if not (isinstance(self.src, (Attribute_Accessor_Expression, Variable_Expression))):
             raise Knit_Script_ImportError(f"Cannot Import {self.src}, expected a module name or path", self)
         src_string = str(self.src)
         if self.alias is not None:
@@ -80,16 +74,18 @@ class Import_Statement(Statement):
             alias = None
         try:
             try:
-                module = importlib.import_module(src_string)
+                module: ModuleType | Knit_Script_Scope | None = importlib.import_module(src_string)
             except ModuleNotFoundError:
-                module = importlib.import_module(f'knit_script.knit_script_std_library.{src_string}')
+                module = importlib.import_module(f"knit_script.knit_script_std_library.{src_string}")
         except (ImportError, ModuleNotFoundError) as e:
+            if context.ks_file is None:
+                raise Knit_Script_ImportError(f"cannot import {src_string} from string KnitScript pattern. Try converting your pattern to a file.", self) from e
             local_path = os.path.dirname(context.ks_file)
             library_path = os.path.dirname(ks_library.__file__)
             if isinstance(self.src, Variable_Expression):
-                local_path_to_src = os.path.join(local_path, f'{self.src.variable_name}.ks')
+                local_path_to_src = os.path.join(local_path, f"{self.src.variable_name}.ks")
                 local_is_file = os.path.isfile(local_path_to_src)
-                library_path_to_src = os.path.join(library_path, f'{self.src.variable_name}.ks')
+                library_path_to_src = os.path.join(library_path, f"{self.src.variable_name}.ks")
                 library_is_file = os.path.isfile(library_path_to_src)
                 module = context.enter_sub_scope(module_name=alias)  # enter sub scope for module
             else:
@@ -98,12 +94,12 @@ class Import_Statement(Statement):
                 library_path_to_src = library_path
                 for parent in self.src.parent:
                     if not isinstance(parent, Variable_Expression):
-                        raise Knit_Script_ImportError(f"import path must be module names not {parent}", self)
+                        raise Knit_Script_ImportError(f"import path must be module names not {parent}", self) from e
                     local_path_to_src = os.path.join(local_path_to_src, parent.variable_name)
                     library_path_to_src = os.path.join(library_path_to_src, parent.variable_name)
-                local_path_to_src = os.path.join(local_path_to_src, f'{self.src.attribute}.ks')
+                local_path_to_src = os.path.join(local_path_to_src, f"{self.src.attribute}.ks")
                 local_is_file = os.path.isfile(local_path_to_src)
-                library_path_to_src = os.path.join(library_path_to_src, f'{self.src.attribute}.ks')
+                library_path_to_src = os.path.join(library_path_to_src, f"{self.src.attribute}.ks")
                 library_is_file = os.path.isfile(library_path_to_src)
                 assert isinstance(self.src.attribute, Variable_Expression)
                 module = context.enter_sub_scope(module_name="__temp_module__")
@@ -117,7 +113,7 @@ class Import_Statement(Statement):
                 context.exit_current_scope()
             else:
                 if not isinstance(e, Knit_Script_Located_Exception):
-                    raise Knit_Script_Located_Exception(e, self)
+                    raise Knit_Script_Located_Exception(e, self) from e
                 else:
                     raise e
         assert module is not None

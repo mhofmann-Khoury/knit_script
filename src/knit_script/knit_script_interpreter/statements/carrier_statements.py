@@ -3,25 +3,21 @@
 This module provides statement classes for managing yarn carrier operations in knit script programs.
 It includes statements for cutting carriers (permanently removing them), releasing the yarn hook, and removing carriers from the working area without cutting the yarn.
 """
-from knitout_interpreter.knitout_operations.carrier_instructions import (
-    Out_Instruction,
-    Outhook_Instruction,
-    Releasehook_Instruction,
-)
-from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import (
-    Yarn_Carrier,
-)
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
-    Yarn_Carrier_Set,
-)
 
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_TypeError,
-)
+import warnings
+from collections.abc import Sequence
+
+from knitout_interpreter.knitout_operations.carrier_instructions import Out_Instruction, Outhook_Instruction, Releasehook_Instruction
+from parglare.parser import LRStackNode
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
+
+from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
+from knit_script.knit_script_warnings.Knit_Script_Warning import Cut_Unspecified_Carrier_Warning
 
 
 class Cut_Statement(Statement):
@@ -73,12 +69,13 @@ class Cut_Statement(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         if len(self._carriers) == 0:
-            print(f"No carrier to cut specified. Cutting working carrier: {context.carrier}")
-            for carrier in context.carrier:
-                outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, carrier, f"Cutting working carrier {carrier} of {context.carrier}")
-                context.knitout.append(outhook_op)
+            warnings.warn(Cut_Unspecified_Carrier_Warning(context.carrier, self), stacklevel=get_user_warning_stack_level_from_knitscript_package())
+            if isinstance(context.carrier, Yarn_Carrier_Set):
+                for carrier in context.carrier:
+                    outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, carrier, f"Cutting working carrier {carrier} of {context.carrier}")
+                    context.knitout.append(outhook_op)
         else:
-            carrier_set = set()
+            carrier_set: set[int | Yarn_Carrier] = set()
 
             def _add_carrier(cr: list | int | Yarn_Carrier | Yarn_Carrier_Set) -> None:
                 """Recursively add carriers to the set to be cut.
@@ -99,14 +96,14 @@ class Cut_Statement(Statement):
                 elif isinstance(cr, Yarn_Carrier):
                     carrier_set.add(cr.carrier_id)
                 else:
-                    raise Knit_Script_TypeError(f'Expected to cut a carrier, integer representing a carrier, or list of carriers, but got {cr}', self)
+                    raise Knit_Script_TypeError(f"Expected to cut a carrier, integer representing a carrier, or list of carriers, but got {cr}", self)
 
             for c in self._carriers:
                 carrier = c.evaluate(context)
                 _add_carrier(carrier)
-            carrier_set = Yarn_Carrier_Set([*carrier_set])
-            for carrier in carrier_set:
-                outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, carrier)
+            carrier_set: Yarn_Carrier_Set = Yarn_Carrier_Set(list(carrier_set))
+            for c in carrier_set:
+                outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, c)
                 context.knitout.append(outhook_op)
 
 
@@ -133,7 +130,7 @@ class Release_Statement(Statement):
         Returns:
             str: A string indicating this is a release hook operation.
         """
-        return f"ReleaseHook"
+        return "ReleaseHook"
 
     def __repr__(self) -> str:
         """Return detailed string representation of the release statement.
@@ -205,36 +202,31 @@ class Remove_Statement(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         if len(self._carriers) == 0:
-            print(f"No carrier to bring out specified. Cutting working carrier: {context.carrier}")
-            for carrier in context.carrier:
-                out_op = Out_Instruction.execute_out(context.machine_state, carrier, f"Removing working carrier {carrier} of {context.carrier}")
-                context.knitout.append(out_op)
+            warnings.warn(Cut_Unspecified_Carrier_Warning(context.carrier, self), stacklevel=get_user_warning_stack_level_from_knitscript_package())
+            if isinstance(context.carrier, Yarn_Carrier_Set):
+                for carrier in context.carrier:
+                    out_op = Out_Instruction.execute_out(context.machine_state, carrier, f"Removing working carrier {carrier} of {context.carrier}")
+                    context.knitout.append(out_op)
         else:
-            carrier_set = set()
+            set_of_carriers: set[int] = set()
 
-            def _add_carrier(cr: list | int | Yarn_Carrier_Set) -> None:
+            def _add_carrier(cr: Sequence[int | Yarn_Carrier] | int | Yarn_Carrier_Set | Yarn_Carrier) -> None:
                 """Recursively add carriers to the set to be removed.
 
                 Args:
-                    cr (list | int | Yarn_Carrier_Set): Carrier specification that can be a list, int, or Yarn_Carrier_Set.
-
-                Raises:
-                    TypeError: If cr is not a supported carrier type.
+                    cr (Sequence[int | Yarn_Carrier] | int | Yarn_Carrier_Set | Yarn_Carrier): Carrier specification to add to the list of carriers being removed.
                 """
-                if isinstance(cr, list):
+                if isinstance(cr, Yarn_Carrier_Set):
+                    _add_carrier(cr.carrier_ids)
+                elif isinstance(cr, Sequence):
                     for sub_cr in cr:
                         _add_carrier(sub_cr)
-                elif isinstance(cr, int):
-                    carrier_set.add(cr)
-                else:
-                    if not isinstance(cr, Yarn_Carrier_Set):
-                        raise Knit_Script_TypeError(f'Expected to bring out a carrier, integer representing a carrier, or list of carriers, but got {cr}', self)
-                    carrier_set.update(cr.carrier_ids)
+                else:  # isinstance(cr, (int, Yarn_Carrier)):
+                    set_of_carriers.add(int(cr))
 
             for c in self._carriers:
                 carrier = c.evaluate(context)
                 _add_carrier(carrier)
-            carrier_set = Yarn_Carrier_Set([*carrier_set])
-            for carrier in carrier_set:
-                out_op = Out_Instruction.execute_out(context.machine_state, carrier)
+            for c in set_of_carriers:
+                out_op = Out_Instruction.execute_out(context.machine_state, c)
                 context.knitout.append(out_op)

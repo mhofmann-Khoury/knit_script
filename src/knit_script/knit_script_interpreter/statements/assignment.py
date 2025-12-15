@@ -3,6 +3,7 @@
 This module provides the Assignment class, which handles variable assignment operations in knit script programs.
 It manages the binding of values to variable names, supporting both local and global variable assignment with proper scope handling.
 """
+
 from typing import Any
 
 from parglare.parser import LRStackNode
@@ -68,10 +69,7 @@ class Assignment(KS_Element):
         Returns:
             Any: The evaluated value that will be assigned to the variable.
         """
-        if not isinstance(self._value_expression, Expression):
-            expression_result = self._value_expression
-        else:
-            expression_result = self._value_expression.evaluate(context)
+        expression_result = self._value_expression if not isinstance(self._value_expression, Expression) else self._value_expression.evaluate(context)
         return expression_result
 
     def __str__(self) -> str:

@@ -4,19 +4,12 @@ This module provides essential needle-related utility functions that are automat
 These functions offer convenient ways to create needle objects and sort needle collections according to carriage pass requirements.
 The functions are designed to simplify common needle operations and provide intuitive interfaces for needle manipulation in knit script programs.
 """
-from typing import cast
 
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
-    Slider_Needle,
-)
-from virtual_knitting_machine.machine_constructed_knit_graph.Machine_Knit_Loop import (
-    Machine_Knit_Loop,
-)
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
+from virtual_knitting_machine.machine_constructed_knit_graph.Machine_Knit_Loop import Machine_Knit_Loop
 
 
 def needle(is_front: bool, index: int) -> Needle:
@@ -58,7 +51,7 @@ def direction_sorted_needles(needles: list[Needle], direction: Carriage_Pass_Dir
         The racking parameter is converted to an integer for the underlying sorting algorithm.
         This represents the standard practice in knitting machine operations where racking is typically specified in whole needle positions.
     """
-    return cast(list[Needle], direction.sort_needles(needles, racking=int(racking)))
+    return direction.sort_needles(needles, racking=int(racking))
 
 
 def loops_to_current_needles(machine_state: Knitting_Machine) -> dict[Machine_Knit_Loop, Needle]:

@@ -3,13 +3,11 @@
 This module provides the Push_Statement class, which handles layer position modifications for needles in multi-sheet gauge configurations.
 It allows control over the stacking hierarchy of stitches, enabling complex knitting patterns that require specific layer arrangements.
 """
+
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_interpreter.expressions.expressions import (
-    Expression,
-    get_expression_value_list,
-)
+from knit_script.knit_script_interpreter.expressions.expressions import Expression, get_expression_value_list
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 

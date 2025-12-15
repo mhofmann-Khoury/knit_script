@@ -2,6 +2,7 @@
 
 This module provides the Not_Expression class, which implements logical negation operations in knit script programs. It follows Python's truthiness conventions for evaluating and negating expressions.
 """
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression

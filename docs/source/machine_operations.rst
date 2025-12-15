@@ -108,7 +108,7 @@ The ``split`` operation creates loops on one needle while moving existing loops 
 
 .. code-block:: knitscript
 
-   in Rightward direction:{
+   in Leftward direction:{
 	   split Front_Needles[5:10];  // Splits loops and creates new ones on the opposite position
    }
 

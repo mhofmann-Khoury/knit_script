@@ -3,20 +3,17 @@
 This module provides expression classes for handling various container data structures in knit script programs.
 It includes support for lists, dictionaries, tuples, list comprehensions, dictionary comprehensions, and unpacking operations, following Python conventions for syntax and behavior.
 """
-from typing import Any, Iterable
+
+from collections.abc import Iterable
+from typing import Any
 
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_KeyError,
-    Knit_Script_TypeError,
-)
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_KeyError, Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.variables import (
-    Variable_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
@@ -40,16 +37,16 @@ class Unpack(Expression):
         super().__init__(parser_node)
         self._exp = exp
 
-    def evaluate(self, context: Knit_Script_Context) -> tuple:
+    def evaluate(self, context: Knit_Script_Context) -> tuple[Any, ...]:
         """Evaluate the expression to unpack the contained expression.
 
         Args:
             context (Knit_Script_Context): The current context of the knit_script_interpreter.
 
         Returns:
-            tuple: Tuple with unpacked values from the expression.
+            tuple[Any, ...]: Tuple with unpacked values from the expression.
         """
-        return tuple([*self._exp.evaluate(context)])
+        return (*self._exp.evaluate(context),)
 
     def __str__(self) -> str:
         return f"(*{self._exp})"
@@ -124,8 +121,17 @@ class Sliced_List(Expression):
         _iter_exp (Expression): The iterable expression to slice.
     """
 
-    def __init__(self, parser_node: LRStackNode, iter_exp: Expression, start: Expression | None = None, start_to_end: bool = False, end: Expression | None = None, end_to_spacer: bool = False,
-                 spacer: Expression | None = None, is_index: bool = False) -> None:
+    def __init__(
+        self,
+        parser_node: LRStackNode,
+        iter_exp: Expression,
+        start: Expression | None = None,
+        start_to_end: bool = False,
+        end: Expression | None = None,
+        end_to_spacer: bool = False,
+        spacer: Expression | None = None,
+        is_index: bool = False,
+    ) -> None:
         """Initialize the Sliced_List.
 
         Args:
@@ -173,24 +179,15 @@ class Sliced_List(Expression):
                 raise Knit_Script_TypeError(f"Knitting Machine is not iterable and cannot be iterated over [{self._start}:{self._end}:{self._spacer}]", self)
         if not isinstance(iterable, Iterable):
             raise Knit_Script_TypeError(f"Cannot Slice non-iterable {self._iter_exp}<{iterable}>.", self)
-        iterable = [i for i in iterable]
+        iterable = list(iterable)
         if self._is_index:
             assert isinstance(self._start, Expression)
             index = self._start.evaluate(context)
             return iterable[index]
         else:
-            if self._start is None:
-                start = 0
-            else:
-                start = int(self._start.evaluate(context))
-            if self._end is None:
-                end = len(iterable)
-            else:
-                end = int(self._end.evaluate(context))
-            if self._spacer is None:
-                spacer = 1
-            else:
-                spacer = int(self._spacer.evaluate(context))
+            start = 0 if self._start is None else int(self._start.evaluate(context))
+            end = len(iterable) if self._end is None else int(self._end.evaluate(context))
+            spacer = 1 if self._spacer is None else int(self._spacer.evaluate(context))
             return iterable[start:end:spacer]
 
     def _is_slice(self) -> bool:
@@ -262,7 +259,7 @@ class List_Comp(Expression):
             AssertionError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
         """
         iterable = self._iter_exp.evaluate(context)
-        assert isinstance(iterable, Iterable), f'Cannot iterate over non-iterable value {iterable}'
+        assert isinstance(iterable, Iterable), f"Cannot iterate over non-iterable value {iterable}"
         if self._spacer is not None:
             assert isinstance(iterable, list)
             if isinstance(self._spacer, str):
@@ -283,12 +280,9 @@ class List_Comp(Expression):
             else:  # multiple vars to unpack
                 iterated_var = [*var]
                 assert len(iterated_var) == len(self._vars), "Unpacked values do not match variables provided"
-                for var_name, var_val in zip(self._vars, iterated_var):
+                for var_name, var_val in zip(self._vars, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
-            if self._comp_cond is None:
-                condition_result = True
-            else:
-                condition_result = bool(self._comp_cond.evaluate(context))
+            condition_result = True if self._comp_cond is None else bool(self._comp_cond.evaluate(context))
             if condition_result:
                 values.append(self._fill_exp.evaluate(context))
         context.exit_current_scope()  # exit scope, removing access to iterator variable
@@ -406,7 +400,7 @@ class Dictionary_Comprehension(Expression):
             KeyError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
         """
         iterable = self._iter_exp.evaluate(context)
-        assert isinstance(iterable, Iterable), f'Cannot iterate over non-iterable value {iterable}'
+        assert isinstance(iterable, Iterable), f"Cannot iterate over non-iterable value {iterable}"
         if self._spacer is not None:
             assert isinstance(iterable, list)
             if isinstance(self._spacer, str):
@@ -428,12 +422,9 @@ class Dictionary_Comprehension(Expression):
                 iterated_var = [*var]
                 if len(iterated_var) != len(self._vars):
                     raise Knit_Script_KeyError(f"Number of keys <{iterated_var}> do not match number of variables <{self._vars}>", self)
-                for var_name, var_val in zip(self._vars, iterated_var):
+                for var_name, var_val in zip(self._vars, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
-            if self._comp_cond is None:
-                condition_result = True
-            else:
-                condition_result = bool(self._comp_cond.evaluate(context))
+            condition_result = True if self._comp_cond is None else bool(self._comp_cond.evaluate(context))
             if condition_result:
                 values[self._key.evaluate(context)] = self._value.evaluate(context)
         context.exit_current_scope()  # exit scope, removing access to iterator variable

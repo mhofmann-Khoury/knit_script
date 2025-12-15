@@ -19,6 +19,7 @@ class Machine_Bed_Position(Enum):
     This enumeration includes utility methods for determining bed characteristics such as whether a position is on the front bed or represents a slider bed,
      making it easier to work with needle positioning logic throughout the knit script system.
     """
+
     Front = "front"
     Front_Slider = "front_slider"
     Back = "back"

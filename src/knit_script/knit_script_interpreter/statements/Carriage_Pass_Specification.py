@@ -3,35 +3,19 @@
 This module provides the Carriage_Pass_Specification class, which coordinates the execution of multiple knitting operations that occur during a single pass of the carriage across the needle bed.
 It ensures proper sequencing, compatibility checking, and execution of operations while handling complex scenarios like all-needle operations and drop pass separation.
 """
-from knitout_interpreter.knitout_operations.knitout_instruction import (
-    Knitout_Instruction_Type,
-)
-from knitout_interpreter.knitout_operations.knitout_instruction_factory import (
-    build_instruction,
-)
-from knitout_interpreter.knitout_operations.needle_instructions import (
-    Needle_Instruction,
-)
+
+from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
+from knitout_interpreter.knitout_operations.knitout_instruction_factory import build_instruction
+from knitout_interpreter.knitout_operations.needle_instructions import Needle_Instruction
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.ks_exceptions import (
-    All_Needle_Operation_Exception,
-    Incompatible_In_Carriage_Pass_Exception,
-    Repeated_Needle_Exception,
-    Required_Direction_Exception,
-)
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_TypeError,
-)
+from knit_script.knit_script_exceptions.ks_exceptions import All_Needle_Operation_Exception, Incompatible_In_Carriage_Pass_Exception, Repeated_Needle_Exception, Required_Direction_Exception
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
-from knit_script.knit_script_interpreter.Machine_Specification import (
-    Machine_Bed_Position,
-)
+from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
 
 
 class Carriage_Pass_Specification:
@@ -58,8 +42,16 @@ class Carriage_Pass_Specification:
         _require_second (bool): True if any instruction requires a second needle.
     """
 
-    def __init__(self, source_statement: KS_Element, needle_to_instruction: dict[Needle, Knitout_Instruction_Type], direction: Carriage_Pass_Direction | None = None,
-                 target_bed: Machine_Bed_Position | None = None, racking: float | None = None, to_sliders: bool = False, is_drop_pass: bool = False) -> None:
+    def __init__(
+        self,
+        source_statement: KS_Element,
+        needle_to_instruction: dict[Needle, Knitout_Instruction_Type],
+        direction: Carriage_Pass_Direction | None = None,
+        target_bed: Machine_Bed_Position | None = None,
+        racking: float | None = None,
+        to_sliders: bool = False,
+        is_drop_pass: bool = False,
+    ) -> None:
         """Initialize a carriage pass specification.
 
         Creates a carriage pass specification with the given instructions and validates compatibility between all operations.
@@ -87,7 +79,7 @@ class Carriage_Pass_Specification:
 
         if not is_drop_pass:  # extract drop operations
             drop_pass = {}
-            n_to_i = {}
+            n_to_i: dict[Needle, Knitout_Instruction_Type] = {}
             for needle, instruction_type in needle_to_instruction.items():
                 if instruction_type is Knitout_Instruction_Type.Drop:
                     drop_pass[needle] = Knitout_Instruction_Type.Drop
@@ -172,8 +164,8 @@ class Carriage_Pass_Specification:
 
         # calculate all-needle racking condition
         needs_all_needle_rack = False
-        for n, m in zip(needles_in_order[0:-1], needles_in_order[1:]):
-            if n.racked_position_on_front(context.racking) == m.racked_position_on_front(context.racking):
+        for n, m in zip(needles_in_order[0:-1], needles_in_order[1:], strict=False):
+            if n.racked_position_on_front(int(context.racking)) == m.racked_position_on_front(int(context.racking)):
                 if n.is_front == m.is_front:
                     raise Repeated_Needle_Exception(self._source_statement, n)
                 n_instruction = self._needle_to_instruction[n]
@@ -182,24 +174,21 @@ class Carriage_Pass_Specification:
                 needs_all_needle_rack = True
 
         if needs_all_needle_rack:
-            context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking + .25, comment=f"All Needle racking {context.racking}"))
+            context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, context.racking + 0.25, comment=f"All Needle racking {context.racking}"))
 
         for needle in needles_in_order:
             instruction_type = self._needle_to_instruction[needle]
-            if instruction_type.requires_second_needle:
-                second_needle = context.machine_state.get_aligned_needle(needle, aligned_slider=self._to_sliders)
-            else:
-                second_needle = None
+            second_needle = context.machine_state.get_aligned_needle(needle, aligned_slider=self._to_sliders) if instruction_type.requires_second_needle else None
             results[needle] = second_needle
             instruction = build_instruction(instruction_type, first_needle=needle, direction=context.direction, carrier_set=context.carrier, second_needle=second_needle)
             _ = instruction.execute(context.machine_state)
             if isinstance(instruction, Needle_Instruction):
                 context.gauged_sheet_record.record_needle(instruction.needle)
-                if instruction.has_second_needle and instruction.needle_2.position != instruction.needle.position:
+                if isinstance(instruction.needle_2, Needle) and instruction.needle_2.position != instruction.needle.position:
                     context.gauged_sheet_record.record_needle(instruction.needle_2)
             context.knitout.append(instruction)
         if needs_all_needle_rack:
-            context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, cur_rack, comment=f"Reset rack from all_needle"))
+            context.knitout.append(Rack_Instruction.execute_rack(context.machine_state, cur_rack, comment="Reset rack from all_needle"))
         context.racking = cur_rack
         if self._has_drops:  # still has drops available
             assert isinstance(self._drop_pass, Carriage_Pass_Specification)

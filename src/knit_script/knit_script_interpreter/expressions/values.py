@@ -4,6 +4,7 @@ This module provides expression classes for literal values and context-free expr
 These expressions represent constants and literal values that can be evaluated without requiring access to the current execution context,
 including numbers, strings, booleans, and various enumerated types.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -11,18 +12,12 @@ from typing import Any
 
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line_Type
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.Knitting_Machine_Specification import (
-    Knitting_Machine_Type,
-)
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Type
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.Machine_Specification import (
-    Machine_Bed_Position,
-)
+from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
 
 
 class _Context_Free_Value(Expression):
@@ -185,7 +180,7 @@ class Bed_Value(_Context_Free_Value):
             Machine_Bed_Position: The machine bed position corresponding to the string (front, back, front_slider, or back_slider).
         """
         capitalize = self._bed_str.capitalize()
-        capitalize = capitalize.replace('s', 'S')
+        capitalize = capitalize.replace("s", "S")
         return Machine_Bed_Position[capitalize]
 
 
@@ -216,10 +211,7 @@ class Boolean_Value(_Context_Free_Value):
         Returns:
             bool: True if the string is "True", False otherwise.
         """
-        if self._bool_str == "True":
-            return True
-        else:
-            return False
+        return self._bool_str == "True"
 
 
 class String_Value(_Context_Free_Value):
@@ -255,6 +247,7 @@ class _Xfer_Direction(Enum):
 
     The _Xfer_Direction enumeration defines directional indicators used in transfer operations. It provides mapping between transfer direction keywords and the corresponding carriage pass directions.
     """
+
     Left = "Left"
     Right = "Right"
 

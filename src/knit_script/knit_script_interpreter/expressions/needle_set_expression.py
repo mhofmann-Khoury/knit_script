@@ -7,13 +7,10 @@ It includes the Needle_Sets enumeration that defines available needle collection
 from __future__ import annotations
 
 from enum import Enum
-from typing import cast
 
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
-    Slider_Needle,
-)
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -28,6 +25,7 @@ class Needle_Sets(Enum):
     The enumeration includes collections for different bed positions (front/back), needle types (regular/slider), and needle states (all needles vs. only those with loops),
      as well as special collections like the results from the last carriage pass.
     """
+
     Last_Pass = "Last_Pass"
     Needles = "Needles"
     Front_Needles = "Front_Needles"
@@ -94,31 +92,31 @@ class Needle_Set_Expression(Expression):
         """
         kp_set = Needle_Sets[self._set_str]
         if kp_set is Needle_Sets.Front_Needles:
-            return cast(list[Needle], context.gauged_sheet_record.front_needles(context.sheet.sheet))
+            return context.gauged_sheet_record.front_needles(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Needles:
-            return cast(list[Needle], context.gauged_sheet_record.back_needles(context.sheet.sheet))
+            return context.gauged_sheet_record.back_needles(context.sheet.sheet)
         elif kp_set is Needle_Sets.Front_Sliders:
-            return cast(list[Slider_Needle], context.gauged_sheet_record.front_sliders(context.sheet.sheet))
+            return context.gauged_sheet_record.front_sliders(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Sliders:
-            return cast(list[Slider_Needle], context.gauged_sheet_record.back_sliders(context.sheet.sheet))
+            return context.gauged_sheet_record.back_sliders(context.sheet.sheet)
         elif kp_set is Needle_Sets.Front_Loops:
-            return cast(list[Needle], context.gauged_sheet_record.front_loops(context.sheet.sheet))
+            return context.gauged_sheet_record.front_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Loops:
-            return cast(list[Needle], context.gauged_sheet_record.back_loops(context.sheet.sheet))
+            return context.gauged_sheet_record.back_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Needles:
-            return cast(list[Needle], context.gauged_sheet_record.all_needles(context.sheet.sheet))
+            return context.gauged_sheet_record.all_needles(context.sheet.sheet)
         elif kp_set is Needle_Sets.Front_Slider_Loops:
-            return cast(list[Slider_Needle], context.gauged_sheet_record.front_slider_loops(context.sheet.sheet))
+            return context.gauged_sheet_record.front_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Back_Slider_Loops:
-            return cast(list[Slider_Needle], context.gauged_sheet_record.back_slider_loops(context.sheet.sheet))
+            return context.gauged_sheet_record.back_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Sliders:
-            return cast(list[Needle], context.gauged_sheet_record.all_sliders(context.sheet.sheet))
+            return context.gauged_sheet_record.all_sliders(context.sheet.sheet)
         elif kp_set is Needle_Sets.Loops:
-            return cast(list[Needle], context.gauged_sheet_record.all_loops(context.sheet.sheet))
+            return context.gauged_sheet_record.all_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Slider_Loops:
-            return cast(list[Slider_Needle], context.gauged_sheet_record.all_slider_loops(context.sheet.sheet))
+            return context.gauged_sheet_record.all_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Last_Pass:
-            return cast(list[Needle] | dict[Needle, Needle | None] | list[Slider_Needle], context.last_carriage_pass_result)
+            return context.last_carriage_pass_result
 
     def __str__(self) -> str:
         return self._set_str

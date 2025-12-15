@@ -3,9 +3,8 @@
 This module provides KnitScript-specific exception classes that mirror Python's built-in exception types while adding location information from the parse tree.
  These exceptions maintain compatibility with Python's exception hierarchy while providing enhanced error reporting specific to knit script programs.
 """
-from knit_script.knit_script_exceptions.Knit_Script_Exception import (
-    Knit_Script_Located_Exception,
-)
+
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 

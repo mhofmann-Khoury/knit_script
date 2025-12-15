@@ -3,6 +3,7 @@
 This module provides the Knit_Script_Globals class, which manages the global variable namespace for knit script program execution.
 It serves as a container for storing and accessing global variables that persist throughout the execution of a knit script program, including special system variables like exit values.
 """
+
 from __future__ import annotations
 
 from typing import Any

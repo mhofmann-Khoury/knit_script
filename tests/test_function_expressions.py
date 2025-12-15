@@ -50,7 +50,10 @@ class TestFunctions(TestCase):
     def test_multiple_parameter_function(self):
         program = r"""
                 def f(w,h):{
-                    for _ in range(h):{
+                    in Leftward direction:{
+                        tuck Front_Needles[0:w];
+                    }
+                    for _ in range(1, h):{
                         in reverse direction:{
                             tuck Front_Needles[0:w];
                         }

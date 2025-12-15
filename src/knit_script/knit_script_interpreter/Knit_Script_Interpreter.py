@@ -8,6 +8,7 @@ The interpreter supports debugging capabilities, variable injection, and error h
 Attributes:
     This module defines the Knit_Script_Interpreter class and supporting functionality.
 """
+
 from __future__ import annotations
 
 from inspect import stack
@@ -36,8 +37,9 @@ class Knit_Script_Interpreter:
         _knitscript_context (Knit_Script_Context): The execution context containing variables, machine state, and other runtime information.
     """
 
-    def __init__(self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False,
-                 context: None | Knit_Script_Context = None, starting_variables: None | dict[str, Any] = None) -> None:
+    def __init__(
+        self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False, context: None | Knit_Script_Context = None, starting_variables: None | dict[str, Any] = None
+    ) -> None:
         """Initialize the knit script interpreter.
 
         Creates a new interpreter instance with the specified configuration options.
@@ -111,8 +113,9 @@ class Knit_Script_Interpreter:
         """
         return cast(list[Any], self._parser.parse(pattern, pattern_is_file))
 
-    def write_knitout(self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True,
-                      **python_variables: dict[str, Any]) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
+    def write_knitout(
+        self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, **python_variables: dict[str, Any]
+    ) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
         """Write pattern knitout instructions to the specified output file.
 
         This is the main method for converting knit script patterns into knitout format.
@@ -158,7 +161,7 @@ class Knit_Script_Interpreter:
         self._knitscript_context.knitout.extend(cut_active_carriers(self._knitscript_context.machine_state))
 
         knitout = self._knitscript_context.knitout
-        with open(out_file_name, "w", encoding="utf-8", newline='\n') as out:
+        with open(out_file_name, "w", encoding="utf-8", newline="\n") as out:
             out.writelines([str(k) for k in knitout])
 
         machine_state = self._knitscript_context.machine_state
@@ -192,7 +195,7 @@ class Knit_Script_Interpreter:
             on_file = f" on {pattern}"
         print(f"\n###################Start Knit Script Interpreter{on_file}###################\n")
         self._knitscript_context.execute_statements(statements)
-        return cast(list[Knitout_Line], self._knitscript_context.knitout)
+        return self._knitscript_context.knitout
 
     def knit_script_evaluate_expression(self, exp: Expression) -> Any:
         """Evaluate a knit script expression within the current context.

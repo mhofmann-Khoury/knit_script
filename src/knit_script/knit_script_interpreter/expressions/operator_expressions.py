@@ -3,6 +3,7 @@
 This module provides classes for handling binary operator expressions in knit script programs.
 It includes the Operator enumeration that defines available operators and their behavior, and the Operator_Expression class that evaluates binary operations between two expressions.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -22,6 +23,7 @@ class Operator(Enum):
 
     Each operator enum value provides both the string representation and the operation implementation, ensuring consistent behavior across all operator expressions.
     """
+
     Add = "+"
     Sub = "-"
     Div = "/"
@@ -77,7 +79,7 @@ class Operator(Enum):
         elif self is Operator.Mul:
             return lhs * rhs
         elif self is Operator.Exp:
-            return lhs ** rhs
+            return lhs**rhs
         elif self is Operator.LT:
             return lhs < rhs
         elif self is Operator.LTE:

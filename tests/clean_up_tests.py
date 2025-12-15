@@ -17,7 +17,7 @@ def cleanup_test_files(extensions: list[str] | None = None, preserve_set: set[st
         Number of files deleted.
     """
     if extensions is None:
-        extensions = ['.k', '.dat']
+        extensions = [".k", ".dat"]
 
     if preserve_set is None:
         preserve_set = set()
@@ -54,30 +54,13 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Clean up test files")
-    parser.add_argument(
-        "--extensions",
-        nargs="+",
-        default=['.k', '.dat'],
-        help="File extensions to delete (default: .k .dat)"
-    )
-    parser.add_argument(
-        "--preserve",
-        nargs="*",
-        default=[],
-        help="Filenames to preserve"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be deleted without actually deleting"
-    )
+    parser.add_argument("--extensions", nargs="+", default=[".k", ".dat"], help="File extensions to delete (default: .k .dat)")
+    parser.add_argument("--preserve", nargs="*", default=[], help="Filenames to preserve")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be deleted without actually deleting")
 
     args = parser.parse_args()
 
-    deleted = cleanup_test_files(
-        extensions=args.extensions,
-        preserve_set=args.preserve
-    )
+    deleted = cleanup_test_files(extensions=args.extensions, preserve_set=args.preserve)
 
     print(f"\nCleanup complete. {deleted} files deleted.")
 

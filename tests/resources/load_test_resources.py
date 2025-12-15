@@ -19,7 +19,7 @@ def load_test_resource(test_resource_filename: str) -> str:
         ImportError: If the resources package structure is invalid
     """
     # Get the current module's package name using __name__
-    current_package = __name__.rsplit('.', 1)[0]  # Remove the module name, keep the package
+    current_package = __name__.rsplit(".", 1)[0]  # Remove the module name, keep the package
     sequence_resources_path = resources.files(current_package).joinpath(test_resource_filename)
 
     if not sequence_resources_path.is_file():

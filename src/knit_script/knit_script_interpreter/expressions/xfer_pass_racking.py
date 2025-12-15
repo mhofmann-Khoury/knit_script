@@ -3,15 +3,12 @@
 This module provides the Xfer_Pass_Racking class, which handles the calculation of racking values for transfer operations in knit script programs.
 It supports both direct across-bed transfers (zero racking) and offset transfers with specified distances and directions.
 """
+
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_TypeError,
-)
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
@@ -85,7 +82,7 @@ class Xfer_Pass_Racking(Expression):
     def __str__(self) -> str:
         if self.is_across:
             return "Rack(0)"
-        return f'Rack({self._distance_expression} to {self._direction_expression})'
+        return f"Rack({self._distance_expression} to {self._direction_expression})"
 
     def __repr__(self) -> str:
         return str(self)

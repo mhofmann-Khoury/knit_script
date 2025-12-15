@@ -3,12 +3,14 @@
 This module provides the Knit_Script_Parser class, which implements the concrete parser for knit script files using the parglare parsing library.
 It handles grammar loading, parser configuration, and provides debugging capabilities for grammar and parsing operations.
 """
+
 from __future__ import annotations
 
 from typing import cast
 
 import importlib_resources
-from parglare import Grammar, ParseError, Parser
+import parglare
+from parglare import Grammar, Parser
 
 import knit_script
 from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
@@ -38,7 +40,7 @@ class Knit_Script_Parser:
             debug_parser_layout (bool, optional): If True, provides layout information from parser including whitespace and indentation handling. Useful for debugging layout-sensitive parsing issues.
             Defaults to False.
         """
-        pg_resource_stream = importlib_resources.files(knit_script.knit_script_interpreter).joinpath('knit_script.pg')
+        pg_resource_stream = importlib_resources.files(knit_script.knit_script_interpreter).joinpath("knit_script.pg")
         self._grammar = Grammar.from_file(pg_resource_stream, debug=debug_grammar, ignore_case=True)
         self._parser = Parser(self._grammar, debug=debug_parser, debug_layout=debug_parser_layout, actions=action.all)
 
@@ -64,5 +66,5 @@ class Knit_Script_Parser:
             else:
                 parse_results = self._parser.parse(pattern)
                 return cast(list[Statement], parse_results)
-        except ParseError as e:
-            raise Parsing_Exception(e)
+        except parglare.exceptions.SyntaxError as e:
+            raise Parsing_Exception(e) from None

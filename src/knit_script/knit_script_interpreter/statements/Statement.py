@@ -3,6 +3,7 @@
 This module provides the base Statement class and the Expression_Statement class, which form the foundation of the knit script statement system.
 These classes define the basic contract for executable code elements and provide mechanisms for using expressions as statements.
 """
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression

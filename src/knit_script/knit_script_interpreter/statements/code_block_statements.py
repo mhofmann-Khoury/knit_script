@@ -3,11 +3,10 @@
 This module provides the Code_Block statement class, which handles the execution of multiple statements within a new variable scope.
 It manages scope creation, statement execution, and proper handling of return values and scope cleanup.
 """
+
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.add_exception_information import (
-    add_exception_to_statement,
-)
+from knit_script.knit_script_exceptions.add_exception_information import add_exception_to_statement
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
@@ -49,7 +48,7 @@ class Code_Block(Statement):
             try:
                 statement.execute(context)
             except Exception as e:
-                raise add_exception_to_statement(e, statement)
+                raise add_exception_to_statement(e, statement) from e
             if context.variable_scope.returned:  # executed statement updated scope with return value
                 break  # don't continue to execute block statements
         context.exit_current_scope(collapse_into_parent=True)  # Collapse change upward, let next level decide if value changes are passed on.

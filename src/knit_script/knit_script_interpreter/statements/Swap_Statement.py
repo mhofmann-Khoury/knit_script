@@ -3,19 +3,13 @@
 This module provides the Swap_Statement class, which handles layer position exchanges between needles in multi-sheet gauge configurations.
 It supports both layer-based swapping and sheet-based swapping for complex stitch organization.
 """
+
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
-    Sheet_Identifier,
-)
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_TypeError,
-)
-from knit_script.knit_script_interpreter.expressions.expressions import (
-    Expression,
-    get_expression_value_list,
-)
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
+from knit_script.knit_script_interpreter.expressions.expressions import Expression, get_expression_value_list
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 

@@ -18,17 +18,16 @@ Example:
 Attributes:
     This module does not define any module-level attributes.
 """
-from typing import Any, Tuple
+
+from typing import Any
 
 from knit_graphs.Knit_Graph import Knit_Graph
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
-from knit_script.knit_script_interpreter.Knit_Script_Interpreter import (
-    Knit_Script_Interpreter,
-)
+from knit_script.knit_script_interpreter.Knit_Script_Interpreter import Knit_Script_Interpreter
 
 
-def knit_script_to_knitout( pattern: str,  out_file_name: str,  pattern_is_filename: bool = True,  **python_variables: Any) -> Tuple[Knit_Graph, Knitting_Machine]:
+def knit_script_to_knitout(pattern: str, out_file_name: str, pattern_is_filename: bool = True, **python_variables: Any) -> tuple[Knit_Graph, Knitting_Machine]:
     """Convert a knit script pattern into knitout format.
 
     This function serves as the main entry point for converting knit script patterns into knitout code.
@@ -79,7 +78,5 @@ def knit_script_to_knitout( pattern: str,  out_file_name: str,  pattern_is_filen
         Knitting_Machine: The virtual machine state representation.
     """
     interpreter = Knit_Script_Interpreter()
-    _knitout, knit_graph, machine_state = interpreter.write_knitout(
-        pattern, out_file_name, pattern_is_filename, **python_variables
-    )
+    _knitout, knit_graph, machine_state = interpreter.write_knitout(pattern, out_file_name, pattern_is_filename, **python_variables)
     return knit_graph, machine_state

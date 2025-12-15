@@ -3,11 +3,10 @@
 This module provides the Assertion statement class, which implements Python-style assertion functionality in knit script programs.
 It allows developers to test conditions during script execution and raise exceptions when those conditions are not met, providing a mechanism for runtime validation and debugging.
 """
+
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.ks_exceptions import (
-    Knit_Script_Assertion_Exception,
-)
+from knit_script.knit_script_exceptions.ks_exceptions import Knit_Script_Assertion_Exception
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement

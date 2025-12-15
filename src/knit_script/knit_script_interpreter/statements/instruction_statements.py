@@ -3,6 +3,7 @@
 This module provides statement classes for machine-level operations that generate specific knitout instructions.
 It includes statements for pausing machine execution and other machine control operations that operate at the machine level rather than on specific needles.
 """
+
 from knitout_interpreter.knitout_operations.Pause_Instruction import Pause_Instruction
 from parglare.parser import LRStackNode
 

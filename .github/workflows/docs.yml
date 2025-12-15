@@ -53,6 +53,11 @@ permissions:
   pages: write                      # Write to GitHub Pages
   id-token: write                   # Required for GitHub Pages deployment
 
+# Ensure only one deployment runs at a time
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 # =============================================================================
 # JOB DEFINITIONS
 # =============================================================================
@@ -103,7 +108,6 @@ jobs:
           mkdir -p docs/source/_static
           mkdir -p docs/source/api
 
-          # TODO: Update package name and source directory
           # Generate API documentation from source code without creating modules.rst
           poetry run sphinx-apidoc -o docs/source/api src/knit_script/ --force --module-first --separate --no-toc
 
@@ -157,11 +161,11 @@ jobs:
           path: docs/build/html/
 
       - name: Setup Pages
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5  # Updated from v3 to v5
 
       - name: Upload to GitHub Pages
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3  # Updated from v2 to v3
         with:
           path: docs/build/html/
@@ -174,7 +178,7 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build-docs
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
 
     environment:
       name: github-pages
@@ -209,7 +213,7 @@ jobs:
           path: docs/build/html/
 
       - name: Check for broken links
-        uses: lycheeverse/lychee-action@v1
+        uses: lycheeverse/lychee-action@v2.1.0  # Pin to specific secure version
         with:
           args: |
             --base docs/build/html/
@@ -239,13 +243,13 @@ jobs:
 #
 # 2. SPHINX DOCUMENTATION SETUP:
 #    Create these files in your docs/ directory:
-#    - [ ] docs/conf.py (Sphinx configuration)
-#    - [ ] docs/index.rst or docs/index.md (main documentation page)
-#    - [ ] docs/api/ (auto-generated API docs directory - created by workflow)
-#    - [ ] docs/_static/ (static files like CSS, images)
-#    - [ ] docs/_templates/ (custom HTML templates, optional)
+#    - [ ] docs/source/conf.py (Sphinx configuration)
+#    - [ ] docs/source/index.rst or docs/source/index.md (main documentation page)
+#    - [ ] docs/source/api/ (auto-generated API docs directory - created by workflow)
+#    - [ ] docs/source/_static/ (static files like CSS, images)
+#    - [ ] docs/source/_templates/ (custom HTML templates, optional)
 #
-# 3. SPHINX CONFIGURATION (docs/conf.py):
+# 3. SPHINX CONFIGURATION (docs/source/conf.py):
 #    Essential settings to include:
 #    - [ ] project = 'Your Project Name'
 #    - [ ] author = 'Your Name'

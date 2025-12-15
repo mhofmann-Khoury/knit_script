@@ -3,6 +3,7 @@
 This module provides the KS_Element base class, which serves as the foundation for all parser elements in the KnitScript language.
 It provides common functionality for accessing parser node information, location data, and line number information that is essential for error reporting and debugging.
 """
+
 from parglare.common import Location
 from parglare.parser import LRStackNode
 

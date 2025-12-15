@@ -32,15 +32,11 @@ class Test_Basic_Examples(TestCase):
 
     def test_intarsia_float_blocks(self):
         program = load_test_resource("intarsia_float_block.ks")
-        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True,
-                          border=3, block_width=4, block_height=4,
-                          white=1, black=2)
+        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True, border=4, block_width=4, block_height=4, white=1, black=2)
 
     def test_jacquard_stripes(self):
         program = load_test_resource("jacquard_stripes.ks")
-        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True,
-                          pattern_width=6, pattern_height=4,
-                          white=1, black=2)
+        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True, pattern_width=6, pattern_height=4, white=1, black=2)
 
     def test_lace(self):
         program = load_test_resource("lace.ks")
@@ -52,8 +48,7 @@ class Test_Basic_Examples(TestCase):
 
     def test_plating(self):
         program = load_test_resource("plating.ks")
-        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True,
-                          stripe_size=2, stripes=3, pattern_height=4, white=1, black=2)
+        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True, stripe_size=2, stripes=3, pattern_height=4, white=1, black=2)
 
     def test_rib(self):
         program = load_test_resource("rib.ks")
@@ -65,8 +60,7 @@ class Test_Basic_Examples(TestCase):
 
     def test_shift(self):
         program = load_test_resource("shift.ks")
-        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True,
-                          c=1, pattern_width=6, pattern_height=4, shift=2)
+        interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True, c=1, pattern_width=6, pattern_height=4, shift=2)
 
     def test_short_rows(self):
         program = load_test_resource("short_rows.ks")

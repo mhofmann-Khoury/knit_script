@@ -3,10 +3,9 @@
 This module provides the Pass_Direction_Expression class, which handles the parsing and evaluation of carriage pass direction expressions in knit script code.
 It supports various direction keywords and contextual direction references, converting them into the appropriate Carriage_Pass_Direction objects.
 """
+
 from parglare.parser import LRStackNode
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -59,7 +58,8 @@ class Pass_Direction_Expression(Expression):
             return Carriage_Pass_Direction.Rightward
         elif self._dir_word.lower() == "current":
             return context.direction
-        elif self._dir_word.lower() == "reverse":
+        else:
+            assert self._dir_word.lower() == "reverse"
             return context.direction.opposite()
 
     def __str__(self) -> str:

@@ -6,23 +6,17 @@ A sheet maintains records of loop positions and provides access to needles that 
 The Sheet class is fundamental to multi-sheet knitting operations,
 where different parts of the knitting process are organized across multiple virtual sheets that correspond to different needle positions in a gauged pattern.
 """
+
 from __future__ import annotations
 
-from typing import cast
+from typing import SupportsInt
 
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
-    Sheet_Needle,
-    Slider_Sheet_Needle,
-)
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
-    Slider_Needle,
-)
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
-from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
-    Sheet_Value_Exception,
-)
+from knit_script.knit_script_exceptions.gauge_sheet_exceptions import Sheet_Value_Exception
 
 
 class Sheet:
@@ -59,7 +53,7 @@ class Sheet:
         self.gauge = gauge
         self.sheet_number = sheet_number
         # in-sheet needle position -> Recorded loop on Front, Recorded loop on Back
-        self.loop_record: dict[int, tuple[bool, bool]] = {f.position: (f.has_loops, b.has_loops) for f, b in zip(self.front_needles(), self.back_needles())}
+        self.loop_record: dict[int, tuple[bool, bool]] = {f.position: (f.has_loops, b.has_loops) for f, b in zip(self.front_needles(), self.back_needles(), strict=False)}
 
     def record_needle(self, sheet_needle: Sheet_Needle) -> None:
         """Record the state of the given sheet needle and its opposite needle.
@@ -89,9 +83,7 @@ class Sheet:
             This operation examines all needle positions in the sheet and updates the loop record accordingly.
             It's useful after operations that may have changed the loop distribution across the sheet.
         """
-        new_record = {n: (self.knitting_machine[self.sheet_needle(True, n)].has_loops,
-                          self.knitting_machine[self.sheet_needle(False, n)].has_loops)
-                      for n in self.loop_record.keys()}
+        new_record = {n: (self.knitting_machine[self.sheet_needle(True, n)].has_loops, self.knitting_machine[self.sheet_needle(False, n)].has_loops) for n in self.loop_record}
         self.loop_record = new_record
 
     def sheet_needle(self, is_front: bool, in_sheet_position: int, is_slider: bool = False) -> Sheet_Needle:
@@ -125,7 +117,7 @@ class Sheet:
         """
         return self.sheet_needle(other_sheet_needle.is_front, other_sheet_needle.sheet_pos, isinstance(other_sheet_needle, Slider_Sheet_Needle))
 
-    def __eq__(self, other: Sheet | int) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check equality with another Sheet or integer.
 
         Args:
@@ -142,7 +134,8 @@ class Sheet:
             return self.sheet_number == other.sheet_number and self.gauge == other.gauge
         elif isinstance(other, int):
             return self.sheet_number == other
-        assert False, f'Expected Sheet or integer but got {other}'
+        else:
+            return False
 
     def front_needles(self) -> list[Needle]:
         """Get the set of front bed needles on the machine that belong to this sheet.
@@ -152,8 +145,8 @@ class Sheet:
         Returns:
             list[Needle]: The set of front bed needles on the machine that belong to this sheet, ordered by position.
         """
-        machine_needles = cast(list[Needle], self.knitting_machine.front_needles())
-        return machine_needles[self.sheet_number::self.gauge]
+        machine_needles = self.knitting_machine.front_needles()
+        return machine_needles[self.sheet_number :: self.gauge]
 
     def back_needles(self) -> list[Needle]:
         """Get the set of back bed needles on the machine that belong to this sheet.
@@ -163,8 +156,8 @@ class Sheet:
         Returns:
             list[Needle]: The set of back bed needles on the machine that belong to this sheet, ordered by position.
         """
-        machine_needles = cast(list[Needle], self.knitting_machine.back_needles())
-        return machine_needles[self.sheet_number::self.gauge]
+        machine_needles = self.knitting_machine.back_needles()
+        return machine_needles[self.sheet_number :: self.gauge]
 
     def front_sliders(self) -> list[Slider_Needle]:
         """Get the set of front bed slider needles on the machine that belong to this sheet.
@@ -175,8 +168,8 @@ class Sheet:
         Returns:
             list[Slider_Needle]: The set of front bed slider needles on the machine that belong to this sheet, ordered by position.
         """
-        machine_needles = cast(list[Slider_Needle], self.knitting_machine.front_sliders())
-        return machine_needles[self.sheet_number::self.gauge]
+        machine_needles = self.knitting_machine.front_sliders()
+        return machine_needles[self.sheet_number :: self.gauge]
 
     def back_sliders(self) -> list[Slider_Needle]:
         """Get the set of back bed slider needles on the machine that belong to this sheet.
@@ -187,8 +180,8 @@ class Sheet:
         Returns:
             list[Slider_Needle]: The set of back bed slider needles on the machine that belong to this sheet, ordered by position.
         """
-        machine_needles = cast(list[Slider_Needle], self.knitting_machine.back_sliders())
-        return machine_needles[self.sheet_number::self.gauge]
+        machine_needles = self.knitting_machine.back_sliders()
+        return machine_needles[self.sheet_number :: self.gauge]
 
     def front_loops(self) -> list[Needle]:
         """Get the list of front bed needles that belong to this sheet and currently hold loops.
@@ -344,11 +337,23 @@ class Sheet_Identifier:
     def __lt__(self, other: Sheet_Identifier | int) -> bool:
         return self.sheet < int(other)
 
-    def __eq__(self, other: Sheet_Identifier | int) -> bool:
+    def __eq__(self, other: object) -> bool:
+        """
+        Args:
+            other (Sheet | int): The other sheet id to compare to.
+
+        Returns:
+            bool: True if the sheet identifier matches the sheet and gauge. True if an integer matches the sheet. False, otherwise.
+        """
         if isinstance(other, Sheet_Identifier):
             return self.sheet == other.sheet and self.gauge == other.gauge
+        elif isinstance(other, SupportsInt):
+            try:
+                return self.sheet == int(other)
+            except (ValueError, TypeError) as _e:
+                return False  # couldn't conver to int, so the result is false.
         else:
-            return self.sheet == int(other)
+            return False
 
     # def __add__(self, other: int | Needle | Sheet_Identifier):
     #     return self.sheet + int(other)

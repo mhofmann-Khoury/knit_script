@@ -4,12 +4,19 @@ This module provides the base warning class and specific warning types for the K
 These warnings alert developers to potentially problematic code patterns, configuration issues, and situations that may lead to unexpected behavior without causing program termination.
 The warning system helps developers write more robust knit script programs by identifying common pitfalls and questionable practices during execution.
 """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from parglare.common import Location
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
-    Sheet_Identifier,
-)
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 from knit_script.knit_script_interpreter.ks_element import KS_Element
+
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Knit_Script_Warning(RuntimeWarning):
@@ -129,3 +136,17 @@ class Sheet_Beyond_Gauge_Warning(Knit_Script_Warning):
             gauge (int): The current gauge setting that defines the valid range for sheet values.
         """
         super().__init__(f"Gauge of {gauge} is greater than current sheet {sheet} so sheet is set to {gauge - 1}", None)
+
+
+class Cut_Unspecified_Carrier_Warning(Knit_Script_Warning):
+    """Warning raised when no carrier is specified with a cut operation."""
+
+    def __init__(self, cur_carrier_set: Yarn_Carrier_Set | None, cut_statement: Statement):
+        """Initialize the Sheet_Beyond_Gauge_Warning.
+
+        Args:
+            cur_carrier_set (Yarn_Carrier_Set | None): The current carrier that will be cut because no carrier set was specified.
+            cut_statement (Cut_Statement | Remove_Statement): The cut statement that triggered the warning.
+        """
+        message = "No carrier specified and no carrier is active. Cut is a No-Op" if cur_carrier_set is None else f"No carrier specified to cut, so cutting active carrier set {cur_carrier_set}"
+        super().__init__(message, cut_statement)

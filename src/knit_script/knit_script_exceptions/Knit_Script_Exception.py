@@ -6,6 +6,7 @@ providing consistent error message formatting and serving as a common base for a
 
 The module also includes Knit_Script_Located_Exception for exceptions that can provide detailed location information from the parse tree.
 """
+
 from parglare.common import Location, position_context
 
 from knit_script.knit_script_interpreter.ks_element import KS_Element

@@ -9,9 +9,9 @@ from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from knit_script.interpret_knit_script import knit_script_to_knitout
 
 
-def interpret_test_ks(ks_pattern: str, out_file_name: str = 'test.k', pattern_is_filename: bool = False,
-                      print_k_lines: bool = True, execute_knitout: bool = True,
-                      **python_variables: dict[str: Any]) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
+def interpret_test_ks(
+    ks_pattern: str, out_file_name: str = "test.k", pattern_is_filename: bool = False, print_k_lines: bool = True, execute_knitout: bool = True, **python_variables: dict[str:Any]
+) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
     """
     Process the given knit script pattern and printout the resulting knitout file.
     Args:
@@ -30,7 +30,7 @@ def interpret_test_ks(ks_pattern: str, out_file_name: str = 'test.k', pattern_is
     """
     knit_graph, machine_state = knit_script_to_knitout(ks_pattern, out_file_name, pattern_is_filename=pattern_is_filename, **python_variables)
     if print_k_lines:
-        with open(out_file_name, 'r') as f:
+        with open(out_file_name, "r") as f:
             lines = f.readlines()
             for line in lines:
                 print(line)

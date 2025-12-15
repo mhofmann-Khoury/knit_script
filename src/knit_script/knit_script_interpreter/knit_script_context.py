@@ -4,67 +4,31 @@ This module provides the Knit_Script_Context class, which serves as the primary 
 It manages variable scoping, machine state, and provides convenient access to machine configuration parameters.
 The context integrates scope management with machine operations to provide a unified execution environment for knit script programs.
 """
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from knitout_interpreter.knitout_operations.Header_Line import get_machine_header
-from knitout_interpreter.knitout_operations.Knitout_Line import (
-    Knitout_Comment_Line,
-    Knitout_Line,
-)
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line, Knitout_Line
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import (
-    Knitting_Machine_Exception,
-)
-from virtual_knitting_machine.Knitting_Machine_Specification import (
-    Knitting_Machine_Specification,
-)
-from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import (
-    Carriage_Pass_Direction,
-)
+from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import Knitting_Machine_Exception
+from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Specification
+from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
-    Sheet_Identifier,
-)
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
-    Sheet_Needle,
-    Slider_Sheet_Needle,
-)
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
-    Slider_Needle,
-)
-from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import (
-    Yarn_Carrier,
-    Yarn_Carrier_Set,
-)
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, Slider_Sheet_Needle
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier, Yarn_Carrier_Set
 
-from knit_script.knit_script_exceptions.add_exception_information import (
-    add_exception_to_statement,
-)
-from knit_script.knit_script_exceptions.Knit_Script_Exception import (
-    Knit_Script_Exception,
-    Knit_Script_Located_Exception,
-)
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_AttributeError,
-    Knit_Script_ImportError,
-    Knit_Script_IndexError,
-    Knit_Script_KeyError,
-    Knit_Script_NameError,
-    Knit_Script_TypeError,
-    Knit_Script_ValueError,
-)
-from knit_script.knit_script_interpreter.scope.gauged_sheet_schema import (
-    Gauged_Sheet_Record,
-)
+from knit_script.knit_script_exceptions.add_exception_information import add_exception_to_statement
+from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
+from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
 
 if TYPE_CHECKING:
-    from knit_script.knit_script_interpreter.Knit_Script_Parser import (
-        Knit_Script_Parser,
-    )
+    from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
 
 
 class Knit_Script_Context:
@@ -86,8 +50,14 @@ class Knit_Script_Context:
         variable_scope (Knit_Script_Scope): The current variable scope for the execution context.
     """
 
-    def __init__(self, parent_scope: Knit_Script_Scope | None = None, machine_specification: Knitting_Machine_Specification = Knitting_Machine_Specification(), ks_file: str | None = None,
-                 parser: Knit_Script_Parser | None = None, knitout_version: int = 2):
+    def __init__(
+        self,
+        parent_scope: Knit_Script_Scope | None = None,
+        machine_specification: Knitting_Machine_Specification | None = None,
+        ks_file: str | None = None,
+        parser: Knit_Script_Parser | None = None,
+        knitout_version: int = 2,
+    ):
         """Initialize the knit script context.
 
         Args:
@@ -97,7 +67,8 @@ class Knit_Script_Context:
             parser (Knit_Script_Parser | None, optional): Parser instance for processing knit script syntax. Defaults to None.
             knitout_version (int, optional): Version number of the knitout format to generate. Defaults to 2.
         """
-
+        if machine_specification is None:
+            machine_specification = Knitting_Machine_Specification()
         self.machine_state: Knitting_Machine = Knitting_Machine(machine_specification=machine_specification)
         self.ks_file: str | None = ks_file
         if parser is not None:
@@ -106,7 +77,7 @@ class Knit_Script_Context:
             self.parser: Knit_Script_Parser = Knit_Script_Parser()
         self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
         self._version = knitout_version
-        self.knitout: list[Knitout_Line] = get_machine_header(self.machine_state, self.version)
+        self.knitout: list[Knitout_Line] = cast(list[Knitout_Line], get_machine_header(self.machine_state, self.version))
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
 
     @property
@@ -170,7 +141,8 @@ class Knit_Script_Context:
         Args:
             collapse_into_parent (bool, optional): If True, brings values from lower scope into the next scope level. Defaults to False.
         """
-        self.variable_scope = self.variable_scope.exit_current_scope(collapse_into_parent)
+        new_variable_scope = self.variable_scope.exit_current_scope(collapse_into_parent)
+        self.variable_scope = Knit_Script_Scope(self, parent=None) if new_variable_scope is None else new_variable_scope
 
     @property
     def sheet_needle_count(self, gauge: int | None = None) -> int:
@@ -182,6 +154,7 @@ class Knit_Script_Context:
         Returns:
             int: The needle count per sheet in the specified gauge configuration.
         """
+        gauge = self.gauge if gauge is None else gauge
         return int(self.machine_state.needle_count / gauge)
 
     @property
@@ -294,12 +267,12 @@ class Knit_Script_Context:
             except Exception as e:
                 self.knitout.extend(cut_active_carriers(self.machine_state))
                 if len(self.knitout) > 0:
-                    with open(f"error.k", "w") as out:
+                    with open("error.k", "w") as out:
                         out.writelines([str(k) for k in self.knitout])
                         if isinstance(e, (Knitting_Machine_Exception, Knit_Script_Exception)):
                             error_comments = [Knitout_Comment_Line(e.message)]
                             out.writelines([str(ec) for ec in error_comments])
-                raise add_exception_to_statement(e, statement)
+                raise add_exception_to_statement(e, statement) from e
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False, global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """Get a needle based on current gauging configuration.

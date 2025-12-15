@@ -19,8 +19,7 @@ class Test_Swatch_Knitter(TestCase):
         program = load_test_resource("swatch_knitter.ks")
         courses = swatch.get_courses()
         swatch_from_kg_file = f"{k_file.split('.')[0]}_from_kg.k"
-        _swatch_from_kg, _machine_from_kg = knit_script_to_knitout(program, swatch_from_kg_file, pattern_is_filename=True,
-                                                                   swatch=swatch, courses=courses)
+        _swatch_from_kg, _machine_from_kg = knit_script_to_knitout(program, swatch_from_kg_file, pattern_is_filename=True, swatch=swatch, courses=courses)
         swatch_from_kg_instructions, _, __ = run_knitout(swatch_from_kg_file)
         swatch_from_kg_executer = Knitout_Executer(swatch_from_kg_instructions)
         swatch_from_kg_instructions = [i for i in swatch_from_kg_executer.executed_instructions if not isinstance(i, Knitout_Comment_Line)]
@@ -33,28 +32,24 @@ class Test_Swatch_Knitter(TestCase):
 
     def test_jersey(self):
         program = load_test_resource("jersey_swatch.ks")
-        swatch_k_file = 'jersey.k'
-        jersey_swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True,
-                                                         height=4, width=4)
+        swatch_k_file = "jersey.k"
+        jersey_swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True, height=4, width=4)
         self._compare_swatch_knitter_result(swatch_k_file, jersey_swatch)
 
     def test_rib(self):
         program = load_test_resource("rib_swatch.ks")
-        swatch_k_file = 'rib.k'
-        swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True,
-                                                  height=4, width=4)
+        swatch_k_file = "rib.k"
+        swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True, height=4, width=4)
         self._compare_swatch_knitter_result(swatch_k_file, swatch)
 
     def test_seed(self):
         program = load_test_resource("seed_swatch.ks")
-        swatch_k_file = 'seed.k'
-        swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True,
-                                                  height=4, width=4)
+        swatch_k_file = "seed.k"
+        swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True, height=4, width=4)
         self._compare_swatch_knitter_result(swatch_k_file, swatch)
 
     def test_lace_mesh(self):
         program = load_test_resource("lace_mesh.ks")
-        swatch_k_file = 'lace.k'
-        swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True,
-                                                  height=4, width=6)
+        swatch_k_file = "lace.k"
+        swatch, _machine = knit_script_to_knitout(program, swatch_k_file, pattern_is_filename=True, height=4, width=7)
         self._compare_swatch_knitter_result(swatch_k_file, swatch)

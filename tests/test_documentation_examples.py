@@ -2,12 +2,8 @@ import warnings
 from unittest import TestCase
 
 from resources.interpret_test_ks import interpret_test_ks
-from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import (
-    Knit_on_Empty_Needle_Warning,
-)
-from virtual_knitting_machine.knitting_machine_warnings.Yarn_Carrier_System_Warning import (
-    Yarn_Carrier_Warning,
-)
+from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import Knit_on_Empty_Needle_Warning
+from virtual_knitting_machine.knitting_machine_warnings.Yarn_Carrier_System_Warning import Yarn_Carrier_Warning
 
 
 class Test_Documentation_Examples(TestCase):
@@ -392,7 +388,7 @@ class Test_Documentation_Examples(TestCase):
     def test_mo_splits(self):
         program = r"""
         Carrier = c1;
-        in Rightward direction:{
+        in Leftward direction:{
            split Front_Needles[5:10];  // Splits loops and creates new ones on the opposite position
        }
        releasehook;
@@ -467,7 +463,7 @@ class Test_Documentation_Examples(TestCase):
             program = r"""
             Carrier = c1;
             // Operations that might need all-needle racking
-            in Rightward direction:{
+            in Leftward direction:{
                knit Front_Needles[10];
                knit Back_Needles[10];  // Same position - needs all-needle
             }

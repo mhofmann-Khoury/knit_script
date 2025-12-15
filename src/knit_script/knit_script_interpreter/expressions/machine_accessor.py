@@ -3,11 +3,10 @@
 This module provides expression classes for accessing machine state and sheet components in knit script programs.
 It includes the Machine_Accessor for direct machine access and Sheet_Expression for referencing specific sheets with gauge configurations.
 """
+
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import (
-    Sheet_Identifier,
-)
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -88,15 +87,12 @@ class Sheet_Expression(Expression):
         Note:
             String sheet identifiers can include embedded gauge information in the format "s<sheet>:g<gauge>" where <sheet> and <gauge> are numeric values.
         """
-        if self._gauge_id is None:
-            gauge = context.gauge
-        else:
-            gauge = int(self._gauge_id.evaluate(context))
+        gauge = context.gauge if self._gauge_id is None else int(self._gauge_id.evaluate(context))
         if isinstance(self._sheet_id, str):
             if ":g" in self._sheet_id:
                 split = self._sheet_id.find(":g")
                 sheet = int(self._sheet_id[1:split])
-                gauge = int(self._sheet_id[split + 2:])
+                gauge = int(self._sheet_id[split + 2 :])
             else:
                 sheet = int(self._sheet_id[1:])
         else:

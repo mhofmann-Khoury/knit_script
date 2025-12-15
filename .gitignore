@@ -191,6 +191,7 @@ fabric.properties
 *.pgt
 *.k
 *.dat
+*.pgc
 
 #ignore vs code files
 .vscode/

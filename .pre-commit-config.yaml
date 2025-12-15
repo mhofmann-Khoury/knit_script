@@ -11,6 +11,11 @@
 #
 # The hooks will run automatically on changed files before each commit.
 # To skip hooks temporarily: git commit -m "message" --no-verify
+#
+# CONFIGURATION NOTES:
+# - Update SRC_DIR below if your source code is not in src/
+# - MyPy hook uses Poetry for dependency management
+# - All hooks respect pyproject.toml configuration
 
 repos:
   # ==========================================================================
@@ -18,7 +23,7 @@ repos:
   # ==========================================================================
   # General file hygiene and common issues
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0  # Update to latest version periodically
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace        # Remove trailing whitespace from all files
         args: [--markdown-linebreak-ext=md]  # Preserve markdown line breaks
@@ -26,40 +31,66 @@ repos:
       - id: check-yaml                # Validate YAML syntax
       - id: check-toml                # Validate TOML syntax (pyproject.toml)
       - id: check-added-large-files   # Prevent accidentally committing large files
-        args: ['--maxkb=1000']         # Max file size in KB
+        args: ['--maxkb=500']         # Max file size in KB
       - id: check-merge-conflict      # Detect merge conflict markers
       - id: check-case-conflict       # Detect case-sensitive filename conflicts
       - id: check-docstring-first     # Ensure docstrings come first in modules
       - id: fix-byte-order-marker     # Remove UTF-8 byte order markers
+      - id: check-ast                 # Validate Python AST (syntax errors)
 
   # ==========================================================================
   # IMPORT ORGANIZATION
   # ==========================================================================
   # isort: Automatically sort and organize import statements
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0  # Update to latest version periodically
+    rev: 5.13.2
     hooks:
       - id: isort
-        name: isort
-        description: "Sort Python imports"
+        name: isort (import sorting)
+        description: "Sort and organize Python imports"
         args: [--settings-path=pyproject.toml]
 
   # ==========================================================================
+  # CODE FORMATTING
+  # ==========================================================================
+  # Black: The uncompromising Python code formatter
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        name: black (code formatting)
+        description: "Format Python code with Black"
+        args: [--config=pyproject.toml]
+        language_version: python3
+
+  # ==========================================================================
+  # LINTING
+  # ==========================================================================
+  # Ruff: Fast Python linter (replaces flake8, pylint, etc.)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        name: ruff (linting)
+        description: "Lint Python code with Ruff"
+        args: [--fix, --exit-non-zero-on-fix, --config=pyproject.toml]
+
+# ==========================================================================
   # STATIC TYPE CHECKING
   # ==========================================================================
   # MyPy: Static type checker (catches type-related errors)
+  # Note: Runs via Poetry to ensure correct dependencies are available
   - repo: local
     hooks:
       - id: mypy
-        name: mypy
+        name: mypy (type checking)
         description: "Static type checking with MyPy"
         entry: poetry run mypy
         language: system
         types: [python]
-        args: [--config-file=pyproject.toml, src/]  # Explicitly specify src/ directory
-        exclude: ^(docs/|tests/)      # Skip documentation and test files
-        pass_filenames: false         # Run on entire codebase, not individual files
-        require_serial: true          # Don't run in parallel (can cause issues)
+        args: [-p, knit_script]
+        pass_filenames: false
+        require_serial: true
 
 
 # =============================================================================
@@ -69,8 +100,8 @@ repos:
 default_install_hook_types: [pre-commit, pre-push]  # Install for both commit and push
 default_stages: [commit]            # Run hooks on commit by default
 
-# Fail fast: stop on first hook failure (useful for development)
-fail_fast: false                    #  Set to true if you want to stop on first failure
+# Fail fast: stop on first hook failure
+fail_fast: false                    # Set to true to stop on first failure
 
 # =============================================================================
 # EXCLUSION PATTERNS
@@ -82,61 +113,92 @@ exclude: |
       \.venv/.*|                    # Virtual environment
       \.mypy_cache/.*|              # MyPy cache
       \.pytest_cache/.*|            # Pytest cache
+      \.ruff_cache/.*|              # Ruff cache
       __pycache__/.*|               # Python cache
       .*\.egg-info/.*|              # Python build artifacts
       dist/.*|                      # Distribution files
       build/.*|                     # Build files
       docs/_build/.*|               # Built documentation
+      docs/build/.*|                # Built documentation (alternate path)
       htmlcov/.*|                   # Coverage HTML reports
       \.coverage.*|                 # Coverage data files
-      # TODO: Add project-specific exclusions here
+      # Add project-specific exclusions here
   )$
+
+# =============================================================================
+# CONFIGURATION IN PYPROJECT.TOML
+# =============================================================================
+# All tool configurations should be in pyproject.toml for centralized management:
+#
+# [tool.black]
+# line-length = 120
+# target-version = ['py311']
+#
+# [tool.isort]
+# profile = "black"
+# line_length = 120
+#
+# [tool.ruff]
+# line-length = 120
+# target-version = "py311"
+#
+# [tool.mypy]
+# python_version = "3.11"
+# strict = true
 
 # =============================================================================
 # DEVELOPMENT WORKFLOW INTEGRATION
 # =============================================================================
 # Commands to integrate pre-commit with your development workflow:
 #
-# SETUP (run once):
-#   poetry install                    # Install dependencies including pre-commit
-#   pre-commit install               # Install git hooks
+# INITIAL SETUP (run once per project):
+#   poetry install                   # Install dependencies, including pre-commit
+#   pre-commit install              # Install git hooks for commits
 #   pre-commit install --hook-type pre-push  # Also install pre-push hooks
 #
 # MANUAL EXECUTION:
-#   pre-commit run --all-files       # Run all hooks on all files
-#   pre-commit run mypy              # Run specific hook
+#   pre-commit run --all-files      # Run all hooks on all files
+#   pre-commit run mypy             # Run specific hook by ID
 #   pre-commit run --files src/module.py  # Run on specific files
 #
 # UPDATING HOOKS:
-#   pre-commit autoupdate            # Update hook versions
-#   pre-commit clean                 # Clear hook caches
+#   pre-commit autoupdate           # Update all hook versions to latest
+#   pre-commit clean                # Clear hook caches
 #
 # TEMPORARILY SKIP HOOKS:
 #   git commit -m "message" --no-verify     # Skip all pre-commit hooks
-#   SKIP=mypy git commit -m "message"       # Skip specific hook
+#   SKIP=mypy git commit -m "message"       # Skip specific hook(s)
+#   SKIP=mypy,ruff git commit -m "message"  # Skip multiple hooks
+#
+# DEBUGGING:
+#   pre-commit run --verbose --all-files    # Run with verbose output
+#   pre-commit run mypy --verbose           # Debug specific hook
 #
 # CONFIGURATION IN CI/CD:
-#   Include in GitHub Actions with: pre-commit run --all-files
+#   Include in GitHub Actions with: poetry run pre-commit run --all-files
 #   This ensures the same quality checks run locally and in CI
+#
+# RECOMMENDED PYPROJECT.TOML DEPENDENCIES:
+#   [tool.poetry.group.dev.dependencies]
+#   pre-commit = "^3.5.0"
+#   mypy = "^1.8.0"
+#   black = "^24.1.0"
+#   ruff = "^0.1.0"
+#   isort = "^5.13.0"
 
 # =============================================================================
-#  CHECKLIST FOR NEW PROJECTS
+# CUSTOMIZATION NOTES
 # =============================================================================
-# When using this template, customize the following:
+# To customize this configuration for your project:
+# 1. Update the 'files: ^src/' pattern in mypy hook if your source is elsewhere
+# 2. Add project-specific exclusions to the exclude pattern
+# 3. Adjust hook versions periodically with 'pre-commit autoupdate'
+# 4. Add or remove hooks based on your project's needs
+# 5. Configure tool-specific settings in pyproject.toml
 #
-# 1. UPDATE VERSIONS:
-#    - [ ] Update all 'rev' fields to latest versions
-#    - [ ] Check for new hooks that might be useful
-#
-# 2. CUSTOMIZE PATHS:
-#    - [ ] Update source directory in mypy hook if not using src/
-#    - [ ] Update documentation path in sphinx-build if not using docs/
-#
-# 3. CONFIGURE TOOL-SPECIFIC SETTINGS:
-#    - [ ] Update Python version in black hook
-#    - [ ] Remove pytest-related args if using unittest
-#    - [ ] Add project-specific exclusions
-#
-# 4. GITHUB INTEGRATION:
-#    - [ ] Add pre-commit to your GitHub Actions workflow
-#    - [ ] Consider using pre-commit.ci for automatic hook updates
+# Popular additional hooks to consider:
+# - bandit: Security linter for Python
+# - pydocstyle: Docstring style checker
+# - prettier: Formatter for JSON, YAML, Markdown
+# - shellcheck: Shell script linter
+# - commitizen: Conventional commit message checker

@@ -5,30 +5,17 @@ The Gauged_Sheet_Record class maintains state tracking for multiple sheets at di
 
 The module handles complex operations like sheet peeling, layer management, and loop state tracking across multiple gauge configurations.
 """
+
 from __future__ import annotations
 
-from typing import cast
-
-from knitout_interpreter.knitout_operations.Knitout_Line import (
-    Knitout_Comment_Line,
-    Knitout_Line,
-)
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line
 from knitout_interpreter.knitout_operations.needle_instructions import Xfer_Instruction
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
-from virtual_knitting_machine.machine_components.needles.Sheet_Needle import (
-    Sheet_Needle,
-    get_sheet_needle,
-)
-from virtual_knitting_machine.machine_components.needles.Slider_Needle import (
-    Slider_Needle,
-)
+from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle, get_sheet_needle
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
-from knit_script.knit_script_exceptions.gauge_sheet_exceptions import (
-    Lost_Sheet_Loops_Exception,
-    Sheet_Peeling_Blocked_Loops_Exception,
-    Sheet_Peeling_Stacked_Loops_Exception,
-)
+from knit_script.knit_script_exceptions.gauge_sheet_exceptions import Lost_Sheet_Loops_Exception, Sheet_Peeling_Blocked_Loops_Exception, Sheet_Peeling_Stacked_Loops_Exception
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Sheet import Sheet
 
 
@@ -73,7 +60,7 @@ class Gauged_Sheet_Record:
             needle = get_sheet_needle(needle, self.gauge, needle.is_slider)
         self.sheets[needle.sheet].record_needle(needle)
 
-    def peel_sheet_relative_to_active_sheet(self, active_sheet: int) -> tuple[list[Knitout_Line], list[int]]:
+    def peel_sheet_relative_to_active_sheet(self, active_sheet: int) -> tuple[list[Knitout_Comment_Line | Xfer_Instruction], list[int]]:
         """Move loops out of the way of the active sheet based on needle layer positions.
 
         This method implements sheet peeling by moving loops that would interfere with the active sheet to appropriate positions.
@@ -83,8 +70,8 @@ class Gauged_Sheet_Record:
             active_sheet (int): The sheet to activate by peeling all other needles based on their relative layers. Must be a valid sheet index within the gauge range.
 
         Returns:
-            tuple[list[Knitout_Line], list[int]]: A tuple containing:
-                - list[Knitout_Line]: The knitout instructions that peel the layers, including transfer operations and comments.
+            tuple[list[Knitout_Comment_Line | Xfer_Instruction], list[int]]: A tuple containing:
+                - list[Knitout_Comment_Line | Xfer_Instruction]: The knitout instructions that peel the layers, including transfer operations and comments.
                 - list[int]: The needle positions that hold loops on the front or back beds in the same layer as the given active sheet.
 
         Note:
@@ -99,18 +86,17 @@ class Gauged_Sheet_Record:
             front_needle = self.knitting_machine[Needle(True, needle_pos)]
             sheet_of_needle = back_sheet_needle.sheet
             sheet_pos = back_sheet_needle.sheet_pos
-            if back_needle.has_loops or front_needle.has_loops:
-                if sheet_of_needle != active_sheet:
-                    active_sheet_needle = Sheet_Needle(True, sheet_pos, active_sheet, self.gauge)
-                    active_sheet_layer = self._needle_pos_to_layer[active_sheet_needle.position]
-                    if active_sheet_layer == needle_layer:
-                        same_layer_needles.append(needle_pos)
-                    if needle_layer < active_sheet_layer and back_needle.has_loops:  # needle is in front of the active sheet but has loops on the back.
-                        peel_order_to_needles[sheet_of_needle].append(back_needle)
-                    elif needle_layer > active_sheet_layer and front_needle.has_loops:  # needle is behind the active sheet but has loops on the front
-                        peel_order_to_needles[sheet_of_needle].append(front_needle)
+            if (back_needle.has_loops or front_needle.has_loops) and sheet_of_needle != active_sheet:
+                active_sheet_needle = Sheet_Needle(True, sheet_pos, active_sheet, self.gauge)
+                active_sheet_layer = self._needle_pos_to_layer[active_sheet_needle.position]
+                if active_sheet_layer == needle_layer:
+                    same_layer_needles.append(needle_pos)
+                if needle_layer < active_sheet_layer and back_needle.has_loops:  # needle is in front of the active sheet but has loops on the back.
+                    peel_order_to_needles[sheet_of_needle].append(back_needle)
+                elif needle_layer > active_sheet_layer and front_needle.has_loops:  # needle is behind the active sheet but has loops on the front
+                    peel_order_to_needles[sheet_of_needle].append(front_needle)
 
-        xfers = []
+        xfers: list[Knitout_Comment_Line | Xfer_Instruction] = []
         for sheet, peel_needles in peel_order_to_needles.items():
             if len(peel_needles) > 0:
                 xfers.append(Knitout_Comment_Line(f"Peel sheet {sheet} relative to {active_sheet}"))
@@ -119,7 +105,7 @@ class Gauged_Sheet_Record:
                 xfers.append(xfer_instruction)
         return xfers, same_layer_needles
 
-    def reset_to_sheet(self, sheet_id: int) -> list[Knitout_Line]:
+    def reset_to_sheet(self, sheet_id: int) -> list[Knitout_Comment_Line | Xfer_Instruction]:
         """Return loops to a recorded location in a layer gauging schema.
 
         This method restores the needle configuration to a previously recorded state for the specified sheet.
@@ -129,7 +115,7 @@ class Gauged_Sheet_Record:
             sheet_id (int): The sheet to reset to. Must be a valid sheet index within the gauge range.
 
         Returns:
-            list[Knitout_Line]: The knitout instructions needed to reset to that  sheet, including any necessary transfer operations and comments.
+            list[Knitout_Comment_Line | Xfer_Instruction]: The knitout instructions needed to reset to that  sheet, including any necessary transfer operations and comments.
 
         Raises:
             Lost_Sheet_Loops_Exception: If loops that were recorded are no longer present on the expected needles.
@@ -142,7 +128,7 @@ class Gauged_Sheet_Record:
         knitout, same_layer_needles = self.peel_sheet_relative_to_active_sheet(sheet_id)
         sheet = self.sheets[sheet_id]
 
-        for f, b in zip(self.front_needles(sheet_id), self.back_needles(sheet_id)):
+        for f, b in zip(self.front_needles(sheet_id), self.back_needles(sheet_id), strict=False):
             sheet_needle = get_sheet_needle(f, self.gauge)
             front_had_loops, back_had_loops = sheet.loop_record[sheet_needle.position]
             had_loops = front_had_loops or back_had_loops
@@ -246,11 +232,9 @@ class Gauged_Sheet_Record:
         push_distance = sheet_needle_with_target_layer.sheet - sheet_needle.sheet
         if push_forward:
             self.push_layer_forward(needle_pos, self.gauge - push_distance)
-            return
-        elif push_backward:
+        else:
+            assert push_backward, "Needs a rule for setting the layer (forward, backward, or swap)"
             self.push_layer_backward(needle_pos, push_distance)
-            return
-        assert False, f"Needs a rule for setting the layer (forward, backward, or swap)"
 
     def swap_layer_at_positions(self, position_a: int | Needle, position_b: int | Needle) -> None:
         """Swap the layer values between two needle positions.
@@ -346,7 +330,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The set of front bed needles on the machine that belong  to the given sheet.
         """
-        return cast(list[Needle], self.sheets[sheet].front_needles())
+        return self.sheets[sheet].front_needles()
 
     def back_needles(self, sheet: int) -> list[Needle]:
         """Get the set of back bed needles on the machine that belong to the given sheet.
@@ -357,7 +341,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The set of back bed needles on the machine that belong to the given sheet.
         """
-        return cast(list[Needle], self.sheets[sheet].back_needles())
+        return self.sheets[sheet].back_needles()
 
     def front_sliders(self, sheet: int) -> list[Slider_Needle]:
         """Get the set of front bed slider needles on the machine that belong to the given sheet.
@@ -368,7 +352,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The set of front bed slider needles on the machine  that belong to the given sheet.
         """
-        return cast(list[Slider_Needle], self.sheets[sheet].front_sliders())
+        return self.sheets[sheet].front_sliders()
 
     def back_sliders(self, sheet: int) -> list[Slider_Needle]:
         """Get the set of back bed slider needles on the machine that belong to the given sheet.
@@ -379,7 +363,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The set of back bed slider needles on the machine that belong to the given sheet.
         """
-        return cast(list[Slider_Needle], self.sheets[sheet].back_sliders())
+        return self.sheets[sheet].back_sliders()
 
     def front_loops(self, sheet: int) -> list[Needle]:
         """Get the list of front bed needles that belong to this sheet and currently hold loops.
@@ -390,7 +374,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The list of front bed needles that belong to this sheet  and currently hold loops.
         """
-        return cast(list[Needle], self.sheets[sheet].front_loops())
+        return self.sheets[sheet].front_loops()
 
     def back_loops(self, sheet: int) -> list[Needle]:
         """Get the list of back bed needles that belong to this sheet and currently hold loops.
@@ -401,7 +385,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: The list of back bed needles that belong to this sheet and currently hold loops.
         """
-        return cast(list[Needle], self.sheets[sheet].back_loops())
+        return self.sheets[sheet].back_loops()
 
     def front_slider_loops(self, sheet: int) -> list[Slider_Needle]:
         """Get the list of front bed slider needles that belong to this sheet and currently hold loops.
@@ -412,7 +396,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The list of front bed slider needles that belong  to this sheet and currently hold loops.
         """
-        return cast(list[Slider_Needle], self.sheets[sheet].front_slider_loops())
+        return self.sheets[sheet].front_slider_loops()
 
     def back_slider_loops(self, sheet: int) -> list[Slider_Needle]:
         """Get the list of back bed slider needles that belong to this sheet and currently hold loops.
@@ -423,7 +407,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: The list of back bed slider needles that belong  to this sheet and currently hold loops.
         """
-        return cast(list[Slider_Needle], self.sheets[sheet].back_slider_loops())
+        return self.sheets[sheet].back_slider_loops()
 
     def all_needles(self, sheet: int) -> list[Needle]:
         """Get list of all needles on the sheet with front bed needles given first.
@@ -434,7 +418,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: List of all needles on the sheet with front bed needles  given first, followed by back bed needles.
         """
-        return cast(list[Needle], self.sheets[sheet].all_needles())
+        return self.sheets[sheet].all_needles()
 
     def all_sliders(self, sheet: int) -> list[Slider_Needle]:
         """Get list of all slider needles on the sheet with front bed sliders given first.
@@ -445,7 +429,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: List of all slider needles on the sheet with front  bed sliders given first, followed by back bed sliders.
         """
-        return cast(list[Slider_Needle], self.sheets[sheet].all_sliders())
+        return self.sheets[sheet].all_sliders()
 
     def all_loops(self, sheet: int) -> list[Needle]:
         """Get list of all loop-holding needles on the sheet with front bed needles given first.
@@ -456,7 +440,7 @@ class Gauged_Sheet_Record:
         Returns:
             list[Needle]: List of all loop-holding needles on the sheet with front  bed needles given first, followed by back bed needles.
         """
-        return cast(list[Needle], self.sheets[sheet].all_loops())
+        return self.sheets[sheet].all_loops()
 
     def all_slider_loops(self, sheet: int) -> list[Slider_Needle]:
         """Get list of all loop-holding slider needles on the sheet with front bed sliders given first.
@@ -467,4 +451,4 @@ class Gauged_Sheet_Record:
         Returns:
             list[Slider_Needle]: List of all loop-holding slider needles on the sheet with front bed sliders given first, followed by back bed sliders.
         """
-        return cast(list[Slider_Needle], self.sheets[sheet].all_slider_loops())
+        return self.sheets[sheet].all_slider_loops()

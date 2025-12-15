@@ -3,6 +3,7 @@
 This module provides the Return_Statement class, which handles function return operations in knit script programs.
 It evaluates return expressions and manages the return value propagation through the scope hierarchy.
 """
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression

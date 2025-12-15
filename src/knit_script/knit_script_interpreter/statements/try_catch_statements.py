@@ -3,6 +3,7 @@
 This module provides the Try_Catch_Statement class, which implements exception handling control flow in knit script programs.
 It allows programs to gracefully handle errors and exceptions that may occur during knitting operations, providing robust error recovery mechanisms.
 """
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
@@ -56,10 +57,7 @@ class Try_Catch_Statement(Statement):
         except Exception as e:
             if len(self._errors) > 0:
                 for error_exp in self._errors:
-                    if isinstance(error_exp, Assignment):
-                        error = error_exp.value(context)
-                    else:
-                        error = error_exp.evaluate(context)
+                    error = error_exp.value(context) if isinstance(error_exp, Assignment) else error_exp.evaluate(context)
                     if isinstance(e, error):
                         context.enter_sub_scope()
                         if isinstance(error_exp, Assignment):

@@ -3,19 +3,16 @@
 This module provides classes for function declaration and execution in knit script programs.
 It includes the Function_Signature class for managing function objects and the Function_Declaration statement for creating and registering user-defined functions.
 """
+
 import warnings
 from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.python_style_exceptions import (
-    Knit_Script_NameError,
-    Knit_Script_TypeError,
-)
+from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_NameError, Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
-from knit_script.knit_script_interpreter.expressions.variables import (
-    Variable_Expression,
-)
+from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
@@ -82,7 +79,7 @@ class Function_Signature:
         for param, arg in self._defaults.items():  # assign defaults, may get overridden
             context.variable_scope[param] = arg
             filled_params.add(param)
-        for param, exp in zip(self._parameter_names, args):
+        for param, exp in zip(self._parameter_names, args, strict=False):
             if isinstance(exp, Assignment):  # passed keyword argument
                 key = exp.variable_name
                 arg = exp.value(context)
@@ -170,11 +167,11 @@ class Function_Declaration(Statement):
         for arg in self._args:
             params.append(arg.variable_name)
             if arg.variable_name in context.variable_scope:
-                warnings.warn(Shadow_Variable_Warning(arg.variable_name), self)
+                warnings.warn(Shadow_Variable_Warning(arg.variable_name), self, stacklevel=get_user_warning_stack_level_from_knitscript_package())
         for kwarg in self._kwargs:
             params.append(kwarg.variable_name)
             if kwarg.variable_name in context.variable_scope:
-                warnings.warn(Shadow_Variable_Warning(kwarg.variable_name), self)
+                warnings.warn(Shadow_Variable_Warning(kwarg.variable_name), self, stacklevel=get_user_warning_stack_level_from_knitscript_package())
             defaults[kwarg.variable_name] = kwarg.value(context)
 
         function = Function_Signature(self._func_name, params, self._body, defaults, context.variable_scope.module_scope, self)

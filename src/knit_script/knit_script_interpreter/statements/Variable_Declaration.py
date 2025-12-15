@@ -3,6 +3,7 @@
 This module provides the Variable_Declaration statement class, which handles variable declaration operations in knit script programs.
 It wraps assignment operations with scope-specific behavior for both local and global variable declarations.
 """
+
 from parglare.parser import LRStackNode
 
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
