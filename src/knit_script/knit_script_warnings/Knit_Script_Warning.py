@@ -33,14 +33,14 @@ class Knit_Script_Warning(RuntimeWarning):
         message (str): The formatted warning message including the KnitScript warning prefix.
     """
 
-    def __init__(self, message: str, ks_element: KS_Element | None):
+    def __init__(self, message: str, ks_element: KS_Element | None = None):
         """Initialize the Knit_Script_Warning.
 
         Creates a new KnitScript warning with the provided message. The message is automatically formatted with a KnitScript warning prefix and newline formatting for consistent warning display.
 
         Args:
-            ks_element (KS_Element | None): The KnitScript element that triggered the warning. Used to identify the location in the knitscript code.
             message (str): The warning message to display. This will be prefixed with "KnitScript Warning:" in the final formatted message.
+            ks_element (KS_Element | None, optional): The KnitScript element that triggered the warning. Used to identify the location in the knitscript code.
         """
         self._ks_element: KS_Element | None = ks_element
         self.message = message
@@ -150,3 +150,14 @@ class Cut_Unspecified_Carrier_Warning(Knit_Script_Warning):
         """
         message = "No carrier specified and no carrier is active. Cut is a No-Op" if cur_carrier_set is None else f"No carrier specified to cut, so cutting active carrier set {cur_carrier_set}"
         super().__init__(message, cut_statement)
+
+
+class Breakpoint_Condition_Error_Ignored_Warning(Knit_Script_Warning):
+    """
+    Warning raised when a breakpoint condition is ignored.
+    """
+
+    def __init__(self, condition_error: BaseException, line_number: int) -> None:
+        self.error: BaseException = condition_error
+        self.line: int = line_number
+        super().__init__("Conditional Breakpoint at Line {line_number} triggered Error: {condition_error}")

@@ -38,6 +38,11 @@ class Push_Statement(Statement):
         super().__init__(parser_node)
         self._needles: list[Expression] = needles
         self._push_val: str | Expression | tuple[Expression, str] = push_val
+        self.add_children(self._needles)
+        if isinstance(push_val, Expression):
+            self.add_children(push_val)
+        elif isinstance(push_val, tuple):
+            self.add_children(push_val[0])
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the push operation on the specified needles.

@@ -57,6 +57,8 @@ class Attribute_Accessor_Expression(Expression):
             self.attribute: Expression = attribute
         if isinstance(self.attribute, Function_Call):
             self.is_method_call = True
+        self.add_children(self.parent)
+        self.add_children(self.attribute)
 
     def _parent_expression(self) -> Expression:
         """Get the parent expression for evaluation.

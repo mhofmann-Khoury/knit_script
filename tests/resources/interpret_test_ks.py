@@ -10,7 +10,7 @@ from knit_script.interpret_knit_script import knit_script_to_knitout
 
 
 def interpret_test_ks(
-    ks_pattern: str, out_file_name: str = "test.k", pattern_is_filename: bool = False, print_k_lines: bool = True, execute_knitout: bool = True, **python_variables: dict[str:Any]
+    ks_pattern: str, out_file_name: str = "test.k", pattern_is_filename: bool = False, print_k_lines: bool = False, execute_knitout: bool = True, **python_variables: dict[str:Any]
 ) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
     """
     Process the given knit script pattern and printout the resulting knitout file.

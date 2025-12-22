@@ -7,6 +7,7 @@ The context integrates scope management with machine operations to provide a uni
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, cast
 
 from knitout_interpreter.knitout_operations.Header_Line import get_machine_header
@@ -21,7 +22,7 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import She
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier, Yarn_Carrier_Set
 
-from knit_script.knit_script_exceptions.add_exception_information import add_exception_to_statement
+from knit_script.knit_script_exceptions.add_exception_information import add_ks_information_to_error
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
@@ -29,6 +30,7 @@ from knit_script.knit_script_std_library.carriers import cut_active_carriers
 
 if TYPE_CHECKING:
     from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
+    from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Knit_Script_Context:
@@ -250,11 +252,11 @@ class Knit_Script_Context:
         """
         self.variable_scope.Gauge = value
 
-    def execute_statements(self, statements: list) -> None:
-        """Execute the list of statements on current context.
+    def execute_statements(self, statements: Iterable[Statement]) -> None:
+        """Execute the statements in the current context.
 
         Args:
-            statements (list): Statements to execute in the current context.
+            statements (Iterable[Statement]): Statements to execute in the current context.
 
         Raises:
             AssertionError: If assertions in the script fail during execution.
@@ -262,9 +264,19 @@ class Knit_Script_Context:
             Knitting_Machine_Exception: If machine operation errors occur during the knitting process.
         """
         for statement in statements:
+            self.execute_statement(statement)
+
+    def execute_statement(self, statement: Statement) -> None:
+        """
+        Execute the given statement in the current context.
+
+        Args:
+            statement (Statement): The statement to execute.
+        """
+        try:
+            statement.execute(self)
+        except Exception as e:
             try:
-                statement.execute(self)
-            except Exception as e:
                 self.knitout.extend(cut_active_carriers(self.machine_state))
                 if len(self.knitout) > 0:
                     with open("error.k", "w") as out:
@@ -272,7 +284,9 @@ class Knit_Script_Context:
                         if isinstance(e, (Knitting_Machine_Exception, Knit_Script_Exception)):
                             error_comments = [Knitout_Comment_Line(e.message)]
                             out.writelines([str(ec) for ec in error_comments])
-                raise add_exception_to_statement(e, statement) from e
+            except Exception as cut_e:
+                e.add_note(f"Couldn't produce valid error.k file because of error: {cut_e}")
+            raise add_ks_information_to_error(e, statement) from None
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False, global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """Get a needle based on current gauging configuration.

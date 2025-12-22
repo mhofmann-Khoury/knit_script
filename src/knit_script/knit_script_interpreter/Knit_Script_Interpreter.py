@@ -12,16 +12,18 @@ Attributes:
 from __future__ import annotations
 
 from inspect import stack
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from knit_graphs.Knit_Graph import Knit_Graph
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
+
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.expressions.expressions import Expression
 
 
 class Knit_Script_Interpreter:

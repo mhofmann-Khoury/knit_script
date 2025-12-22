@@ -39,13 +39,18 @@ class Swap_Statement(Statement):
             value (Expression): Expression that evaluates to either a sheet number (for sheet swaps) or layer number (for layer swaps).
         """
         super().__init__(parser_node)
-        self._needles = needles
+        self._needles: list[Expression] = needles
         if swap_type == "sheet":
             self._layer: Expression | None = None
             self._sheet: Expression | None = value
         else:
             self._layer: Expression | None = value
             self._sheet: Expression | None = None
+        self.add_children(self._needles)
+        if self._layer is not None:
+            self.add_children(self._layer)
+        if self._sheet is not None:
+            self.add_children(self._sheet)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the swap operation on the specified needles.

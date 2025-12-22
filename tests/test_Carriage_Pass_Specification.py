@@ -14,4 +14,4 @@ class TestCarriage_Pass_Specification(TestCase):
         in Rightward direction:{
             miss Front_Loops;
         }"""
-        interpret_test_ks(program, print_k_lines=True)
+        interpret_test_ks(program, print_k_lines=False)

@@ -39,6 +39,10 @@ class Xfer_Pass_Racking(Expression):
         super().__init__(parser_node)
         self._direction_expression: Expression | None = direction_expression
         self._distance_expression: Expression | None = distance_expression
+        if self._distance_expression is not None:
+            self.add_children(self._distance_expression)
+        if self._direction_expression is not None:
+            self.add_children(self._direction_expression)
 
     @property
     def is_across(self) -> bool:

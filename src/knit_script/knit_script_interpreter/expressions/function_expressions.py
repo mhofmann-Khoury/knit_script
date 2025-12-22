@@ -45,6 +45,9 @@ class Function_Call(Expression):
         self.kwargs: list[Assignment] = kwargs
         self.args: list[Expression] = args
         self.func_name: Variable_Expression = func_name
+        self.add_children(self.kwargs)
+        self.add_children(self.args)
+        self.add_children(func_name)
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
         """Find function in scope, fill parameters and then execute.

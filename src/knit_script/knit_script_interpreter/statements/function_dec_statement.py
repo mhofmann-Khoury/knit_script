@@ -136,6 +136,9 @@ class Function_Declaration(Statement):
         self._args: list[Variable_Expression] = args
         self._body: Statement = body
         self._func_name: str = func_name
+        self.add_children(args)
+        self.add_children(kwargs)
+        self.add_children(body)
 
     def __str__(self) -> str:
         """Return string representation of the function declaration.

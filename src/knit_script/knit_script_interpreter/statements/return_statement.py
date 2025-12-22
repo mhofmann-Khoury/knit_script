@@ -21,7 +21,7 @@ class Return_Statement(Statement):
     and execution of the current function terminates immediately after the return statement is processed.
 
     Attributes:
-        _exp (Expression): The expression to evaluate and return as the function result.
+        _expression (Expression): The expression to evaluate and return as the function result.
     """
 
     def __init__(self, parser_node: LRStackNode, exp: Expression) -> None:
@@ -32,7 +32,8 @@ class Return_Statement(Statement):
             exp (Expression): The expression to evaluate and return as the function result.
         """
         super().__init__(parser_node)
-        self._exp: Expression = exp
+        self._expression: Expression = exp
+        self.add_children(self._expression)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the return by setting the return value and return flag.
@@ -42,7 +43,7 @@ class Return_Statement(Statement):
         Args:
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
-        value = self._exp.evaluate(context)
+        value = self._expression.evaluate(context)
         context.variable_scope.return_value = value
 
     def __str__(self) -> str:
@@ -51,7 +52,7 @@ class Return_Statement(Statement):
         Returns:
             str: A string showing the return keyword and expression.
         """
-        return f"return {self._exp}"
+        return f"return {self._expression}"
 
     def __repr__(self) -> str:
         """Return detailed string representation of the return statement.

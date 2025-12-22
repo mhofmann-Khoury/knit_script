@@ -5,7 +5,7 @@ It includes support for lists, dictionaries, tuples, list comprehensions, dictio
 """
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast
 
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
@@ -24,7 +24,7 @@ class Unpack(Expression):
     It takes an iterable expression and unpacks its elements into a tuple, similar to Python's unpacking behavior.
 
     Attributes:
-        _exp (Expression): The expression to unpack into individual elements.
+        _expression (Expression): The expression to unpack into individual elements.
     """
 
     def __init__(self, parser_node: LRStackNode, exp: Expression) -> None:
@@ -35,7 +35,8 @@ class Unpack(Expression):
             exp (Expression): Expression to unpack into individual elements.
         """
         super().__init__(parser_node)
-        self._exp = exp
+        self._expression = exp
+        self.add_children(self._expression)
 
     def evaluate(self, context: Knit_Script_Context) -> tuple[Any, ...]:
         """Evaluate the expression to unpack the contained expression.
@@ -46,10 +47,10 @@ class Unpack(Expression):
         Returns:
             tuple[Any, ...]: Tuple with unpacked values from the expression.
         """
-        return (*self._exp.evaluate(context),)
+        return (*self._expression.evaluate(context),)
 
     def __str__(self) -> str:
-        return f"(*{self._exp})"
+        return f"(*{self._expression})"
 
     def __repr__(self) -> str:
         return str(self)
@@ -74,6 +75,7 @@ class Knit_Script_List(Expression):
         """
         super().__init__(parser_node)
         self.expressions: list[Expression] = expressions
+        self.add_children(self.expressions)
 
     def evaluate(self, context: Knit_Script_Context) -> list[Any]:
         """Evaluate the expression to create a list.
@@ -154,6 +156,10 @@ class Sliced_List(Expression):
         self._end: Expression | None = end
         self._start: Expression | None = start
         self._iter_exp: Expression = iter_exp
+        self.add_children(self._end)
+        self.add_children(self._spacer)
+        self.add_children(self._start)
+        self.add_children(self._iter_exp)
 
     def evaluate(self, context: Knit_Script_Context) -> Iterable[Any] | Any:
         """Evaluate the expression to perform slicing or indexing.
@@ -216,7 +222,6 @@ class List_Comp(Expression):
 
     Attributes:
         _comp_cond (Expression | None): Optional condition expression for filtering elements.
-        _spacer (str | None | Expression): Optional spacing control for iteration.
         _fill_exp (Expression): Expression that generates values for the list.
         _vars (list[Variable_Expression]): Variables to bind during iteration.
         _var_name (str | None): Single variable name for simple iterations.
@@ -235,7 +240,6 @@ class List_Comp(Expression):
         """
         super().__init__(parser_node)
         self._comp_cond: Expression | None = comp_cond
-        self._spacer: str | None | Expression = None
         self._fill_exp: Expression = fill_exp
         self._vars: list[Variable_Expression] = variables
         if len(self._vars) == 1:
@@ -243,6 +247,9 @@ class List_Comp(Expression):
         else:
             self._var_name: str | None = None
         self._iter_exp: Expression = iter_exp
+        self.add_children(self._comp_cond)
+        self.add_children(self._fill_exp)
+        self.add_children(self._vars)
 
     def evaluate(self, context: Knit_Script_Context) -> list[Any]:
         """Evaluate the expression to generate a list through comprehension.
@@ -258,20 +265,8 @@ class List_Comp(Expression):
         Raises:
             AssertionError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
         """
-        iterable = self._iter_exp.evaluate(context)
-        assert isinstance(iterable, Iterable), f"Cannot iterate over non-iterable value {iterable}"
-        if self._spacer is not None:
-            assert isinstance(iterable, list)
-            if isinstance(self._spacer, str):
-                if self._spacer == "even":
-                    iterable = [val for i, val in enumerate(iterable) if i % 2 == 0]
-                elif self._spacer == "odd":
-                    iterable = [val for i, val in enumerate(iterable) if i % 2 == 1]
-                else:  # "other"
-                    iterable = iterable[::2]
-            else:
-                spacer = int(self._spacer.evaluate(context))
-                iterable = iterable[::spacer]
+        iterable = cast(Iterable[Any], self._iter_exp.evaluate(context))
+        # assert isinstance(iterable, Iterable), f"Cannot iterate over non-iterable value {iterable}"
         context.enter_sub_scope()  # create new scope that holds iterator variable
         values = []
         for var in iterable:
@@ -282,20 +277,17 @@ class List_Comp(Expression):
                 assert len(iterated_var) == len(self._vars), "Unpacked values do not match variables provided"
                 for var_name, var_val in zip(self._vars, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
-            condition_result = True if self._comp_cond is None else bool(self._comp_cond.evaluate(context))
+            condition_result = bool(self._comp_cond.evaluate(context)) if isinstance(self._comp_cond, Expression) else True
             if condition_result:
                 values.append(self._fill_exp.evaluate(context))
         context.exit_current_scope()  # exit scope, removing access to iterator variable
         return values
 
     def __str__(self) -> str:
-        spacer = ""
-        if self._spacer is not None:
-            spacer = f" every {self._spacer}"
         comp = ""
         if self._comp_cond is not None:
             comp = f" if {self._comp_cond}"
-        return f"[{self._fill_exp} for{spacer} {self._vars} in {self._iter_exp}{comp}]"
+        return f"[{self._fill_exp} for {self._vars} in {self._iter_exp}{comp}]"
 
     def __repr__(self) -> str:
         return str(self)
@@ -320,6 +312,9 @@ class Knit_Script_Dictionary(Expression):
         """
         super().__init__(parser_node)
         self._kwargs: list[tuple[Expression, Expression]] = kwargs
+        for key, value in self._kwargs:
+            self.add_children(key)
+            self.add_children(value)
 
     def evaluate(self, context: Knit_Script_Context) -> dict[Any, Any]:
         """Evaluate the expression to create a dictionary.
@@ -352,7 +347,6 @@ class Dictionary_Comprehension(Expression):
     It supports iteration variables, optional filtering conditions, and custom spacing patterns, generating dictionaries through iteration.
 
     Attributes:
-        _spacer (None | str | Expression): Optional spacing control for iteration.
         _comp_cond (Expression | None): Optional condition expression for filtering elements.
         _key (Expression): Expression that generates keys for the dictionary.
         _value (Expression): Expression that generates values for the dictionary.
@@ -373,7 +367,6 @@ class Dictionary_Comprehension(Expression):
             comp_cond (Expression | None, optional): Optional condition expression for filtering entries. Defaults to None.
         """
         super().__init__(parser_node)
-        self._spacer: None | str | Expression = None
         self._comp_cond: Expression | None = comp_cond
         self._key: Expression = key
         self._value: Expression = value
@@ -383,6 +376,11 @@ class Dictionary_Comprehension(Expression):
             self._var_name: str | None = self._vars[0].variable_name
         else:
             self._var_name: str | None = None
+        self.add_children(self._comp_cond)
+        self.add_children(self._key)
+        self.add_children(self._value)
+        self.add_children(self._iter_exp)
+        self.add_children(self._vars)
 
     def evaluate(self, context: Knit_Script_Context) -> dict[Any, Any]:
         """Evaluate the expression to generate a dictionary through comprehension.
@@ -399,20 +397,7 @@ class Dictionary_Comprehension(Expression):
         Raises:
             KeyError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
         """
-        iterable = self._iter_exp.evaluate(context)
-        assert isinstance(iterable, Iterable), f"Cannot iterate over non-iterable value {iterable}"
-        if self._spacer is not None:
-            assert isinstance(iterable, list)
-            if isinstance(self._spacer, str):
-                if self._spacer == "even":
-                    iterable = [val for i, val in enumerate(iterable) if i % 2 == 0]
-                elif self._spacer == "odd":
-                    iterable = [val for i, val in enumerate(iterable) if i % 2 == 1]
-                else:  # "other"
-                    iterable = iterable[::2]
-            else:
-                spacer = int(self._spacer.evaluate(context))
-                iterable = iterable[::spacer]
+        iterable = cast(Iterable[Any], self._iter_exp.evaluate(context))
         context.enter_sub_scope()  # create new scope that holds iterator variable
         values = {}
         for var in iterable:
@@ -424,20 +409,17 @@ class Dictionary_Comprehension(Expression):
                     raise Knit_Script_KeyError(f"Number of keys <{iterated_var}> do not match number of variables <{self._vars}>", self)
                 for var_name, var_val in zip(self._vars, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
-            condition_result = True if self._comp_cond is None else bool(self._comp_cond.evaluate(context))
+            condition_result = bool(self._comp_cond.evaluate(context)) if isinstance(self._comp_cond, Expression) else True
             if condition_result:
                 values[self._key.evaluate(context)] = self._value.evaluate(context)
         context.exit_current_scope()  # exit scope, removing access to iterator variable
         return values
 
     def __str__(self) -> str:
-        spacer = ""
-        if self._spacer is not None:
-            spacer = f" every {self._spacer}"
         comp = ""
         if self._comp_cond is not None:
             comp = f" if {self._comp_cond}"
-        return "{" + f"{self._key}:{self._value} for{spacer} {self._vars} in {self._iter_exp}{comp}" + "}"
+        return "{" + f"{self._key}:{self._value} for {self._vars} in {self._iter_exp}{comp}" + "}"
 
     def __repr__(self) -> str:
         return str(self)

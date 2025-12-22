@@ -36,9 +36,12 @@ class Slice_Index(Expression):
             parser_node (LRStackNode): The parser node from the parse tree.
         """
         super().__init__(parser_node)
-        self.spacer = spacer
-        self.end = end
-        self.start = start
+        self.spacer: Expression | None = spacer
+        self.end: Expression | None = end
+        self.start: Expression | None = start
+        self.add_children(self.spacer)
+        self.add_children(self.start)
+        self.add_children(self.end)
 
     def __str__(self) -> str:
         return f"{self.start}:{self.end}:{self.spacer}"

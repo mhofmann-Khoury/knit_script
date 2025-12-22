@@ -234,8 +234,7 @@ class Test_Documentation_Examples(TestCase):
         """
         try:
             interpret_test_ks(program, print_k_lines=False)
-        except AssertionError as e:
-            print(e)
+        except AssertionError as _e:
             pass
 
     def test_lr_withs(self):

@@ -41,6 +41,8 @@ class In_Direction_Statement(Statement):
         super().__init__(parser_node)
         self._direction: Expression = direction
         self._instructions: list[Needle_Instruction_Exp] = instructions
+        self.add_children(self._direction)
+        self.add_children(self._instructions)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute all instructions in the specified direction.

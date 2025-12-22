@@ -41,8 +41,11 @@ class Needle_Instruction_Exp(Expression):
         super().__init__(parser_node)
         if not isinstance(needles, list):
             needles = [needles]
-        self._needles = needles
+        self._needles: list[Expression] = needles
         self._instruction_type: Expression | Knitout_Instruction_Type = instruction
+        self.add_children(self._needles)
+        if isinstance(self._instruction_type, Expression):
+            self.add_children(self._instruction_type)
 
     def evaluate(self, context: Knit_Script_Context) -> tuple[Knitout_Instruction_Type, list[Needle]]:
         """Evaluate the expression to get the instruction and target needles.

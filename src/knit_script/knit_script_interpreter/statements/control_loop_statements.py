@@ -39,6 +39,8 @@ class While_Statement(Statement):
         super().__init__(parser_node)
         self._condition: Expression = condition
         self._statement: Statement = statement
+        self.add_children(self._condition)
+        self.add_children(self._statement)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the while loop.

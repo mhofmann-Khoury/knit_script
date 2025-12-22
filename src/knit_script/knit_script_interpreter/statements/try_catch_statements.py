@@ -42,6 +42,9 @@ class Try_Catch_Statement(Statement):
         self._errors: list[Expression] = errors
         self._catch_statement: Statement = catch_statement
         self._try_statement: Statement = try_statement
+        self.add_children(self._errors)
+        self.add_children(self._try_statement)
+        self.add_children(self._catch_statement)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the try-catch block using Python's exception handling.

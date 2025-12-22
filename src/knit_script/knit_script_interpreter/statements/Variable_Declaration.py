@@ -36,6 +36,7 @@ class Variable_Declaration(Statement):
         super().__init__(parser_node)
         self._is_global = is_global
         self._assignment: Assignment = assignment
+        self.add_children(self._assignment)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the variable declaration by performing the assignment.

@@ -47,6 +47,8 @@ class Import_Statement(Statement):
         super().__init__(parser_node)
         self.src: Expression = src
         self.alias: Expression | None = alias
+        if alias is not None:
+            self.add_children(self.alias)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the import by loading the module and adding it to scope.

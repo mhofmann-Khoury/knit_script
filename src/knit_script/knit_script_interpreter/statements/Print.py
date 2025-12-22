@@ -34,6 +34,7 @@ class Print(Statement):
         """
         super().__init__(parser_node)
         self._string: Expression = string
+        self.add_children(self._string)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the print by evaluating and outputting the expression.

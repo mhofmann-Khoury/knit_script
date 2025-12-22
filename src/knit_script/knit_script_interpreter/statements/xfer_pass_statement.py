@@ -49,6 +49,10 @@ class Xfer_Pass_Statement(Statement):
         self._bed: Expression | None = bed
         self._racking: Expression = racking
         self._needles: list[Expression] = needles
+        if self._bed is not None:
+            self.add_children(self._bed)
+        self.add_children(self._racking)
+        self.add_children(self._needles)
 
     def __str__(self) -> str:
         """Return string representation of the transfer pass statement.

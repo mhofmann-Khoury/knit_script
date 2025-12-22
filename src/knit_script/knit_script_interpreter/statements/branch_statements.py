@@ -40,6 +40,9 @@ class If_Statement(Statement):
         self._condition: Expression = condition
         self._true_statement: Statement = true_statement
         self._false_statement: Statement | None = false_statement
+        self.add_children(self._condition)
+        self.add_children(self._true_statement)
+        self.add_children(self._false_statement)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the appropriate branch based on the condition result.

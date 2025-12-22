@@ -72,6 +72,9 @@ class Sheet_Expression(Expression):
         super().__init__(parser_node)
         self._sheet_id: Expression | str = sheet_id
         self._gauge_id: Expression | None = gauge_id
+        if isinstance(self._sheet_id, Expression):
+            self.add_children(self._sheet_id)
+        self.add_children(self._gauge_id)
 
     def evaluate(self, context: Knit_Script_Context) -> Sheet_Identifier:
         """Evaluate the expression to create a sheet identifier.

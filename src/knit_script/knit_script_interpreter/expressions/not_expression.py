@@ -31,6 +31,7 @@ class Not_Expression(Expression):
         """
         super().__init__(parser_node)
         self._negated_expression: Expression = negated_expression
+        self.add_children(self._negated_expression)
 
     def evaluate(self, context: Knit_Script_Context) -> bool:
         """Evaluate the expression to get the logical negation result.

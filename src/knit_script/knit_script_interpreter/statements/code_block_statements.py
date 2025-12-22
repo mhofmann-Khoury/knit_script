@@ -6,7 +6,7 @@ It manages scope creation, statement execution, and proper handling of return va
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.add_exception_information import add_exception_to_statement
+from knit_script.knit_script_exceptions.add_exception_information import add_ks_information_to_error
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
@@ -33,6 +33,7 @@ class Code_Block(Statement):
         """
         super().__init__(parser_node)
         self._statements: list[Statement] = statements
+        self.add_children(self._statements)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute all statements in a new scope.
@@ -48,7 +49,7 @@ class Code_Block(Statement):
             try:
                 statement.execute(context)
             except Exception as e:
-                raise add_exception_to_statement(e, statement) from e
+                raise add_ks_information_to_error(e, statement) from None
             if context.variable_scope.returned:  # executed statement updated scope with return value
                 break  # don't continue to execute block statements
         context.exit_current_scope(collapse_into_parent=True)  # Collapse change upward, let next level decide if value changes are passed on.

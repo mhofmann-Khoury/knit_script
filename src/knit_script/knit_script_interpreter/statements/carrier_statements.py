@@ -42,6 +42,7 @@ class Cut_Statement(Statement):
         """
         super().__init__(parser_node)
         self._carriers: list[Expression] = carriers
+        self.add_children(self._carriers)
 
     def __str__(self) -> str:
         """Return string representation of the cut statement.

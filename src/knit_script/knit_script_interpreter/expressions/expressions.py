@@ -6,12 +6,14 @@ It also includes utility functions for working with expression collections and c
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
+
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
 
 class Expression(KS_Element):

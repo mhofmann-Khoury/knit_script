@@ -8,6 +8,6 @@ from resources.load_test_resources import load_test_resource
 class TestWith_Statement(TestCase):
     def test_withs(self):
         program = load_test_resource("with_tests.ks")
-        klines, _, __ = interpret_test_ks(program, pattern_is_filename=True, print_k_lines=True)
+        klines, _, __ = interpret_test_ks(program, pattern_is_filename=True, print_k_lines=False)
         rack_count = count_lines(klines, include_types={Rack_Instruction})
         assert rack_count == 2, f"Expected 3 racks but got {rack_count}"

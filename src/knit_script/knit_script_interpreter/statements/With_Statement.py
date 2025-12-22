@@ -36,6 +36,8 @@ class With_Statement(Statement):
         super().__init__(parser_node)
         self._statement = statement
         self._assignments = assignments
+        self.add_children(self._statement)
+        self.add_children(self._assignments)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the statement within a temporary variable scope.
