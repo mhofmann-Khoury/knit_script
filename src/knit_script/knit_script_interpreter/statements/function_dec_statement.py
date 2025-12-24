@@ -10,7 +10,6 @@ from typing import Any
 from parglare.parser import LRStackNode
 
 from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_NameError, Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -42,7 +41,7 @@ class Function_Signature:
         """Initialize a function signature.
 
         Args:
-            source_statement(Function_Declaration): The statement that declared this function signature.
+            source_statement (Function_Declaration): The statement that declared this function signature.
             name (str): The name of the function.
             parameter_names (list[str]): List of parameter names in declaration order.
             body (Statement): The statement body to execute when the function is called.
@@ -84,7 +83,7 @@ class Function_Signature:
                 key = exp.variable_name
                 arg = exp.value(context)
                 if key not in self._parameter_names:
-                    raise Knit_Script_NameError(f"Unexpected key {key} given to function {self._name}", self._source_statement)
+                    raise NameError(f"Unexpected key {key} given to function {self._name}")
                 context.variable_scope[key] = arg
             else:
                 arg = exp.evaluate(context)
@@ -93,12 +92,12 @@ class Function_Signature:
         for assignment in kwargs:
             key = assignment.variable_name
             if key not in self._parameter_names:
-                raise Knit_Script_NameError(f"Unexpected key {key} given to function {self._name}", self._source_statement)
+                raise NameError(f"Unexpected key {key} given to function {self._name}")
             assignment.assign_value(context)
             filled_params.add(key)
         missing_parameters = [p for p in self._parameter_names if p not in filled_params]
         if len(missing_parameters) > 0:
-            raise Knit_Script_TypeError(f"Knit Script function {self._name} expected a value(s) for parameters: {missing_parameters}", self._source_statement)
+            raise TypeError(f"Knit Script function {self._name} expected a value(s) for parameters: {missing_parameters}")
 
         self._body.execute(context)  # execute function body
         return_value = context.variable_scope.return_value  # store return value before exiting scope
@@ -136,25 +135,6 @@ class Function_Declaration(Statement):
         self._args: list[Variable_Expression] = args
         self._body: Statement = body
         self._func_name: str = func_name
-        self.add_children(args)
-        self.add_children(kwargs)
-        self.add_children(body)
-
-    def __str__(self) -> str:
-        """Return string representation of the function declaration.
-
-        Returns:
-            str: A string showing the function name, parameters, and body.
-        """
-        return f"{self._func_name}({self._args}, {self._kwargs}) -> {self._body}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the function declaration.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the function declaration by creating and storing the function.

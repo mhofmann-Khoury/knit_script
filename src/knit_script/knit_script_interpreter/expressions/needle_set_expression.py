@@ -117,9 +117,3 @@ class Needle_Set_Expression(Expression):
             return context.gauged_sheet_record.all_slider_loops(context.sheet.sheet)
         elif kp_set is Needle_Sets.Last_Pass:
             return context.last_carriage_pass_result
-
-    def __str__(self) -> str:
-        return self._set_str
-
-    def __repr__(self) -> str:
-        return str(self)

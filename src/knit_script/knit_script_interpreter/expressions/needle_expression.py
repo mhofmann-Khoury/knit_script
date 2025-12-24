@@ -60,9 +60,3 @@ class Needle_Expression(Expression):
             num_str = num_str[1:]  # cut slider off
         pos = int(num_str)
         return context.get_needle(is_front, pos, slider)
-
-    def __str__(self) -> str:
-        return self._needle_str
-
-    def __repr__(self) -> str:
-        return str(self)

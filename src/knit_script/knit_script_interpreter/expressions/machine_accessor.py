@@ -40,12 +40,6 @@ class Machine_Accessor(Expression):
         """
         return context.machine_state
 
-    def __str__(self) -> str:
-        return "machine"
-
-    def __repr__(self) -> str:
-        return str(self)
-
 
 class Sheet_Expression(Expression):
     """Identifies sheets.
@@ -72,9 +66,6 @@ class Sheet_Expression(Expression):
         super().__init__(parser_node)
         self._sheet_id: Expression | str = sheet_id
         self._gauge_id: Expression | None = gauge_id
-        if isinstance(self._sheet_id, Expression):
-            self.add_children(self._sheet_id)
-        self.add_children(self._gauge_id)
 
     def evaluate(self, context: Knit_Script_Context) -> Sheet_Identifier:
         """Evaluate the expression to create a sheet identifier.
@@ -101,12 +92,3 @@ class Sheet_Expression(Expression):
         else:
             sheet = int(self._sheet_id.evaluate(context))
         return Sheet_Identifier(sheet, gauge)
-
-    def __str__(self) -> str:
-        if self._gauge_id is None:
-            return str(self._sheet_id)
-        else:
-            return f"Sheet({self._sheet_id} at g{self._gauge_id})"
-
-    def __repr__(self) -> str:
-        return str(self)

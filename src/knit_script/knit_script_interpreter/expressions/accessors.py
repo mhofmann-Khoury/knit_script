@@ -14,7 +14,6 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import
 from virtual_knitting_machine.machine_components.needles.Sheet_Needle import Sheet_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_AttributeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.function_expressions import Function_Call
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
@@ -31,7 +30,6 @@ class Attribute_Accessor_Expression(Expression):
     The class supports chained attribute access and provides specialized handling for needle set expressions.
 
     Attributes:
-        is_method_call (bool): True if the attribute being accessed is a method call.
         parent (list[Expression]): List of parent expressions in the access chain.
         attribute (Expression): The attribute being accessed from the parent.
     """
@@ -45,20 +43,26 @@ class Attribute_Accessor_Expression(Expression):
             attribute (Expression): The attribute of the parent expression. May produce more nested accessors.
         """
         super().__init__(parser_node)
-        self.is_method_call = False
+        self._is_method_call: bool = False
         if isinstance(parent_path, list):
             self.parent: list[Expression] = parent_path
         else:
-            self.parent: list[Expression] = [parent_path]
+            self.parent = [parent_path]
         if isinstance(attribute, Attribute_Accessor_Expression):
             self.attribute: Expression = attribute.attribute
             self.parent.extend(attribute.parent)
         else:
-            self.attribute: Expression = attribute
+            self.attribute = attribute
         if isinstance(self.attribute, Function_Call):
-            self.is_method_call = True
-        self.add_children(self.parent)
-        self.add_children(self.attribute)
+            self._is_method_call = True
+
+    @property
+    def is_method_call(self) -> bool:
+        """
+        Returns:
+            bool: True if the attribute being accessed is a method call. False otherwise.
+        """
+        return self._is_method_call
 
     def _parent_expression(self) -> Expression:
         """Get the parent expression for evaluation.
@@ -71,17 +75,48 @@ class Attribute_Accessor_Expression(Expression):
         else:
             return Attribute_Accessor_Expression(self.parser_node, self.parent[:-1], self.parent[1])
 
-    def parent_path(self) -> str:
-        """Get the path to parent value as a dot-separated string.
+    def parent_path(self, require_var_names: bool = True) -> str:
+        """
+        Args:
+            require_var_names (bool, optional): If True, raise an attribute error if any parents are not variable names. Defaults to True.
 
         Returns:
             str: Path to parent value with expressions separated by dots.
+
+        Raises:
+            AttributeError: If a parent in the path is not a variable name.
         """
         parent_source_str = ""
         for p in self.parent:
-            parent_source_str += f"{p}."
+            if require_var_names:
+                if not isinstance(p, Variable_Expression):
+                    raise self.add_ks_information_to_error(AttributeError(f"Expected variable names in path but got {p} after <{parent_source_str}"))
+                parent_source_str += f"{p.variable_name}."
+            else:
+                parent_source_str += f"{p}."
         parent_source_str = parent_source_str[0:-1]  # drop extra "."
         return parent_source_str
+
+    def parent_path_list(self, require_var_names: bool = True) -> list[str]:
+        """
+        Args:
+            require_var_names (bool, optional): If True, raise an attribute error if any parents are not variable names. Defaults to True.
+
+        Returns:
+            list[str]: List of the names of all the parents in this accessor.
+
+        Raises:
+            AttributeError: If a parent in the path is not a variable name.
+        """
+        parent_list: list[str] = []
+        for p in self.parent:
+            if require_var_names:
+                if not isinstance(p, Variable_Expression):
+                    raise self.add_ks_information_to_error(AttributeError(f"Expected variable names in path but got {p} after <{parent_list}"))
+                parent_list.append(p.variable_name)
+            else:
+                parent_list.append(str(p))
+        return parent_list
 
     def _evaluate_parent(self, context: Knit_Script_Context) -> Any:
         """Evaluate the parent expression to get the object to access attributes from.
@@ -100,12 +135,6 @@ class Attribute_Accessor_Expression(Expression):
             parent = parent_accessor.evaluate(context)
         return parent
 
-    def __str__(self) -> str:
-        return f"{self.parent_path()}.{self.attribute}"
-
-    def __repr__(self) -> str:
-        return str(self)
-
     def evaluate(self, context: Knit_Script_Context) -> Any:
         """Evaluate the expression to access the specified attribute.
 
@@ -121,10 +150,7 @@ class Attribute_Accessor_Expression(Expression):
         parent = self._evaluate_parent(context)
         if isinstance(self.attribute, Variable_Expression):  # variable name, access directly from parent instance
             attr = getattr(parent, self.attribute.variable_name)
-            if isinstance(attr, Expression):
-                return attr.evaluate(context)
-            else:
-                return attr
+            return attr.evaluate(context) if isinstance(attr, Expression) else attr
         elif isinstance(self.attribute, Needle_Set_Expression):  # get needle set from machine or sheet specification
             kp_set = Needle_Sets[self.attribute.set_str]
             if isinstance(parent, Knitting_Machine):
@@ -178,7 +204,7 @@ class Attribute_Accessor_Expression(Expression):
                 elif kp_set is Needle_Sets.Slider_Loops:
                     return context.gauged_sheet_record.all_slider_loops(parent.sheet)
             else:
-                raise Knit_Script_AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>", self)
+                raise self.add_ks_information_to_error(AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>"))
         elif isinstance(self.attribute, Function_Call):
             method_name = self.attribute.func_name.variable_name
             attribute = getattr(parent, method_name)

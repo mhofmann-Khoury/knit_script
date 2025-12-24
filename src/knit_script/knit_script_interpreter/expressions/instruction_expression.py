@@ -43,9 +43,6 @@ class Needle_Instruction_Exp(Expression):
             needles = [needles]
         self._needles: list[Expression] = needles
         self._instruction_type: Expression | Knitout_Instruction_Type = instruction
-        self.add_children(self._needles)
-        if isinstance(self._instruction_type, Expression):
-            self.add_children(self._instruction_type)
 
     def evaluate(self, context: Knit_Script_Context) -> tuple[Knitout_Instruction_Type, list[Needle]]:
         """Evaluate the expression to get the instruction and target needles.
@@ -82,12 +79,6 @@ class Needle_Instruction_Exp(Expression):
                 raise Knit_Script_TypeError(f"Expected List of needles, but got {needle} in {needles}", self)
 
         return instruction_type, needles
-
-    def __str__(self) -> str:
-        return f"N_Inst({self._instruction_type} -> {self._needles})"
-
-    def __repr__(self) -> str:
-        return str(self)
 
 
 class Machine_Instruction_Exp(Expression):

@@ -75,11 +75,5 @@ class Variable_Expression(Expression):
                 warnings.warn(new_warning, stacklevel=get_user_warning_stack_level_from_knitscript_package())
         return variable_value
 
-    def __str__(self) -> str:
-        return self._variable_name
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __hash__(self) -> int:
-        return hash(self.variable_name)
+    # def __hash__(self) -> int:
+    #     return hash(self.variable_name)

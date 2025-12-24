@@ -27,7 +27,6 @@ class Expression_Statement(Statement):
         """
         super().__init__(parser_node)
         self._expression: Expression = expression
-        self.add_children(self.expression)
 
     @property
     def expression(self) -> Expression:
@@ -37,22 +36,6 @@ class Expression_Statement(Statement):
             Expression: The expression that will be evaluated when this statement executes.
         """
         return self._expression
-
-    def __str__(self) -> str:
-        """Return string representation of the expression statement.
-
-        Returns:
-            str: String representation of the contained expression.
-        """
-        return str(self._expression)
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the expression statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Evaluate the expression and discard the result.

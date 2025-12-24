@@ -76,10 +76,34 @@ class Knit_Script_Scope:
             self._globals: Knit_Script_Globals = Knit_Script_Globals()
             self._machine_scope: Machine_Scope = Machine_Scope(self._context)
         else:
-            self._globals: Knit_Script_Globals = self._parent._globals
-            self._machine_scope: Machine_Scope = Machine_Scope(self._context, prior_settings=self._parent.machine_scope)  # start with settings from parent scope, but edit them locally
+            self._globals = self._parent._globals
+            self._machine_scope = Machine_Scope(self._context, prior_settings=self._parent.machine_scope)  # start with settings from parent scope, but edit them locally
         self._child_scope: Knit_Script_Scope | None = None
         self._return_value: Any | None = None
+
+    @property
+    def scope_name(self) -> str | None:
+        """
+        Returns:
+            str | None: The name of this scope if it represents a named function or module.
+        """
+        return self._name
+
+    @property
+    def function_name(self) -> str | None:
+        """
+        Returns:
+            str | None: The name of this scope if it represents a function.
+        """
+        return self.scope_name if self.is_function else None
+
+    @property
+    def module_name(self) -> str | None:
+        """
+        Returns:
+            str | None: The name of this scope if it represents a module.
+        """
+        return self.scope_name if self.is_module else None
 
     @property
     def machine_scope(self) -> Machine_Scope:
@@ -410,6 +434,16 @@ class Knit_Script_Scope:
             scope = scope._parent
         return False
 
+    def has_global(self, key: str) -> bool:
+        """
+        Args:
+            key (str): The variable name to search for.
+
+        Returns:
+            bool: True if the variable is a global variable. False otherwise.
+        """
+        return hasattr(self._globals, key)
+
     def delete_local(self, key: str) -> bool:
         """Delete the variable at lowest scope level. If not found, no-op.
 
@@ -439,7 +473,7 @@ class Knit_Script_Scope:
         Raises:
             NameError: If attempting to delete reserved keywords like 'exit_value'.
         """
-        if hasattr(self._globals, key):
+        if self.has_global(key):
             if key == "exit_value":
                 raise NameError(f"Cannot delete {key} because this is a reserved keyword")
             delattr(self._globals, key)
@@ -539,6 +573,12 @@ class Knit_Script_Scope:
             value (Any): The value to assign to the variable.
         """
         self.set_local(key, value)
+
+    def __delitem__(self, key: str) -> None:
+        if self.has_local(key):
+            self.delete_local(key)
+        elif self.has_global(key):
+            self.delete_global(key)
 
     def __hash__(self) -> int:
         return self._scope_id

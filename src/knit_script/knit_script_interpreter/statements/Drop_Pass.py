@@ -37,7 +37,6 @@ class Drop_Pass(Statement):
         """
         super().__init__(parser_node)
         self._needles: list[Expression] = needles
-        self.add_children(needles)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute drop operations on all specified needles.

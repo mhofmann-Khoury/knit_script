@@ -41,13 +41,11 @@ class In_Direction_Statement(Statement):
         super().__init__(parser_node)
         self._direction: Expression = direction
         self._instructions: list[Needle_Instruction_Exp] = instructions
-        self.add_children(self._direction)
-        self.add_children(self._instructions)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute all instructions in the specified direction.
 
-        Creates a new scope, evaluates the direction, processes all instructions into a carriage pass specification, and executes the pass.
+        Evaluates the direction, processes all instructions into a carriage pass specification, and executes the pass.
         Handles special result handling for split operations and stores pass results for potential use by subsequent operations.
 
         Args:
@@ -56,7 +54,6 @@ class In_Direction_Statement(Statement):
         Raises:
             No_Declared_Carrier_Exception: If no working carrier is set when instructions require one for yarn-based operations.
         """
-        context.enter_sub_scope()  # make sub scope with direction variable change
         if context.carrier is None:
             raise No_Declared_Carrier_Exception(self)
         direction = self._direction.evaluate(context)
@@ -74,20 +71,3 @@ class In_Direction_Statement(Statement):
         context.last_carriage_pass_result = machine_pass.write_knitout(context)
         if not has_splits:  # no second needle to report
             context.last_carriage_pass_result = list(context.last_carriage_pass_result.keys())
-        context.exit_current_scope()
-
-    def __str__(self) -> str:
-        """Return string representation of the directional statement.
-
-        Returns:
-            str: A string showing the direction and instructions.
-        """
-        return f"in {self._direction} -> {self._instructions}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the directional statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

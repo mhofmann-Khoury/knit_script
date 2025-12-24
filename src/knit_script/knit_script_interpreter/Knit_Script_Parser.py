@@ -12,7 +12,7 @@ import importlib_resources
 import parglare
 from parglare import Grammar, Parser
 
-import knit_script
+import knit_script.knit_script_interpreter as ks_interpreter
 from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
 from knit_script.knit_script_interpreter.knit_script_actions import action
 from knit_script.knit_script_interpreter.statements.Statement import Statement
@@ -40,7 +40,7 @@ class Knit_Script_Parser:
             debug_parser_layout (bool, optional): If True, provides layout information from parser including whitespace and indentation handling. Useful for debugging layout-sensitive parsing issues.
             Defaults to False.
         """
-        pg_resource_stream = importlib_resources.files(knit_script.knit_script_interpreter).joinpath("knit_script.pg")
+        pg_resource_stream = importlib_resources.files(ks_interpreter).joinpath("knit_script.pg")
         self._grammar = Grammar.from_file(pg_resource_stream, debug=debug_grammar, ignore_case=True)
         self._parser = Parser(self._grammar, debug=debug_parser, debug_layout=debug_parser_layout, actions=action.all)
 

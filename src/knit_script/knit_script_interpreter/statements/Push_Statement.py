@@ -38,11 +38,6 @@ class Push_Statement(Statement):
         super().__init__(parser_node)
         self._needles: list[Expression] = needles
         self._push_val: str | Expression | tuple[Expression, str] = push_val
-        self.add_children(self._needles)
-        if isinstance(push_val, Expression):
-            self.add_children(push_val)
-        elif isinstance(push_val, tuple):
-            self.add_children(push_val[0])
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the push operation on the specified needles.
@@ -75,18 +70,10 @@ class Push_Statement(Statement):
                     context.gauged_sheet_record.push_layer_backward(needle_pos, dist)
         context.knitout.extend(context.gauged_sheet_record.reset_to_sheet(context.sheet.sheet))
 
-    def __str__(self) -> str:
-        """Return string representation of the push statement.
-
-        Returns:
-            str: A string showing the needles and push operation.
-        """
-        return f"push {self._needles} {self._push_val}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the push statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
+    # def __str__(self) -> str:
+    #     """Return string representation of the push statement.
+    #
+    #     Returns:
+    #         str: A string showing the needles and push operation.
+    #     """
+    #     return f"push {self._needles} {self._push_val}"

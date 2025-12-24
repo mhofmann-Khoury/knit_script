@@ -61,9 +61,3 @@ class Pass_Direction_Expression(Expression):
         else:
             assert self._dir_word.lower() == "reverse"
             return context.direction.opposite()
-
-    def __str__(self) -> str:
-        return f"{self._dir_word}"
-
-    def __repr__(self) -> str:
-        return str(self)

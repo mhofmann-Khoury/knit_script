@@ -39,10 +39,6 @@ class Xfer_Pass_Racking(Expression):
         super().__init__(parser_node)
         self._direction_expression: Expression | None = direction_expression
         self._distance_expression: Expression | None = distance_expression
-        if self._distance_expression is not None:
-            self.add_children(self._distance_expression)
-        if self._direction_expression is not None:
-            self.add_children(self._direction_expression)
 
     @property
     def is_across(self) -> bool:
@@ -82,11 +78,3 @@ class Xfer_Pass_Racking(Expression):
                 return int(Knitting_Machine.get_rack(front_pos=0, back_pos=-1 * distance))
             else:
                 return int(Knitting_Machine.get_rack(front_pos=0, back_pos=distance))
-
-    def __str__(self) -> str:
-        if self.is_across:
-            return "Rack(0)"
-        return f"Rack({self._distance_expression} to {self._direction_expression})"
-
-    def __repr__(self) -> str:
-        return str(self)

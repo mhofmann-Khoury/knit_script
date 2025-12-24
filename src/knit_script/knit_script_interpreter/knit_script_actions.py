@@ -488,11 +488,11 @@ def slice_index(parser_node: LRStackNode, __: list, start: Expression | None, en
     if isinstance(end, Expression):
         end_slice: Expression | None = end
     elif end is None:
-        end_slice: Expression | None = None
+        end_slice = None
     else:
         if len(end) > 1:
             spacer = end[1]
-        end_slice: Expression | None = end[0]
+        end_slice = end[0]
     return Slice_Index(start, end_slice, spacer, parser_node)
 
 
@@ -1115,14 +1115,14 @@ def pass_second(_parser_node: LRStackNode, nodes: list[Any]) -> Any:
 
 
 @typed_action
-def import_statement(parser_node: LRStackNode, __: list, src: Expression, alias: Expression | None) -> Import_Statement:
+def import_statement(parser_node: LRStackNode, __: list, src: Attribute_Accessor_Expression | Variable_Expression, alias: Variable_Expression | None) -> Import_Statement:
     """Create an import statement.
 
     Args:
         parser_node (LRStackNode): The parser element that created this value.
         __ (list): Unused parameter.
-        src (Expression): Source module expression to import.
-        alias (Expression | None): Alias expression to assign in variable scope.
+        src ( Attribute_Accessor_Expression | Variable_Expression): Source module expression to import.
+        alias (Variable_Expression | None): Alias expression to assign in variable scope.
 
     Returns:
         Import_Statement: Import statement for loading external modules.

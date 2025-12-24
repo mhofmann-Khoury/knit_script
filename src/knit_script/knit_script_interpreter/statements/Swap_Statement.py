@@ -44,13 +44,8 @@ class Swap_Statement(Statement):
             self._layer: Expression | None = None
             self._sheet: Expression | None = value
         else:
-            self._layer: Expression | None = value
-            self._sheet: Expression | None = None
-        self.add_children(self._needles)
-        if self._layer is not None:
-            self.add_children(self._layer)
-        if self._sheet is not None:
-            self.add_children(self._sheet)
+            self._layer = value
+            self._sheet = None
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the swap operation on the specified needles.
@@ -90,22 +85,3 @@ class Swap_Statement(Statement):
                 other_position = needle_pos + (sheet - context.sheet.sheet)
                 other_layer = context.gauged_sheet_record.get_layer_at_position(other_position)
                 context.gauged_sheet_record.swap_layer_at_positions(needle_pos, other_layer)
-
-    def __str__(self) -> str:
-        """Return string representation of the swap statement.
-
-        Returns:
-            str: A string showing the needles and swap operation type.
-        """
-        if self._layer is None:
-            return f"swap {self._needles} with sheet {self._sheet}"
-        else:
-            return f"swap {self._needles} with layer {self._layer}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the swap statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

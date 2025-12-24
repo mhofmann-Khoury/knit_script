@@ -42,23 +42,6 @@ class Cut_Statement(Statement):
         """
         super().__init__(parser_node)
         self._carriers: list[Expression] = carriers
-        self.add_children(self._carriers)
-
-    def __str__(self) -> str:
-        """Return string representation of the cut statement.
-
-        Returns:
-            str: A string showing the carriers to be cut.
-        """
-        return f"Cut({self._carriers})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the cut statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the cut operation on the specified carriers.
@@ -102,8 +85,8 @@ class Cut_Statement(Statement):
             for c in self._carriers:
                 carrier = c.evaluate(context)
                 _add_carrier(carrier)
-            carrier_set: Yarn_Carrier_Set = Yarn_Carrier_Set(list(carrier_set))
-            for c in carrier_set:
+            yarn_carrier_set: Yarn_Carrier_Set = Yarn_Carrier_Set(list(carrier_set))
+            for c in yarn_carrier_set:
                 outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, c)
                 context.knitout.append(outhook_op)
 
@@ -124,22 +107,6 @@ class Release_Statement(Statement):
             parser_node (LRStackNode): The parser node from the abstract syntax tree.
         """
         super().__init__(parser_node)
-
-    def __str__(self) -> str:
-        """Return string representation of the release statement.
-
-        Returns:
-            str: A string indicating this is a release hook operation.
-        """
-        return "ReleaseHook"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the release statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the release hook operation.
@@ -176,22 +143,6 @@ class Remove_Statement(Statement):
         """
         super().__init__(parser_node)
         self._carriers: list[Expression] = carriers
-
-    def __str__(self) -> str:
-        """Return string representation of the remove statement.
-
-        Returns:
-            str: A string showing the carriers to be removed.
-        """
-        return f"Out({self._carriers})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the remove statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the remove operation on the specified carriers.

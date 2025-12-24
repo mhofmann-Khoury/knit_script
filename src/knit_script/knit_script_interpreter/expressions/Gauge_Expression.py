@@ -38,8 +38,6 @@ class Gauge_Expression(Expression):
         super().__init__(parser_node)
         self._sheet: Expression = sheet
         self._gauge: Expression = gauge
-        self.add_children(self._sheet)
-        self.add_children(self._gauge)
 
     def evaluate(self, context: Knit_Script_Context) -> Sheet_Identifier:
         """Evaluate the expression to create a sheet identifier.

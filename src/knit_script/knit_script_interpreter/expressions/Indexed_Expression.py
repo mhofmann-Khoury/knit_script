@@ -39,15 +39,6 @@ class Slice_Index(Expression):
         self.spacer: Expression | None = spacer
         self.end: Expression | None = end
         self.start: Expression | None = start
-        self.add_children(self.spacer)
-        self.add_children(self.start)
-        self.add_children(self.end)
-
-    def __str__(self) -> str:
-        return f"{self.start}:{self.end}:{self.spacer}"
-
-    def __repr__(self) -> str:
-        return str(self)
 
     def evaluate(self, context: Knit_Script_Context) -> slice:
         """Evaluate the expression to create a Python slice object.
@@ -106,18 +97,9 @@ class Indexed_Expression(Expression):
             assign (Expression | None): Optional assignment expression for setting values at the indexed position.
         """
         super().__init__(parser_node)
-        self.assign = assign
-        self.key = key
-        self.item = item
-
-    def __str__(self) -> str:
-        string = f"{self.item}[{self.key}]"
-        if self.assign is not None:
-            string += f"= {self.assign}"
-        return string
-
-    def __repr__(self) -> str:
-        return str(self)
+        self.assign: Expression | None = assign
+        self.key: Expression = key
+        self.item: Expression = item
 
     def evaluate(self, context: Knit_Script_Context) -> list[Any] | Any:
         """Evaluate the expression to perform indexing or indexed assignment.

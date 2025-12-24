@@ -37,8 +37,6 @@ class Assertion(Statement):
         super().__init__(parser_node)
         self._error_str: Expression | None = error_str
         self._condition: Expression = condition
-        self.add_children(condition)
-        self.add_children(error_str)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the assertion by evaluating the condition.
@@ -59,19 +57,3 @@ class Assertion(Statement):
                 raise Knit_Script_Assertion_Exception(self, self._condition, condition)
             else:
                 raise Knit_Script_Assertion_Exception(self, self._condition, condition, self._error_str.evaluate(context))
-
-    def __str__(self) -> str:
-        """Return string representation of the assertion.
-
-        Returns:
-            str: A string showing the condition and optional error message.
-        """
-        return f"Assert({self._condition} -> {self._error_str})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the assertion.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

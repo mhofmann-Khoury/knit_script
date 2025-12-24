@@ -5,10 +5,10 @@ It includes while loops for condition-based iteration and for-each loops for ite
 """
 
 from collections.abc import Iterable
+from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError, Knit_Script_ValueError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -39,8 +39,6 @@ class While_Statement(Statement):
         super().__init__(parser_node)
         self._condition: Expression = condition
         self._statement: Statement = statement
-        self.add_children(self._condition)
-        self.add_children(self._statement)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the while loop.
@@ -88,7 +86,7 @@ class For_Each_Statement(Statement):
         _statement (Statement): Statement to execute with each iteration.
     """
 
-    def __init__(self, parser_node: LRStackNode, variables: list[Variable_Expression], iter_expression: Expression | list[Expression], statement: Statement) -> None:
+    def __init__(self, parser_node: LRStackNode, variables: list[Variable_Expression], iter_expression: Expression | Iterable[Expression], statement: Statement) -> None:
         """Initialize a for-each loop.
 
         Args:
@@ -103,55 +101,43 @@ class For_Each_Statement(Statement):
         if len(self._variables) == 1:
             self.var_name: str | None = self._variables[0].variable_name
         else:
-            self.var_name: str | None = None  # multiple variables require unpacking
-        self._iter_expression: Expression | list[Expression] = iter_expression
+            self.var_name = None  # multiple variables require unpacking
+        self._iter_expression: Expression | Iterable[Expression] = iter_expression
         self._statement = statement
+
+    def _get_iterable(self, context: Knit_Script_Context) -> Iterable[Any]:
+        if isinstance(self._iter_expression, Expression):
+            iter_val = self._iter_expression.evaluate(context)
+            return iter_val if isinstance(iter_val, Iterable) else [iter_val]
+        else:
+            return [e.evaluate(context) for e in self._iter_expression]
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the for-each loop.
 
-        Creates a new scope for the loop variables, then iterates over the iterable expression, assigning values and executing the statement for each iteration.
+        Iterates over the iterable expression, assigning values and executing the statement for each iteration.
         Handles both single variable assignment and multiple variable unpacking.
 
         Args:
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
 
         Raises:
-            TypeError: If the expression does not evaluate to an iterable.
             ValueError: If unpacking multiple variables and the number of values doesn't match the number of variables.
         """
-        iterable = [e.evalute(context) for e in self._iter_expression] if isinstance(self._iter_expression, list) else self._iter_expression.evaluate(context)
-        if not isinstance(iterable, Iterable):
-            raise Knit_Script_TypeError(f"Cannot iterate over non-iterable value {iterable}", self)
-        context.enter_sub_scope()  # create new scope that holds iterator variable
+        iterable = self._get_iterable(context)
+        new_var_names = set()
+        for var_expression in self._variables:
+            if var_expression.variable_name not in context.variable_scope:
+                new_var_names.add(var_expression.variable_name)
         for var in iterable:
             if self.var_name is not None:
                 context.variable_scope[self.var_name] = var  # update iterator variable in scope
             else:  # multiple vars to unpack
                 iterated_var = [*var]
-                if len(iterated_var) > len(self._variables):
-                    raise Knit_Script_ValueError(f"Too many values to unpack, expected {len(self._variables)} but got {len(iterated_var)}: {iterated_var}.", self)
-                elif len(iterated_var) < len(self._variables):
-                    raise Knit_Script_ValueError(f"Too few values to unpack, expected {len(self._variables)} but got {len(iterated_var)}: {iterated_var}.", self)
-
+                if len(iterated_var) != len(self._variables):
+                    raise self.add_ks_information_to_error(ValueError(f"Expected {len(self._variables)} variables, got {len(iterated_var)} from {iterated_var}"))
                 for var_name, var_val in zip(self._variables, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
-
             self._statement.execute(context)
-        context.exit_current_scope()  # exit scope, removing access to iterator variable
-
-    def __str__(self) -> str:
-        """Return string representation of the for-each loop.
-
-        Returns:
-            str: A string showing the variables, iterable, and statement.
-        """
-        return f"for {self.var_name} in {self._iter_expression} -> {self._statement}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the for-each loop.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
+        for new_var in new_var_names:
+            del context.variable_scope[new_var]

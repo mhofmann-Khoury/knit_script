@@ -129,8 +129,6 @@ class Operator_Expression(Expression):
         self._rhs: Expression = rhs
         self.op_str: str = op_str
         self._lhs: Expression = lhs
-        self.add_children(self._rhs)
-        self.add_children(self._lhs)
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
         """Evaluate the expression to perform the binary operation.
@@ -147,9 +145,3 @@ class Operator_Expression(Expression):
         op = Operator.get_op(self.op_str)
         second_num = self._rhs.evaluate(context)
         return op.operate(first_num, second_num)
-
-    def __str__(self) -> str:
-        return f"({self._lhs} {self.op_str} {self._rhs})"
-
-    def __repr__(self) -> str:
-        return str(self)

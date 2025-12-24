@@ -4,14 +4,14 @@ This module provides expression classes for handling various container data stru
 It includes support for lists, dictionaries, tuples, list comprehensions, dictionary comprehensions, and unpacking operations, following Python conventions for syntax and behavior.
 """
 
-from collections.abc import Iterable
-from typing import Any, cast
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_KeyError, Knit_Script_TypeError
+from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -36,7 +36,6 @@ class Unpack(Expression):
         """
         super().__init__(parser_node)
         self._expression = exp
-        self.add_children(self._expression)
 
     def evaluate(self, context: Knit_Script_Context) -> tuple[Any, ...]:
         """Evaluate the expression to unpack the contained expression.
@@ -48,12 +47,6 @@ class Unpack(Expression):
             tuple[Any, ...]: Tuple with unpacked values from the expression.
         """
         return (*self._expression.evaluate(context),)
-
-    def __str__(self) -> str:
-        return f"(*{self._expression})"
-
-    def __repr__(self) -> str:
-        return str(self)
 
 
 class Knit_Script_List(Expression):
@@ -75,7 +68,6 @@ class Knit_Script_List(Expression):
         """
         super().__init__(parser_node)
         self.expressions: list[Expression] = expressions
-        self.add_children(self.expressions)
 
     def evaluate(self, context: Knit_Script_Context) -> list[Any]:
         """Evaluate the expression to create a list.
@@ -95,16 +87,6 @@ class Knit_Script_List(Expression):
             else:
                 values.append(exp.evaluate(context))
         return values
-
-    def __str__(self) -> str:
-        values = ""
-        for exp in self.expressions:
-            values += f"{exp}, "
-        values = values[:-2]
-        return f"[{values}]"
-
-    def __repr__(self) -> str:
-        return str(self)
 
 
 class Sliced_List(Expression):
@@ -156,10 +138,6 @@ class Sliced_List(Expression):
         self._end: Expression | None = end
         self._start: Expression | None = start
         self._iter_exp: Expression = iter_exp
-        self.add_children(self._end)
-        self.add_children(self._spacer)
-        self.add_children(self._start)
-        self.add_children(self._iter_exp)
 
     def evaluate(self, context: Knit_Script_Context) -> Iterable[Any] | Any:
         """Evaluate the expression to perform slicing or indexing.
@@ -204,94 +182,6 @@ class Sliced_List(Expression):
         """
         return self._start_to_end or self._end_to_spacer
 
-    def __str__(self) -> str:
-        if self._is_slice():
-            return f"{self._iter_exp}[{self._start}:{self._end}:{self._spacer}]"
-        else:
-            return f"{self._iter_exp}[{self._start}]"
-
-    def __repr__(self) -> str:
-        return str(self)
-
-
-class List_Comp(Expression):
-    """Runs a list comprehension over an iterator.
-
-    The List_Comp class implements Python-style list comprehensions for knit script programs.
-    It supports iteration variables, optional filtering conditions, and custom spacing patterns for iteration control.
-
-    Attributes:
-        _comp_cond (Expression | None): Optional condition expression for filtering elements.
-        _fill_exp (Expression): Expression that generates values for the list.
-        _vars (list[Variable_Expression]): Variables to bind during iteration.
-        _var_name (str | None): Single variable name for simple iterations.
-        _iter_exp (Expression): The iterable expression to iterate over.
-    """
-
-    def __init__(self, parser_node: LRStackNode, fill_exp: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None) -> None:
-        """Initialize the List_Comp.
-
-        Args:
-            parser_node (LRStackNode): The parser node from the parse tree.
-            fill_exp (Expression): Expression that fills the list for each iteration.
-            variables (list[Variable_Expression]): Variables to bind from the iterable.
-            iter_exp (Expression): The iterable expression to iterate over.
-            comp_cond (Expression | None): Optional condition expression for filtering values.
-        """
-        super().__init__(parser_node)
-        self._comp_cond: Expression | None = comp_cond
-        self._fill_exp: Expression = fill_exp
-        self._vars: list[Variable_Expression] = variables
-        if len(self._vars) == 1:
-            self._var_name: str | None = self._vars[0].variable_name
-        else:
-            self._var_name: str | None = None
-        self._iter_exp: Expression = iter_exp
-        self.add_children(self._comp_cond)
-        self.add_children(self._fill_exp)
-        self.add_children(self._vars)
-
-    def evaluate(self, context: Knit_Script_Context) -> list[Any]:
-        """Evaluate the expression to generate a list through comprehension.
-
-        Creates a new scope for iteration variables, iterates over the iterable, and builds a list by evaluating the fill expression for each iteration that passes the optional condition.
-
-        Args:
-            context (Knit_Script_Context): The current context of the knit_script_interpreter.
-
-        Returns:
-            list[Any]: Result of list comprehension with filtered and transformed values.
-
-        Raises:
-            AssertionError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
-        """
-        iterable = cast(Iterable[Any], self._iter_exp.evaluate(context))
-        # assert isinstance(iterable, Iterable), f"Cannot iterate over non-iterable value {iterable}"
-        context.enter_sub_scope()  # create new scope that holds iterator variable
-        values = []
-        for var in iterable:
-            if self._var_name is not None:
-                context.variable_scope[self._var_name] = var  # update iterator variable in scope
-            else:  # multiple vars to unpack
-                iterated_var = [*var]
-                assert len(iterated_var) == len(self._vars), "Unpacked values do not match variables provided"
-                for var_name, var_val in zip(self._vars, iterated_var, strict=False):
-                    context.variable_scope[var_name.variable_name] = var_val
-            condition_result = bool(self._comp_cond.evaluate(context)) if isinstance(self._comp_cond, Expression) else True
-            if condition_result:
-                values.append(self._fill_exp.evaluate(context))
-        context.exit_current_scope()  # exit scope, removing access to iterator variable
-        return values
-
-    def __str__(self) -> str:
-        comp = ""
-        if self._comp_cond is not None:
-            comp = f" if {self._comp_cond}"
-        return f"[{self._fill_exp} for {self._vars} in {self._iter_exp}{comp}]"
-
-    def __repr__(self) -> str:
-        return str(self)
-
 
 class Knit_Script_Dictionary(Expression):
     """Used to process dictionary structures.
@@ -312,9 +202,6 @@ class Knit_Script_Dictionary(Expression):
         """
         super().__init__(parser_node)
         self._kwargs: list[tuple[Expression, Expression]] = kwargs
-        for key, value in self._kwargs:
-            self.add_children(key)
-            self.add_children(value)
 
     def evaluate(self, context: Knit_Script_Context) -> dict[Any, Any]:
         """Evaluate the expression to create a dictionary.
@@ -329,30 +216,105 @@ class Knit_Script_Dictionary(Expression):
         """
         return {kwarg[0].evaluate(context): kwarg[1].evaluate(context) for kwarg in self._kwargs}
 
-    def __str__(self) -> str:
-        values = ""
-        for assign in self._kwargs:
-            values += f"{assign[0]}:{assign[1]}, "
-        values = values[:-2]
-        return "{" + values + "}"
 
-    def __repr__(self) -> str:
-        return str(self)
+class Comprehension(Expression):
+
+    def __init__(
+        self, parser_node: LRStackNode, value_expressions: Expression | Sequence[Expression], variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None
+    ) -> None:
+        super().__init__(parser_node)
+        self._comp_cond: Expression | None = comp_cond
+        self._values: Expression | Sequence[Expression] = value_expressions
+        self._iter_exp: Expression = iter_exp
+        self._variables: list[Variable_Expression] = variables
+        self._var_name: str | None = self._variables[0].variable_name if len(self._variables) == 1 else None
+
+    def _get_iterable(self, context: Knit_Script_Context) -> Iterable[Any]:
+        iter_val = self._iter_exp.evaluate(context)
+        return iter_val if isinstance(iter_val, Iterable) else [iter_val]
+
+    def evaluate_iterable(self, context: Knit_Script_Context) -> list[Any]:
+        """Evaluate the expression to generate an iterable sequence of values.
+
+        Creates a new scope for iteration variables,
+            iterates over the iterable,
+                and builds a sequence by evaluating the value expressions for each iteration that passes the optional condition.
+
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            list[Any]: Result of the comprehension with filtered and transformed values.
+
+        Raises:
+            ValueError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
+        """
+        iterable = self._get_iterable(context)
+        new_var_names = set()
+        for var_expression in self._variables:
+            if var_expression.variable_name not in context.variable_scope:
+                new_var_names.add(var_expression.variable_name)
+        values = []
+        for var in iterable:
+            if self._var_name is not None:
+                context.variable_scope[self._var_name] = var  # update iterator variable in scope
+            else:  # multiple vars to unpack
+                iterated_var = [*var]
+                if len(iterated_var) != len(self._variables):
+                    raise self.add_ks_information_to_error(ValueError(f"Number of keys <{iterated_var}> do not match number of variables <{self._variables}>"))
+                for var_name, var_val in zip(self._variables, iterated_var, strict=False):
+                    context.variable_scope[var_name.variable_name] = var_val
+            if bool(self._comp_cond.evaluate(context)) if isinstance(self._comp_cond, Expression) else True:
+                if isinstance(self._values, Expression):
+                    values.append(self._values.evaluate(context))
+                else:
+                    values.append(tuple(v.evaluate(context) for v in self._values))
+        for new_var in new_var_names:
+            del context.variable_scope[new_var]
+        return values
 
 
-class Dictionary_Comprehension(Expression):
+class List_Comp(Comprehension):
+    """Runs a list comprehension over an iterator.
+
+    The List_Comp class implements Python-style list comprehensions for knit script programs.
+    It supports iteration variables, optional filtering conditions, and custom spacing patterns for iteration control.
+    """
+
+    def __init__(self, parser_node: LRStackNode, value_expression: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None) -> None:
+        """Initialize the List_Comp.
+
+        Args:
+            parser_node (LRStackNode): The parser node from the parse tree.
+            value_expression (Expression): Expression that fills the list for each iteration.
+            variables (list[Variable_Expression]): Variables to bind from the iterable.
+            iter_exp (Expression): The iterable expression to iterate over.
+            comp_cond (Expression | None): Optional condition expression for filtering values.
+        """
+        super().__init__(parser_node, value_expression, variables, iter_exp, comp_cond)
+
+    def evaluate(self, context: Knit_Script_Context) -> list[Any]:
+        """Evaluate the expression to create a dictionary.
+
+        Creates a new scope for iteration variables, iterates over the iterable, and builds a list by evaluating the fill expression for each iteration that passes the optional condition.
+
+        Args:
+            context (Knit_Script_Context): The current context of the knit_script_interpreter.
+
+        Returns:
+            list[Any]: Result of list comprehension with filtered and transformed values.
+
+        Raises:
+            KeyError: If variable unpacking doesn't match the provided variables.
+        """
+        return self.evaluate_iterable(context)
+
+
+class Dictionary_Comprehension(Comprehension):
     """Used for supporting dictionary comprehension.
 
     The Dictionary_Comprehension class implements Python-style dictionary comprehensions for knit script programs.
     It supports iteration variables, optional filtering conditions, and custom spacing patterns, generating dictionaries through iteration.
-
-    Attributes:
-        _comp_cond (Expression | None): Optional condition expression for filtering elements.
-        _key (Expression): Expression that generates keys for the dictionary.
-        _value (Expression): Expression that generates values for the dictionary.
-        _iter_exp (Expression): The iterable expression to iterate over.
-        _vars (list[Variable_Expression]): Variables to bind during iteration.
-        _var_name (str | None): Single variable name for simple iterations.
     """
 
     def __init__(self, parser_node: LRStackNode, key: Expression, value: Expression, variables: list[Variable_Expression], iter_exp: Expression, comp_cond: Expression | None = None) -> None:
@@ -366,21 +328,7 @@ class Dictionary_Comprehension(Expression):
             iter_exp (Expression): The iterable expression to iterate over.
             comp_cond (Expression | None, optional): Optional condition expression for filtering entries. Defaults to None.
         """
-        super().__init__(parser_node)
-        self._comp_cond: Expression | None = comp_cond
-        self._key: Expression = key
-        self._value: Expression = value
-        self._iter_exp: Expression = iter_exp
-        self._vars: list[Variable_Expression] = variables
-        if len(self._vars) == 1:
-            self._var_name: str | None = self._vars[0].variable_name
-        else:
-            self._var_name: str | None = None
-        self.add_children(self._comp_cond)
-        self.add_children(self._key)
-        self.add_children(self._value)
-        self.add_children(self._iter_exp)
-        self.add_children(self._vars)
+        super().__init__(parser_node, [key, value], variables, iter_exp, comp_cond)
 
     def evaluate(self, context: Knit_Script_Context) -> dict[Any, Any]:
         """Evaluate the expression to generate a dictionary through comprehension.
@@ -395,31 +343,7 @@ class Dictionary_Comprehension(Expression):
             dict[Any, Any]: Result of dictionary comprehension with filtered and transformed key-value pairs.
 
         Raises:
-            KeyError: If the iterable is not actually iterable or if variable unpacking doesn't match the provided variables.
+            KeyError: If variable unpacking doesn't match the provided variables.
         """
-        iterable = cast(Iterable[Any], self._iter_exp.evaluate(context))
-        context.enter_sub_scope()  # create new scope that holds iterator variable
-        values = {}
-        for var in iterable:
-            if self._var_name is not None:
-                context.variable_scope[self._var_name] = var  # update iterator variable in scope
-            else:  # multiple vars to unpack
-                iterated_var = [*var]
-                if len(iterated_var) != len(self._vars):
-                    raise Knit_Script_KeyError(f"Number of keys <{iterated_var}> do not match number of variables <{self._vars}>", self)
-                for var_name, var_val in zip(self._vars, iterated_var, strict=False):
-                    context.variable_scope[var_name.variable_name] = var_val
-            condition_result = bool(self._comp_cond.evaluate(context)) if isinstance(self._comp_cond, Expression) else True
-            if condition_result:
-                values[self._key.evaluate(context)] = self._value.evaluate(context)
-        context.exit_current_scope()  # exit scope, removing access to iterator variable
-        return values
-
-    def __str__(self) -> str:
-        comp = ""
-        if self._comp_cond is not None:
-            comp = f" if {self._comp_cond}"
-        return "{" + f"{self._key}:{self._value} for {self._vars} in {self._iter_exp}{comp}" + "}"
-
-    def __repr__(self) -> str:
-        return str(self)
+        key_value_pairs = self.evaluate_iterable(context)
+        return dict(key_value_pairs)

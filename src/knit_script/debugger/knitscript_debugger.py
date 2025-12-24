@@ -2,25 +2,30 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import warnings
 from collections.abc import Callable
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from virtual_knitting_machine.Knitting_Machine_Snapshot import Knitting_Machine_Snapshot
 
 from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.ks_element import KS_Element
-from knit_script.knit_script_interpreter.statements.Statement import Statement
+from knit_script.debugger.debug_protocol import Knit_Script_Debuggable_Protocol
+from knit_script.debugger.knitscript_frame import Knit_Script_Frame
+from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_warnings.Knit_Script_Warning import Breakpoint_Condition_Error_Ignored_Warning
+
+if TYPE_CHECKING:
+    from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 
 class KnitScript_Debug_Mode(Enum):
     """Enumeration of stepping modes for the debugger"""
 
     Continue = "continue"  # Sets the debugger to step until a breakpoint is reached.
-    Step_Out = "step-out"  # Sets teh debugger to step out to the parent statement from the current step.
+    Step_Out = "step-out"  # Sets the debugger to step out to the parent statement from the current step.
     Step_In = "step-in"  # Sets the debugger to step into any child statements of the current step or to the next step.
     Step_Over = "step-over"  # Sets the debugger to step to the next sibling statement of the current step or out to the next parent.
 
@@ -33,7 +38,8 @@ class Knit_Script_Debugger:
     """
 
     def __init__(self) -> None:
-        self._context: Knit_Script_Context | None = None
+        self._context: Knit_Script_Debuggable_Protocol | None = None
+        self.frame: Knit_Script_Frame | None = None
         self._debug_mode: KnitScript_Debug_Mode = KnitScript_Debug_Mode.Continue
         self._breakpoints: dict[int, Callable[[Knit_Script_Debugger], bool]] = {}
         self._disabled_breakpoints: set[int] = set()
@@ -42,7 +48,8 @@ class Knit_Script_Debugger:
         self._stop_on_condition_error: bool = True
         self._raised_exceptions: set[BaseException] = set()
         self.machine_snapshots: dict[int, Knitting_Machine_Snapshot] = {}
-        self._last_pause_element: KS_Element | None = None  # The element that the debugger last paused on.
+        self._exited_frame: Knit_Script_Frame | None = None
+        self._checking_frame: Knit_Script_Frame | None = None
 
     @property
     def take_step_in(self) -> bool:
@@ -95,20 +102,125 @@ class Knit_Script_Debugger:
         """
         return self._stop_on_condition_error
 
-    def attach_interpreter(self, context: Knit_Script_Context) -> None:
+    def attach_context(self, context: Knit_Script_Debuggable_Protocol) -> None:
         """
         Attaches the given interpreter to this debugger.
 
         Args:
-            context (Knit_Script_Context): The context of the knitout interpreter to attach to this debugger.
+            context (Knit_Script_Debuggable_Protocol): The context of the knitout interpreter to attach to this debugger.
         """
         self._context = context
+        self.frame = Knit_Script_Frame(context.variable_scope)
+        self._checking_frame = self.frame
 
-    def detach_interpreter(self) -> None:
+    def detach_context(self) -> None:
         """
         Detaches the current interpreter from this debugger.
         """
         self._context = None
+        self.frame = None
+        self._checking_frame = None
+
+    def debug_statement(self, statement: KS_Element) -> None:
+        """
+        Triggers a pause in the debugger based on the given statement and context.
+
+        Args:
+            statement (Statement): The statement that triggered the pause and will be executed next.
+        """
+        if self._context is not None and self.pause_on_statement(statement):
+            was_step_out = self._is_step_out()
+            self._checking_frame = self.frame
+            line_number: int = statement.line_number
+            if self.taking_snapshots:
+                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
+            if self._is_interactive_debugger_attached():
+                print(f"\n{'=' * 70}")
+                print(f"KnitScript Debugger Paused {statement.location_str}")
+                print(f"\tPaused at {statement.position_context}")
+                if self._breakpoint_is_active(line_number):
+                    print("Paused at active breakpoint.")
+                    if self._condition_error is not None:
+                        print(f"Breakpoint Condition triggered an exception:\n\t{self._condition_error}")
+                elif was_step_out and self._exited_frame is not None:
+                    if self._exited_frame.is_function:
+                        print(f"\t Exited function {self._exited_frame.function_name}")
+                    elif self._exited_frame.is_module:
+                        print(f"\t Exited module {self._exited_frame.module_name}")
+                print(f"{'=' * 70}")
+                self.print_user_guide()
+                breakpoint()  # Break before statement
+                self._condition_error = None  # reset any condition errors
+        self.add_statement_to_frame(statement)
+        self._exited_frame = None
+
+    def debug_error(self, statement: KS_Element, exception: BaseException) -> None:
+        """
+        Pause the debugger because the given statement raised the given exception.
+
+        Args:
+            statement (Statement): The statement that triggered the pause and will be executed next.
+            exception (BaseException): The exception that triggered the pause and will be raised after this break.
+        """
+        if self._context is not None and exception not in self._raised_exceptions:
+            self._raised_exceptions.add(exception)
+            line_number: int = statement.line_number
+            if self.taking_snapshots:
+                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
+            if self._is_interactive_debugger_attached():
+                print(f"\n{'=' * 70}")
+                print(f"Knit Script paused by an {exception.__class__.__name__} raised {statement.location_str}")
+                print(f"\tPaused at {statement.position_context}")
+                print(f"\t{exception}")
+                print(f"{'=' * 70}")
+                self.print_user_guide()
+                breakpoint()  # Break exception is raised
+
+    def enter_child_frame(self, scope: Knit_Script_Scope) -> None:
+        """
+        Enters a child frame with the given scope and makes it the main frame of the debugger.
+
+        Args:
+            scope (Knit_Script_Scope): The scope to enter the child frame.
+        """
+        child_frame = Knit_Script_Frame(scope, self.frame)
+        if self.frame is not None:
+            self.frame.add_child_frame(child_frame)
+        self.frame = child_frame
+
+    def exit_to_parent_frame(self) -> None:
+        """
+        Sets the current frame to the parent of the current frame.
+        If there is no current frame, this is a No-op.
+        """
+        if self.frame is not None:
+            self._exited_frame = self.frame
+            self.frame = self.frame.parent_frame
+
+    def restart_frame(self, scope: Knit_Script_Scope) -> None:
+        """
+        Sets the frame to a new frame without external context initiated with the given scope.
+
+        Args:
+            scope (Knit_Script_Scope): The scope to restart the current frame.
+        """
+        self._exited_frame = self.frame
+        self.frame = Knit_Script_Frame(scope)
+
+    def reset_debugger(self, reset_breaks: bool = False, clear_snapshots: bool = False) -> None:
+        """
+        Resets the debugger to a new starting state with no prior information about where it was debugging.
+        Args:
+            reset_breaks (bool, optional): If True, clears all prior information about breakpoints. Defaults to False.
+            clear_snapshots (bool, optional): If True, clears all snapshots taken by the debugger. Defaults to False.
+        """
+        if reset_breaks:
+            self._breakpoints = {}
+            self._disabled_breakpoints = set()
+        if clear_snapshots:
+            self.machine_snapshots = {}
+        self._condition_error = None
+        self._raised_exceptions = set()
 
     def set_breakpoint(self, line: int, condition: Callable[[Knit_Script_Debugger], bool] | None = None) -> None:
         """
@@ -203,6 +315,16 @@ class Knit_Script_Debugger:
         """
         self._stop_on_condition_error = True
 
+    def _at_breakpoint(self, line: int) -> bool:
+        """
+        Args:
+            line (int): The line number to pause at.
+
+        Returns:
+            bool: True if the debugger is at an active breakpoint, False otherwise.
+        """
+        return line not in self._disabled_breakpoints and line in self._breakpoints
+
     def _breakpoint_is_active(self, line: int) -> bool:
         """
         Args:
@@ -218,7 +340,7 @@ class Knit_Script_Debugger:
             Breakpoint_Condition_Error_Ignored_Warning: If the breakpoint condition triggers an error that is ignored and passed over.
         """
         try:
-            return line not in self._disabled_breakpoints and line in self._breakpoints and self._breakpoints[line](self)
+            return self._at_breakpoint(line) and self._breakpoints[line](self)
         except Exception as condition_error:
             if self.stop_on_condition_errors:
                 self._condition_error = condition_error
@@ -227,75 +349,43 @@ class Knit_Script_Debugger:
                 warnings.warn(Breakpoint_Condition_Error_Ignored_Warning(condition_error, line), stacklevel=get_user_warning_stack_level_from_knitscript_package())
                 return False
 
-    def _is_step_over(self, statement: Statement) -> bool:
-        """
-        Determine if the given statement is a step over from the last pause of the debugger.
-        A step over will occur when an element is reached that is not a descendant of the last element paused on.
-
-        Args:
-            statement (Statement): The statement to plausible step over to.
-
-        Returns:
-            bool: True if the statement would constitute a step over from the last paused element. False otherwise.
-        """
-        return statement.is_known_descendant(self._last_pause_element)
-
-    def pause_on_statement(self, statement: Statement) -> bool:
+    def pause_on_statement(self, statement: KS_Element) -> bool:
         """
         Determines if the given statement should trigger the next pause in the debugger.
 
         Args:
-            statement (Statement): The next statement to consider pausing before.
+            statement (KS_Element): The next statement to consider pausing before.
 
         Returns:
             bool: True if the debugger should pause before the given statement. False, otherwise.
         """
-        return (
-            self.take_step_in
-            or (self.take_step_over and self._is_step_over(statement))
-            or (self.take_step_out and statement.is_parent(self._last_pause_element))
-            or self._breakpoint_is_active(statement.line_number)
-        )
+        return self.take_step_in or self._breakpoint_is_active(statement.line_number) or self._is_step_out() or self._is_step_over()
 
-    def debug_statement(self, statement: Statement) -> None:
+    def _is_step_out(self) -> bool:
         """
-        Triggers a pause in the debugger based on the given statement and context
-        Args:
-            statement (Statement): The statement that triggered the pause and will be executed next.
+        Returns:
+            bool: True if the debugger is set pause when stepping out of the last frame and the debugger just exited a frame.
         """
-        if self._context is not None and self.pause_on_statement(statement):
-            line_number: int = statement.line_number
-            self._last_pause_element = statement
-            if self.taking_snapshots:
-                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
-            if sys.gettrace() is not None and sys.stdin.isatty():  # Check if IDE debugger is attached
-                print(f"\n{'=' * 70}")
-                print("TODO: Evaluation of statement pause condition")  # TODO
-                print(f"{'=' * 70}")
-                self.print_user_guide()
-                breakpoint()  # Break before statement
-                self._condition_error = None  # reset any condition errors
+        return self.take_step_out and self._checking_frame is not None and self._exited_frame is not None and not self._exited_frame.is_below(self._checking_frame)
 
-    def debug_error(self, statement: Statement, exception: BaseException) -> None:
+    def _is_step_over(self) -> bool:
         """
-        Pause the debugger because the given statement raised the given exception
+        Determine if the given statement is a step over from the last pause of the debugger.
+        A step over will occur when the current frame is not a child of the last frame that was paused on.
+
+        Returns:
+            bool: True if the statement would constitute a step over from the last paused element. False otherwise.
+        """
+        return self.take_step_over and self._checking_frame is not None and self.frame is not None and not self.frame.is_below(self._checking_frame)
+
+    def add_statement_to_frame(self, statement: KS_Element) -> None:
+        """
+        Adds the given statement to those that have been executed in the current frame.
         Args:
-            statement (Statement): The statement that triggered the pause and will be executed next.
-            exception (BaseException): The exception that triggered the pause and will be raised after this break.
+            statement (KS_Element): The statement to add to the execution history.
         """
-        if self._context is not None and exception not in self._raised_exceptions:
-            self._raised_exceptions.add(exception)
-            line_number: int = statement.line_number
-            self._last_pause_element = statement
-            if self.taking_snapshots:
-                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
-            if sys.gettrace() is not None and sys.stdin.isatty():  # Check if IDE debugger is attached
-                print(f"\n{'=' * 70}")
-                print(f"Knit Script paused by an {exception.__class__.__name__} raised on line {line_number}: {statement}")
-                print(f"\t{exception}")
-                print(f"{'=' * 70}")
-                self.print_user_guide()
-                breakpoint()  # Break exception is raised
+        if self.frame is not None:
+            self.frame.add_statement(statement)
 
     @staticmethod
     def print_user_guide() -> None:
@@ -318,3 +408,49 @@ class Knit_Script_Debugger:
             bool: True; the breakpoint will always pass.
         """
         return True
+
+    @staticmethod
+    def _is_interactive_debugger_attached() -> bool:
+        """Check if an interactive debugger session is active.
+
+        Uses multiple heuristics to detect interactive debugging across
+        different IDEs and platforms (PyCharm, VSCode, etc.).
+
+        Returns:
+            bool: True if an interactive debugger session is active. False otherwise.
+        """
+        # No trace function = no debugger
+        if sys.gettrace() is None:
+            return False
+
+        # Check: CI/automated environment detection (if these exist, this session is not interactive and shouldn't be debugged)
+        ci_indicators = {
+            "CI",
+            "CONTINUOUS_INTEGRATION",  # Generic CI
+            "GITHUB_ACTIONS",  # GitHub Actions
+            "TRAVIS",
+            "CIRCLECI",  # Other CI systems
+            "JENKINS_HOME",
+        }
+        if any(var in os.environ for var in ci_indicators):
+            return False
+
+        # Check: Known debugger modules
+        trace = sys.gettrace()
+        if trace is not None:
+            trace_module = getattr(trace, "__module__", "")
+            interactive_debuggers = ["pydevd", "pdb", "bdb", "debugpy", "_pydevd_bundle"]
+            if any(debugger in trace_module for debugger in interactive_debuggers):
+                return True
+
+        # Check: IDE environment variables
+        ide_indicators = {
+            "PYCHARM_HOSTED",  # PyCharm
+            "PYDEVD_LOAD_VALUES_ASYNC",  # PyCharm debugger
+            "VSCODE_PID",  # VSCode
+        }
+        if any(var in os.environ for var in ide_indicators):
+            return True
+
+        # Check: TTY as fallback. An interactive console found (only reliable on Unix)
+        return sys.stdin.isatty()

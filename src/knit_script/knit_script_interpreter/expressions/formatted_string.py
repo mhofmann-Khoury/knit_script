@@ -33,7 +33,6 @@ class Formatted_String_Value(Expression):
         """
         super().__init__(parser_node)
         self.expressions: list[Expression] = expressions
-        self.add_children(self.expressions)
 
     def evaluate(self, context: Knit_Script_Context) -> str:
         """Evaluate the expression to produce a formatted string.
@@ -50,6 +49,3 @@ class Formatted_String_Value(Expression):
         for exp in self.expressions:
             string += str(exp.evaluate(context))
         return string
-
-    def __str__(self) -> str:
-        return f"Formatted_Str({self.expressions})"

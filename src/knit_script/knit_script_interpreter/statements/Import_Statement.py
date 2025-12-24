@@ -6,23 +6,20 @@ It supports both direct imports and aliased imports with comprehensive fallback 
 
 import importlib
 import os.path
-from collections.abc import Iterable
 from types import ModuleType
 
 from parglare.parser import LRStackNode
 
-import knit_script.knit_script_std_library as ks_library
-from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_ImportError
+from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
 from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
-from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
-from knit_script.knit_script_interpreter.statements.Statement import Statement
+from knit_script.knit_script_interpreter.statements.scoped_statement import Scoped_Statement
+from knit_script.knit_script_std_library import get_ks_library_path
 
 
-class Import_Statement(Statement):
+class Import_Statement(Scoped_Statement):
     """Statement that imports a Python or knit script module.
 
     Supports importing Python modules, knit script standard library modules, and local knit script files.
@@ -36,19 +33,141 @@ class Import_Statement(Statement):
         alias (Expression | None): Optional alias name for the imported module.
     """
 
-    def __init__(self, parser_node: LRStackNode, src: Expression, alias: Expression | None = None) -> None:
+    def __init__(self, parser_node: LRStackNode, src: Attribute_Accessor_Expression | Variable_Expression, alias: Variable_Expression | None = None) -> None:
         """Initialize an import statement.
 
         Args:
             parser_node (LRStackNode): The parser node from the abstract syntax tree.
-            src (Expression): Expression representing the module name or path to import. Must evaluate to a Variable_Expression or Attribute_Accessor_Expression.
-            alias (Expression | None, optional): Optional alias name for the imported module. If None and src is a Variable_Expression, uses the module name as the alias. Defaults to None.
+            src (Attribute_Accessor_Expression | Variable_Expression): A Variable or Attribute_Accessor expression representing the module name or path to import.
+            alias (Variable_Expression, optional): Optional variable expression that declares the alias name for the imported module. Defaults to no alias.
         """
-        super().__init__(parser_node)
-        self.src: Expression = src
-        self.alias: Expression | None = alias
-        if alias is not None:
-            self.add_children(self.alias)
+        super().__init__(parser_node, [])
+        self.src: Attribute_Accessor_Expression | Variable_Expression = src
+        self.alias: Variable_Expression | None = alias
+
+    @property
+    def source_string(self) -> str:
+        """
+        Returns:
+            str: The string representing the path of values in the source expression.
+
+        Raises:
+            AttributeError | ImportError: If the source attribute cannot be parsed into a path of variables names.
+        """
+        if isinstance(self.src, Variable_Expression):
+            return self.src.variable_name
+        elif isinstance(self.src.attribute, Variable_Expression):
+            return f"{self.src.parent_path()}.{self.src.attribute.variable_name}"
+        else:
+            raise self.src.add_ks_information_to_error(ImportError(f"Expected to import path-like-string but got attribute {self.src.attribute}"))
+
+    @property
+    def source_ks_file(self) -> str:
+        """
+        Returns:
+            str: The string representing the file path to a ks file for the source expression.
+
+        Raises:
+            AttributeError | ImportError: If the source attribute cannot be parsed into a path of variables names.
+        """
+        return f"{self.source_string}.ks"
+
+    @property
+    def alias_name(self) -> str:
+        """
+        Returns:
+            str: The alias of this import statement derived from the alias expression or the variable name of the source expression.
+        """
+        if self.alias is not None:
+            return self.alias.variable_name
+        if isinstance(self.src, Variable_Expression):
+            return self.src.variable_name
+        elif isinstance(self.src.attribute, Variable_Expression):
+            return self.src.attribute.variable_name
+        else:
+            return "__temp_unnamed_module__"
+
+    def _import_from_ks_standard_library(self) -> ModuleType:
+        """
+        Returns:
+            ModuleType: The python module imported from the knitscript standard library.
+
+        Raises:
+            ModuleNotFoundError | ImportError | AttributeError: If the module cannot be imported from the knitscript standard library.
+        """
+        return importlib.import_module(f"knit_script.knit_script_std_library.{self.source_string}")
+
+    def _import_local_module(self) -> ModuleType:
+        """
+        Returns:
+            ModuleType: The python module imported locally.
+
+        Raises:
+            ModuleNotFoundError | AttributeError | ImportError: If the module cannot be imported locally.
+        """
+        return importlib.import_module(self.source_string)
+
+    def _execute_local_ks_file(self, context: Knit_Script_Context) -> Knit_Script_Scope | None:
+        """
+        Args:
+            context (Knit_Script_Context): The current context the import is being executed in.
+
+        Returns:
+            Knit_Script_Scope | None: The knitscript module imported from a local ks file. None, if no local ks file was found to import.
+        """
+        if self.local_path is None:
+            return None
+        local_path_to_src = os.path.join(self.local_path, self.source_ks_file)
+        if not os.path.isfile(local_path_to_src):
+            return None  # File not found in local directory
+        return self._execute_ks_module_from_path(context, local_path_to_src)
+
+    def _execute_ks_file_in_std_lbry(self, context: Knit_Script_Context) -> Knit_Script_Scope | None:
+        """
+        Args:
+            context (Knit_Script_Context): The current context the import is being executed in.
+
+        Returns:
+            Knit_Script_Scope | None: The knitscript module imported from the standard library. None, if no local ks file was found to import.
+        """
+        library_path_to_src = os.path.join(get_ks_library_path(), self.source_ks_file)
+        if not os.path.isfile(library_path_to_src):
+            return None  # File not found in standard library
+        return self._execute_ks_module_from_path(context, library_path_to_src)
+
+    def _execute_ks_module_from_path(self, context: Knit_Script_Context, path: str) -> Knit_Script_Scope:
+        """
+        Args:
+            context (Knit_Script_Context): The current context the import is being executed in.
+            path (str): The path to the knitscript module to import.
+
+        Returns:
+            Knit_Script_Scope: The knitscript module imported from the given path.
+
+        Raises:
+            Parsing_Exception: If the imported module has a knitscript syntax error.
+        """
+        try:
+            statements = context.parser.parse(path, pattern_is_file=True)
+        except Parsing_Exception as e:
+            raise self.add_ks_information_to_error(e) from None
+        module = context.enter_sub_scope(module_name=self.alias_name)  # enter sub scope for module
+        context.execute_statements(statements)
+        context.exit_current_scope()
+        return module
+
+    def _get_python_module(self) -> ModuleType | None:
+        """
+        Returns:
+            ModuleType | None: The python module imported or None if a module could not be found.
+        """
+        try:
+            try:
+                return self._import_local_module()
+            except (ImportError, ModuleNotFoundError) as _failed_local_python_import:
+                return self._import_from_ks_standard_library()
+        except (ImportError, ModuleNotFoundError) as _failed_ks_python_import:
+            return None
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the import by loading the module and adding it to scope.
@@ -63,83 +182,15 @@ class Import_Statement(Statement):
             ImportError: If src is not a module name or path expression, or if alias is not a valid variable expression.
             If the module cannot be found in any location after trying all resolution methods.
         """
-        if not (isinstance(self.src, (Attribute_Accessor_Expression, Variable_Expression))):
-            raise Knit_Script_ImportError(f"Cannot Import {self.src}, expected a module name or path", self)
-        src_string = str(self.src)
-        if self.alias is not None:
-            if not isinstance(self.alias, Variable_Expression):
-                raise Knit_Script_ImportError(f"Cannot import {src_string} as {self.alias}", self)
-            alias = self.alias.variable_name
-        elif isinstance(self.src, Variable_Expression):
-            alias = self.src.variable_name
-        else:
-            alias = None
-        try:
-            try:
-                module: ModuleType | Knit_Script_Scope | None = importlib.import_module(src_string)
-            except ModuleNotFoundError:
-                module = importlib.import_module(f"knit_script.knit_script_std_library.{src_string}")
-        except (ImportError, ModuleNotFoundError) as e:
-            if context.ks_file is None:
-                raise Knit_Script_ImportError(f"cannot import {src_string} from string KnitScript pattern. Try converting your pattern to a file.", self) from e
-            local_path = os.path.dirname(context.ks_file)
-            library_path = os.path.dirname(ks_library.__file__)
-            if isinstance(self.src, Variable_Expression):
-                local_path_to_src = os.path.join(local_path, f"{self.src.variable_name}.ks")
-                local_is_file = os.path.isfile(local_path_to_src)
-                library_path_to_src = os.path.join(library_path, f"{self.src.variable_name}.ks")
-                library_is_file = os.path.isfile(library_path_to_src)
-                module = context.enter_sub_scope(module_name=alias)  # enter sub scope for module
-            else:
-                assert isinstance(self.src, Attribute_Accessor_Expression)
-                local_path_to_src = local_path
-                library_path_to_src = library_path
-                for parent in self.src.parent:
-                    if not isinstance(parent, Variable_Expression):
-                        raise Knit_Script_ImportError(f"import path must be module names not {parent}", self) from e
-                    local_path_to_src = os.path.join(local_path_to_src, parent.variable_name)
-                    library_path_to_src = os.path.join(library_path_to_src, parent.variable_name)
-                local_path_to_src = os.path.join(local_path_to_src, f"{self.src.attribute}.ks")
-                local_is_file = os.path.isfile(local_path_to_src)
-                library_path_to_src = os.path.join(library_path_to_src, f"{self.src.attribute}.ks")
-                library_is_file = os.path.isfile(library_path_to_src)
-                assert isinstance(self.src.attribute, Variable_Expression)
-                module = context.enter_sub_scope(module_name="__temp_module__")
-            if local_is_file:  # try local files before checking library
-                statements = context.parser.parse(local_path_to_src, pattern_is_file=True)
-                context.execute_statements(statements)
-                context.exit_current_scope()
-            elif library_is_file:
-                statements = context.parser.parse(library_path_to_src, pattern_is_file=True)
-                context.execute_statements(statements)
-                context.exit_current_scope()
-            else:
-                if not isinstance(e, Knit_Script_Located_Exception):
-                    raise Knit_Script_Located_Exception(e, self) from e
-                else:
-                    raise e
-        assert module is not None
-        if alias is not None:
-            context.variable_scope[alias] = module
+
+        module: ModuleType | Knit_Script_Scope | None = self._get_python_module()
+        if module is None:
+            module = self._execute_local_ks_file(context)
+        if module is None:
+            module = self._execute_ks_file_in_std_lbry(context)
+        if module is None:
+            raise self.add_ks_information_to_error(ImportError(f"Could not find a python or knitscript module <{self.source_ks_file}> in local module or ks standard library"))
+        if self.alias is not None or isinstance(self.src, Variable_Expression):
+            context.variable_scope[self.alias_name] = module
         else:  # attribute accessor path
-            assert isinstance(self.src, Attribute_Accessor_Expression)
-            assert isinstance(self.src.parent, Iterable)
-            path = [str(p) for p in self.src.parent]
-            path.append(str(self.src.attribute))
-            context.variable_scope.add_local_by_path(path, module)
-
-    def __str__(self) -> str:
-        """Return string representation of the import statement.
-
-        Returns:
-            str: A string showing the source and optional alias.
-        """
-        return f"import {self.src} as {self.alias}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the import statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
+            context.variable_scope.add_local_by_path(self.src.parent_path_list(), module)

@@ -4,8 +4,11 @@ This module provides the base Statement class and the Expression_Statement class
 These classes define the basic contract for executable code elements and provide mechanisms for using expressions as statements.
 """
 
+from typing import Any
+
 from parglare.parser import LRStackNode
 
+from knit_script.debugger.debug_decorator import debug_knitscript_statement
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 
@@ -27,6 +30,27 @@ class Statement(KS_Element):
             parser_node (LRStackNode): The parser node from the abstract syntax tree.
         """
         super().__init__(parser_node)
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Automatically wrap execute method in subclasses with debug decorator.
+
+        This method is called whenever a class inherits from Statement. It checks if
+        the subclass defines its own execute method and wraps it with the debug decorator.
+
+        Args:
+            **kwargs (Any): Additional keyword arguments passed to super().__init_subclass__
+        """
+        super().__init_subclass__(**kwargs)
+
+        # Check if this subclass defines its own execute method (not inherited)
+        if "execute" in cls.__dict__:
+            original_execute = cls.__dict__["execute"]
+
+            # Only wrap if not already wrapped (check for __wrapped__ attribute)
+            if not hasattr(original_execute, "__wrapped__"):
+                # Apply the debug decorator and set it back on the class
+                wrapped_execute = debug_knitscript_statement(original_execute)
+                cls.execute = wrapped_execute  # type: ignore[method-assign]
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the statement at the current machine context.

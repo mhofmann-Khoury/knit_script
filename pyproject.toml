@@ -207,16 +207,15 @@ strict_equality = true
 show_error_codes = true
 ignore_missing_imports = true
 allow_redefinition = true
-allow_untyped_globals = true
+allow_untyped_globals = false
 implicit_reexport = true
 
-# Added to fix duplicate module name error
 mypy_path = "src"
 
-disable_error_code = [
-    "attr-defined",
-    "no-redef",
-]
+#disable_error_code = [
+#    "attr-defined",
+#    "no-redef",
+#]
 
 exclude = [
     "tests/",

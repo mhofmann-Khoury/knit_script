@@ -12,14 +12,16 @@ Attributes:
 from __future__ import annotations
 
 from inspect import stack
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from knit_graphs.Knit_Graph import Knit_Graph
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
+from knit_script.debugger.debug_protocol import Knit_Script_Debugger_Protocol
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
+from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
 
 if TYPE_CHECKING:
@@ -39,34 +41,34 @@ class Knit_Script_Interpreter:
         _knitscript_context (Knit_Script_Context): The execution context containing variables, machine state, and other runtime information.
     """
 
-    def __init__(
-        self, debug_grammar: bool = False, debug_parser: bool = False, debug_parser_layout: bool = False, context: None | Knit_Script_Context = None, starting_variables: None | dict[str, Any] = None
-    ) -> None:
+    def __init__(self, context: Knit_Script_Context | None = None, debugger: Knit_Script_Debugger_Protocol | None = None) -> None:
         """Initialize the knit script interpreter.
 
         Creates a new interpreter instance with the specified configuration options.
-        The interpreter can be customized with debugging flags, a custom execution context, and initial variables.
 
         Args:
-            debug_grammar (bool, optional): If True, provides full parglare output for grammar states during parsing. Useful for debugging grammar issues. Defaults to False.
-            debug_parser (bool, optional): If True, provides full parglare output for parsed file shift-reduce status. Useful for debugging parsing issues. Defaults to False.
-            debug_parser_layout (bool, optional): If True, provides layout information from the parser. Useful for debugging whitespace and indentation issues. Defaults to False.
-            context (Knit_Script_Context, optional): A pre-configured knit script context to use instead of creating a new one. If None, a new context will be created. Defaults to None.
-            starting_variables (dict[str, Any], optional): Initial variables to load into the knit script execution scope.
-                These variables will be  available for use within knit script patterns. Defaults to None.
-
-        Note:
-            Debug flags should only be enabled during development as they produce verbose output that can impact performance.
+            context (Knit_Script_Context, optional): A pre-configured knit script context to use instead of creating a new one. Defaults to creating a new context.
+            debugger (Knit_Script_Debugger, optional):
+                An optional debugger to attach to the knit script context.
+                Defaults to using any debugger already attached to a given context or not attaching any debugger if the context is also new.
         """
-        self._parser: Knit_Script_Parser = Knit_Script_Parser(debug_grammar, debug_parser, debug_parser_layout)
+        self._parser: Knit_Script_Parser = Knit_Script_Parser()
 
         if context is None:
-            self._knitscript_context: Knit_Script_Context = Knit_Script_Context(parser=self._parser)
+            self._knitscript_context: Knit_Script_Context = Knit_Script_Context(parser=self._parser, debugger=debugger)
         else:
-            self._knitscript_context: Knit_Script_Context = context
+            self._knitscript_context = context
             self._knitscript_context.parser = self._parser
+            if debugger is not None:
+                self._knitscript_context.attach_debugger(debugger)
 
-        self._add_variables(starting_variables)
+    @property
+    def debugger(self) -> Knit_Script_Debugger_Protocol | None:
+        """
+        Returns:
+            Knit_Script_Debugger_Protocol | None: Any debugger attached to the current knitscript context, or None if no debugger attached.
+        """
+        return self._knitscript_context.debugger
 
     def _add_variables(self, python_variables: None | dict[str, Any]) -> None:
         """Add Python variables to the knit script execution context.
@@ -93,9 +95,11 @@ class Knit_Script_Interpreter:
         Note:
             This operation cannot be undone. All context state will be lost.
         """
-        self._knitscript_context = Knit_Script_Context(parser=self._parser)
+        self._knitscript_context = Knit_Script_Context(parser=self._parser, debugger=self.debugger)
+        if self.debugger is not None:
+            self.debugger.reset_debugger()
 
-    def parse(self, pattern: str, pattern_is_file: bool = False) -> list[Any]:
+    def parse(self, pattern: str, pattern_is_file: bool = False) -> list[Statement]:
         """Execute the parsing process for the given knit script pattern.
 
         This method processes the input pattern through the parglare parser,
@@ -107,13 +111,13 @@ class Knit_Script_Interpreter:
                 If False, treats pattern as the actual knit script code. Defaults to False.
 
         Returns:
-            list[Any]: A list of parsed statements representing the abstract syntax tree of the knit script. Each element corresponds to a top-level statement or expression in the script.
+            list[Statement]: A list of parsed statements representing the abstract syntax tree of the knit script. Each element corresponds to a top-level statement or expression in the script.
 
         Raises:
             FileNotFoundError: If pattern_is_file is True and the specified file cannot be found or accessed.
             ParseError: If the knit script contains syntax errors that prevent successful parsing.
         """
-        return cast(list[Any], self._parser.parse(pattern, pattern_is_file))
+        return self._parser.parse(pattern, pattern_is_file)
 
     def write_knitout(
         self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, **python_variables: dict[str, Any]

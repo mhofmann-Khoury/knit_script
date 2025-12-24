@@ -71,19 +71,3 @@ class Assignment(KS_Element):
         """
         expression_result = self._value_expression if not isinstance(self._value_expression, Expression) else self._value_expression.evaluate(context)
         return expression_result
-
-    def __str__(self) -> str:
-        """Return string representation of the assignment.
-
-        Returns:
-            str: A string showing the variable name and value expression.
-        """
-        return f"Assign({self.variable_name} <- {self._value_expression})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the assignment.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

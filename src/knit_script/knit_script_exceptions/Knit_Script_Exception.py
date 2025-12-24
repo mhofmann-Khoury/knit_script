@@ -7,8 +7,6 @@ providing consistent error message formatting and serving as a common base for a
 The module also includes Knit_Script_Located_Exception for exceptions that can provide detailed location information from the parse tree.
 """
 
-from parglare.common import Location, position_context
-
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 
@@ -47,12 +45,6 @@ class Knit_Script_Located_Exception(Knit_Script_Exception):
     This enhanced error reporting helps developers quickly identify and fix issues in their knit script programs.
 
     The located exception automatically formats location information and provides visual context showing the position where the error occurred within the source code.
-
-    Attributes:
-        ks_element (KS_Element): The KS_Element from the parse tree that caused the exception.
-        error_location (Location): The location information for where the exception occurred.
-        _location_message (str): Formatted location information including file and line number.
-        _location_example (str): Code context showing the position where the error occurred.
     """
 
     def __init__(self, message: str | Exception, ks_element: KS_Element):
@@ -65,12 +57,5 @@ class Knit_Script_Located_Exception(Knit_Script_Exception):
             message (str | Exception): The error message to display or an existing exception to wrap with location information.
             ks_element (KS_Element): The KS_Element from the parse tree that caused the exception, providing location context.
         """
-        self.ks_element = ks_element
-        self.error_location: Location = self.ks_element.location
-        if self.error_location.file_name is not None:
-            self._location_message: str = f"File {self.error_location.file_name} on line {self.error_location.line}"
-        else:
-            self._location_message: str = f"Line {self.error_location.line}"
-        self._location_example: str = position_context(self.error_location.input_str, self.error_location.start_position)
-        message = f"({self._location_message} <{self._location_example}>): {message}"
+        message = f"\n\t{ks_element.location_str}<{ks_element.position_context}>):\n\t\t{message}"
         super().__init__(message)

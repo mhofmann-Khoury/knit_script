@@ -42,9 +42,6 @@ class Try_Catch_Statement(Statement):
         self._errors: list[Expression] = errors
         self._catch_statement: Statement = catch_statement
         self._try_statement: Statement = try_statement
-        self.add_children(self._errors)
-        self.add_children(self._try_statement)
-        self.add_children(self._catch_statement)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the try-catch block using Python's exception handling.
@@ -62,27 +59,9 @@ class Try_Catch_Statement(Statement):
                 for error_exp in self._errors:
                     error = error_exp.value(context) if isinstance(error_exp, Assignment) else error_exp.evaluate(context)
                     if isinstance(e, error):
-                        context.enter_sub_scope()
                         if isinstance(error_exp, Assignment):
                             context.variable_scope[error_exp.variable_name] = e
                         self._catch_statement.execute(context)
-                        context.exit_current_scope(collapse_into_parent=True)  # Anything done during the except should affect external scope
                         break
             else:  # accept all errors
                 self._catch_statement.execute(context)
-
-    def __str__(self) -> str:
-        """Return string representation of the try-catch statement.
-
-        Returns:
-            str: A string showing the try statement, error types, and catch statement.
-        """
-        return f"Try({self._try_statement})->Catch({self._errors} then {self._catch_statement})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the try-catch statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

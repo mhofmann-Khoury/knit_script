@@ -22,7 +22,9 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import She
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier, Yarn_Carrier_Set
 
-from knit_script.knit_script_exceptions.add_exception_information import add_ks_information_to_error
+from knit_script.debugger.debug_protocol import Knit_Script_Debugger_Protocol
+from knit_script.debugger.enter_frame_decorator import enters_new_scope
+from knit_script.debugger.exit_frame_decorator import exits_scope
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
@@ -50,6 +52,7 @@ class Knit_Script_Context:
         last_carriage_pass_result (list[Needle] | dict[Needle, Needle | NOne]): Results from the most recent carriage pass operation.
         knitout (list[Knitout_Line]): List of knitout instructions generated during execution.
         variable_scope (Knit_Script_Scope): The current variable scope for the execution context.
+        debugger (Knit_Script_Debugger | None): The optional debugger attached to this context. Defaults to not debugging the context.
     """
 
     def __init__(
@@ -59,15 +62,18 @@ class Knit_Script_Context:
         ks_file: str | None = None,
         parser: Knit_Script_Parser | None = None,
         knitout_version: int = 2,
+        debugger: Knit_Script_Debugger_Protocol | None = None,
     ):
         """Initialize the knit script context.
 
         Args:
+            debugger:
             parent_scope (Knit_Script_Scope | None, optional): Parent scope for variable management inheritance. Defaults to None.
             machine_specification (Knitting_Machine_Specification, optional): Specification for the knitting machine configuration. Defaults to Knitting_Machine_Specification().
             ks_file (str | None, optional): Path to the knit script file being executed. Defaults to None.
             parser (Knit_Script_Parser | None, optional): Parser instance for processing knit script syntax. Defaults to None.
             knitout_version (int, optional): Version number of the knitout format to generate. Defaults to 2.
+            debugger (Knit_Script_Debugger, optional): The optional debugger to attach to this context. Defaults to no debugger.
         """
         if machine_specification is None:
             machine_specification = Knitting_Machine_Specification()
@@ -76,11 +82,14 @@ class Knit_Script_Context:
         if parser is not None:
             self.parser: Knit_Script_Parser = parser
         else:
-            self.parser: Knit_Script_Parser = Knit_Script_Parser()
+            self.parser = Knit_Script_Parser()
         self.last_carriage_pass_result: list[Needle] | dict[Needle, Needle | None] = {}
         self._version = knitout_version
         self.knitout: list[Knitout_Line] = cast(list[Knitout_Line], get_machine_header(self.machine_state, self.version))
         self.variable_scope: Knit_Script_Scope = Knit_Script_Scope(self, parent_scope)
+        self.debugger: Knit_Script_Debugger_Protocol | None = None
+        if debugger is not None:
+            self.attach_debugger(debugger)
 
     @property
     def version(self) -> int:
@@ -118,6 +127,7 @@ class Knit_Script_Context:
         """
         self.variable_scope.__setattr__(key, value)
 
+    @enters_new_scope
     def enter_sub_scope(self, function_name: str | None = None, module_name: str | None = None, module_scope: Knit_Script_Scope | None = None) -> Knit_Script_Scope:
         """Create a child scope and set it as the current variable scope.
 
@@ -137,14 +147,19 @@ class Knit_Script_Context:
             self.variable_scope = self.variable_scope.enter_new_scope(module_scope=module_scope)
         return self.variable_scope
 
-    def exit_current_scope(self, collapse_into_parent: bool = False) -> None:
+    @exits_scope
+    def exit_current_scope(self, collapse_into_parent: bool = False) -> bool:
         """Exit the lowest level variable scope and reset the current variable scope up a level.
 
         Args:
             collapse_into_parent (bool, optional): If True, brings values from lower scope into the next scope level. Defaults to False.
+
+        Returns:
+            bool: True if the scope exited into a parent scope. False, otherwise.
         """
         new_variable_scope = self.variable_scope.exit_current_scope(collapse_into_parent)
         self.variable_scope = Knit_Script_Scope(self, parent=None) if new_variable_scope is None else new_variable_scope
+        return new_variable_scope is not None
 
     @property
     def sheet_needle_count(self, gauge: int | None = None) -> int:
@@ -252,6 +267,23 @@ class Knit_Script_Context:
         """
         self.variable_scope.Gauge = value
 
+    def attach_debugger(self, debugger: Knit_Script_Debugger_Protocol) -> None:
+        """
+        Attaches the given debugger to this knitout execution.
+        Args:
+            debugger (Knit_Script_Debugger): The debugger to attach to this context.
+        """
+        self.debugger = debugger
+        self.debugger.attach_context(self)
+
+    def detach_debugger(self) -> None:
+        """
+        Detaches the current debugger from this knitout execution.
+        """
+        if self.debugger is not None:
+            self.debugger.detach_context()
+        self.debugger = None
+
     def execute_statements(self, statements: Iterable[Statement]) -> None:
         """Execute the statements in the current context.
 
@@ -286,7 +318,7 @@ class Knit_Script_Context:
                             out.writelines([str(ec) for ec in error_comments])
             except Exception as cut_e:
                 e.add_note(f"Couldn't produce valid error.k file because of error: {cut_e}")
-            raise add_ks_information_to_error(e, statement) from None
+            raise statement.add_ks_information_to_error(e) from None
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False, global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """Get a needle based on current gauging configuration.

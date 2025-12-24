@@ -8,7 +8,6 @@ from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_NameError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -45,9 +44,6 @@ class Function_Call(Expression):
         self.kwargs: list[Assignment] = kwargs
         self.args: list[Expression] = args
         self.func_name: Variable_Expression = func_name
-        self.add_children(self.kwargs)
-        self.add_children(self.args)
-        self.add_children(func_name)
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
         """Find function in scope, fill parameters and then execute.
@@ -67,25 +63,17 @@ class Function_Call(Expression):
         if self.func_name.variable_name in context.variable_scope:
             function_signature = context.variable_scope[self.func_name.variable_name]
             if isinstance(function_signature, Function_Signature):
-                return_value = function_signature.execute(context, self.args, self.kwargs)
-                return return_value
+                try:
+                    return function_signature.execute(context, self.args, self.kwargs)
+                except (NameError, TypeError) as error:
+                    raise self.add_ks_information_to_error(error) from None
             else:
                 args = [arg.evaluate(context) for arg in self.args]
                 kwargs = {kwarg.variable_name: kwarg.value(context) for kwarg in self.kwargs}
-                # if isinstance(function_signature, Callable):
                 if callable(function_signature):
                     return function_signature(*args, **kwargs)
                 else:
                     func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
                     return eval(func_str)
         else:
-            raise Knit_Script_NameError(f"name {self.func_name.variable_name} is not defined.", self)
-
-    def __str__(self) -> str:
-        values = ""
-        for exp in self.args:
-            values += f"{exp}, "
-        for assign in self.kwargs:
-            values += f"{assign}, "
-        values = values[:-2]
-        return f"{self.func_name.variable_name}({values})"
+            raise self.add_ks_information_to_error(NameError(f"name {self.func_name.variable_name} is not defined."))

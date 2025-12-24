@@ -37,19 +37,3 @@ class Pause_Statement(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         context.knitout.append(Pause_Instruction())
-
-    def __str__(self) -> str:
-        """Return string representation of the pause statement.
-
-        Returns:
-            str: A string indicating this is a pause operation.
-        """
-        return "Pause"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the pause statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

@@ -33,7 +33,6 @@ class Return_Statement(Statement):
         """
         super().__init__(parser_node)
         self._expression: Expression = exp
-        self.add_children(self._expression)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the return by setting the return value and return flag.
@@ -45,19 +44,3 @@ class Return_Statement(Statement):
         """
         value = self._expression.evaluate(context)
         context.variable_scope.return_value = value
-
-    def __str__(self) -> str:
-        """Return string representation of the return statement.
-
-        Returns:
-            str: A string showing the return keyword and expression.
-        """
-        return f"return {self._expression}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the return statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

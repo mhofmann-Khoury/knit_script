@@ -6,12 +6,11 @@ It manages scope creation, statement execution, and proper handling of return va
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.add_exception_information import add_ks_information_to_error
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.statements.scoped_statement import Scoped_Statement
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
-class Code_Block(Statement):
+class Code_Block(Scoped_Statement):
     """Used for executing any block of code in a new scope.
 
     Creates a new variable scope, executes all statements in order, then restores the previous scope. Handles return statements properly by preserving return values across scope boundaries.
@@ -19,9 +18,6 @@ class Code_Block(Statement):
 
     The code block ensures that variables defined within the block don't interfere with the outer scope unless explicitly designed to do so.
      It supports early termination through return statements and properly propagates return values to the appropriate scope level.
-
-    Attributes:
-        _statements (list[Statement]): Ordered list of statements to execute within the new scope.
     """
 
     def __init__(self, parser_node: LRStackNode, statements: list[Statement]) -> None:
@@ -31,45 +27,5 @@ class Code_Block(Statement):
             parser_node (LRStackNode): The parser node from the abstract syntax tree.
             statements (list[Statement]): Ordered list of statements to execute within the new scope.
         """
-        super().__init__(parser_node)
+        super().__init__(parser_node, statements, collapse_scope_into_parent=True)
         self._statements: list[Statement] = statements
-        self.add_children(self._statements)
-
-    def execute(self, context: Knit_Script_Context) -> None:
-        """Execute all statements in a new scope.
-
-        Creates a new variable scope, executes statements in order, then exits the scope.
-        If any statement triggers a return, execution stops early and the return value is preserved. The scope is collapsed into the parent to preserve variable changes.
-
-        Args:
-            context (Knit_Script_Context): The current execution context of the knit script interpreter.
-        """
-        context.enter_sub_scope()
-        for statement in self._statements:
-            try:
-                statement.execute(context)
-            except Exception as e:
-                raise add_ks_information_to_error(e, statement) from None
-            if context.variable_scope.returned:  # executed statement updated scope with return value
-                break  # don't continue to execute block statements
-        context.exit_current_scope(collapse_into_parent=True)  # Collapse change upward, let next level decide if value changes are passed on.
-
-    def __str__(self) -> str:
-        """Return string representation of the code block.
-
-        Returns:
-            str: A string showing all statements in the block separated by semicolons.
-        """
-        values = ""
-        for stst in self._statements:
-            values += f"{stst};\n"
-        values = values[:-2]
-        return f"[{values}]"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the code block.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

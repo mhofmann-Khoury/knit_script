@@ -49,29 +49,6 @@ class Xfer_Pass_Statement(Statement):
         self._bed: Expression | None = bed
         self._racking: Expression = racking
         self._needles: list[Expression] = needles
-        if self._bed is not None:
-            self.add_children(self._bed)
-        self.add_children(self._racking)
-        self.add_children(self._needles)
-
-    def __str__(self) -> str:
-        """Return string representation of the transfer pass statement.
-
-        Returns:
-            str: A string showing the needles, racking, target bed, and slider flag.
-        """
-        s = ""
-        if self._is_sliders:
-            s = " on sliders"
-        return f"Xfer({self._needles} to {self._racking} to {self._bed}{s})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the transfer pass statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute transfer operations with proper racking and bed handling.

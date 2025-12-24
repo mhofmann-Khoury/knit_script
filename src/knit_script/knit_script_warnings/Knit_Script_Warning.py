@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from parglare.common import Location
 from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
@@ -62,11 +61,7 @@ class Knit_Script_Warning(RuntimeWarning):
         """
         prefix = f"\n{self.__class__.__name__}"
         if self.ks_element is not None:
-            error_location: Location = self.ks_element.location
-            if error_location.file_name is not None:
-                prefix += f" (File {error_location.file_name} on line {error_location.line})"
-            else:
-                prefix += f" (Line {error_location.line})"
+            prefix += self.ks_element.location_str
         return prefix
 
     @property

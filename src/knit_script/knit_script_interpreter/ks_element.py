@@ -6,7 +6,7 @@ It provides common functionality for accessing parser node information, location
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+import os
 
 from parglare.common import Location
 from parglare.parser import LRStackNode
@@ -23,9 +23,9 @@ class KS_Element:
 
     Attributes:
         parser_node (LRStackNode): The parser node that created this element.
-        parent_element (KS_Element | None): The element that is a parent to this element in the abstract syntax tree. None if the element has no parent.
-        child_elements (set[KS_Element]): The elements that are children of this element in the abstract syntax tree.
     """
+
+    _KNITSCRIPT_NOTE = "Raised in when Processing KnitScript"
 
     def __init__(self, parser_node: LRStackNode):
         """Initialize the KS element with parser node information.
@@ -34,103 +34,6 @@ class KS_Element:
             parser_node (LRStackNode): The parser node that created this element, containing location and context information.
         """
         self.parser_node: LRStackNode = parser_node
-        self.parent_element: KS_Element | None = None
-        self.child_elements: set[KS_Element] = set()
-        self._known_descendants: set[KS_Element] = set()
-
-    def add_children(self, child_element: Iterable[KS_Element] | KS_Element | None) -> None:
-        """
-        Adds the child element(s) to the children of this KS_Element.
-        Args:
-            child_element (Iterable[KS_Element] | KS_Element): The child element(s) to add.
-        """
-        if child_element is None:
-            return
-        elif isinstance(child_element, KS_Element):
-            self.child_elements.add(child_element)
-            self._known_descendants.add(child_element)
-            child_element.set_parent_element(self)
-        else:
-            self.child_elements.update(child_element)
-            self._known_descendants.update(child_element)
-            for child in child_element:
-                child.set_parent_element(self)
-
-    def _add_known_descendants(self, known_descendant: Iterable[KS_Element] | KS_Element) -> None:
-        """
-        Adds the given descendant(s) to the set of known descendants of this KS_Element.
-        Args:
-            known_descendant (Iterable[Ks_Element] | KS_Element): The descendants to add.
-        """
-        if isinstance(known_descendant, KS_Element):
-            self._known_descendants.add(known_descendant)
-        else:
-            self._known_descendants.update(known_descendant)
-
-    def set_parent_element(self, parent_element: KS_Element) -> None:
-        """
-        Sets the parent element of this KS_Element. Updates that parent's known descendants with this element's descendants.
-
-        Args:
-            parent_element (KS_Element): The parent element of this KS_Element.
-        """
-        self.parent_element = parent_element
-        self.parent_element._add_known_descendants(self)
-        self.parent_element._add_known_descendants(self._known_descendants)
-
-    @property
-    def siblings(self) -> set[KS_Element]:
-        """
-        Returns:
-            set[KS_Element]: The set of knitscript elements that are siblings to this element (i.e., they share a parent element in the abstract syntax tree).
-        """
-        if self.parent_element is None:
-            return set()
-        else:
-            return self.parent_element.child_elements.difference({self})
-
-    def is_sibling(self, sibling: KS_Element) -> bool:
-        """
-        Args:
-            sibling (KS_Element): The potential sibling of this knitscript element.
-
-        Returns:
-            bool: True if the element shares a parent with this knitscript element, False otherwise.
-
-        Notes:
-            This method does not check that sibling is not this element. The method will return True in this case (i.e., element.is_sibling(self) returns True).
-        """
-        return self.parent_element is not None and sibling in self.parent_element.child_elements
-
-    def is_parent(self, parent: KS_Element | None) -> bool:
-        """
-        Args:
-            parent (KS_Element): The possible parent element of this knitscript element.
-
-        Returns:
-            bool: True if the element is parent to this knitscript element. False otherwise.
-        """
-        return parent is self.parent_element
-
-    def is_child(self, child: KS_Element) -> bool:
-        """
-        Args:
-            child (KS_Element): The potential child element of this knitscript element.
-
-        Returns:
-            bool: True if given a child element is in this knitscript element, False otherwise.
-        """
-        return child in self.child_elements
-
-    def is_known_descendant(self, descendant: KS_Element | None) -> bool:
-        """
-        Args:
-            descendant (KS_Element):  The potential descendant of this element.
-
-        Returns:
-            bool: True if the given element is a known descendent of this element. False otherwise.
-        """
-        return descendant is not None and descendant in self._known_descendants
 
     @property
     def location(self) -> Location:
@@ -150,11 +53,82 @@ class KS_Element:
         """
         return int(self.location.line)
 
+    @property
+    def file_name(self) -> str | None:
+        """
+        Returns:
+            str | None: The file name of the knitscript program this was parsed from or None if the program was passed as a string.
+        """
+        return str(self.location.file_name) if self.location.file_name is not None else None
+
+    @property
+    def local_path(self) -> str | None:
+        """
+        Returns:
+            str | None: The path to the directory containing the file from which this element was parsed or None if the value was parsed from a python string.
+        """
+        return os.path.dirname(self.file_name) if self.file_name is not None else None
+
+    @property
+    def location_str(self) -> str:
+        """
+        Returns:
+            str: The string referencing the line number and possible file name information about this element.
+        """
+        file_str = ""
+        if self.file_name is not None:
+            file_str = f"in {self.file_name}"
+        return f"on line {self.line_number}{file_str}"
+
+    @property
+    def position_context(self) -> str:
+        """
+        The position context string is the string from the knitscript program from which this element was parsed.
+        The context string will begin at the start of this element and continue to the end of the line of knitscript or a semicolon on new line are reached.
+
+        Returns:
+            str: The string used to contextualize this element in the knitscript program.
+        """
+        context_str = str(self.location.input_str)[self.location.start_position : self.location.start_position + self.location.column_end]
+        if ";" in context_str:
+            context_str = context_str[: context_str.rindex(";") + 1]
+        if "\n" in context_str:
+            context_str = context_str[: context_str.index("\n")]
+        return context_str
+        # return position_context(self.location.input_str, self.location.start_position)
+
     def __hash__(self) -> int:
-        return hash(str(self.parser_node))
+        return hash((self.location.start_position, self.location.end_position, self.file_name))
 
     def __str__(self) -> str:
-        return str(self.parser_node)
+        return self.position_context
 
     def __repr__(self) -> str:
-        return str(self.parser_node)
+        return f"<{self.position_context}> {self.location_str}"
+
+    @staticmethod
+    def has_ks_notes(error: BaseException) -> bool:
+        """
+        Args:
+            error (BaseException): The error raised to determine if it has already been marked with knitscript context information.
+
+        Returns:
+            bool: True if the error has been annotated with knitscript context information.
+
+        """
+        return hasattr(error, "__notes__") and error.__notes__[0] == KS_Element._KNITSCRIPT_NOTE
+
+    def add_ks_information_to_error(self, error: BaseException) -> BaseException:
+        """
+        Args:
+            error (BaseException): The error raised to add contextual notes based on this knitscript element.
+
+        Returns:
+            BaseException: The same exception modified with notes that document the location in the knitscript file that triggered the error.
+        """
+        if self.has_ks_notes(error):
+            return error  # Already annotated, return as is.
+        error.add_note(self._KNITSCRIPT_NOTE)
+        error.add_note(f"\t{error.__class__.__name__} {self.location_str}")
+        error.add_note(f"\t{self.position_context}")
+        return error

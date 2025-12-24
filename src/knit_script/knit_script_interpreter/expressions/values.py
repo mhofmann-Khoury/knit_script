@@ -58,12 +58,6 @@ class _Context_Free_Value(Expression):
         """
         pass
 
-    def __str__(self) -> str:
-        return str(self.context_free_evaluation())
-
-    def __repr__(self) -> str:
-        return str(self)
-
 
 class None_Value(_Context_Free_Value):
     """Used to represent None values.

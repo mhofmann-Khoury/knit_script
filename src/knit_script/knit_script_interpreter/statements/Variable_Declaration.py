@@ -36,7 +36,6 @@ class Variable_Declaration(Statement):
         super().__init__(parser_node)
         self._is_global = is_global
         self._assignment: Assignment = assignment
-        self.add_children(self._assignment)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the variable declaration by performing the assignment.
@@ -47,19 +46,3 @@ class Variable_Declaration(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         self._assignment.assign_value(context, is_global=self._is_global)
-
-    def __str__(self) -> str:
-        """Return string representation of the variable declaration.
-
-        Returns:
-            str: A string showing the assignment with a semicolon.
-        """
-        return f"{self._assignment};"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the variable declaration.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

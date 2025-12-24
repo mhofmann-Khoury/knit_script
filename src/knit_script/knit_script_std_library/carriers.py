@@ -55,7 +55,7 @@ def cut_active_carriers(machine_state: Knitting_Machine) -> list[Releasehook_Ins
     if machine_state.carrier_system.hooked_carrier is not None:
         ops: list[Releasehook_Instruction | Outhook_Instruction] = [Releasehook_Instruction(machine_state.carrier_system.hooked_carrier, "Attempt hook release before cutting all yarns")]
     else:
-        ops: list[Releasehook_Instruction | Outhook_Instruction] = []
+        ops = []
     ops.extend([Outhook_Instruction(c, "Outhooking all active carriers") for c in machine_state.carrier_system.active_carriers if c.yarn.has_loops])
     for outhook in ops:
         outhook.execute(machine_state)

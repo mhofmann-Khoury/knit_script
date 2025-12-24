@@ -50,9 +50,3 @@ class Carrier_Expression(Expression):
         """
         carrier = Yarn_Carrier(int(self._carrier_str[1:]))
         return context.machine_state[carrier]
-
-    def __str__(self) -> str:
-        return self._carrier_str
-
-    def __repr__(self) -> str:
-        return str(self)

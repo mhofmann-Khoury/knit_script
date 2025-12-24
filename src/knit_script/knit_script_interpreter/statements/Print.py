@@ -34,7 +34,6 @@ class Print(Statement):
         """
         super().__init__(parser_node)
         self._string: Expression = string
-        self.add_children(self._string)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the print by evaluating and outputting the expression.
@@ -48,19 +47,3 @@ class Print(Statement):
         print(print_str)
         ks_string = print_str.replace("\n", "\n;")
         context.knitout.append(Knitout_Comment_Line(ks_string))
-
-    def __str__(self) -> str:
-        """Return string representation of the print statement.
-
-        Returns:
-            str: A string showing the expression to be printed.
-        """
-        return f"Print({self._string})"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the print statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

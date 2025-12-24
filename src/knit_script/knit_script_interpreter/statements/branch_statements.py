@@ -40,9 +40,6 @@ class If_Statement(Statement):
         self._condition: Expression = condition
         self._true_statement: Statement = true_statement
         self._false_statement: Statement | None = false_statement
-        self.add_children(self._condition)
-        self.add_children(self._true_statement)
-        self.add_children(self._false_statement)
 
     def execute(self, context: Knit_Script_Context) -> None:
         """Execute the appropriate branch based on the condition result.
@@ -57,19 +54,3 @@ class If_Statement(Statement):
             self._true_statement.execute(context)
         elif self._false_statement is not None:
             self._false_statement.execute(context)
-
-    def __str__(self) -> str:
-        """Return string representation of the if statement.
-
-        Returns:
-            str: A string showing the condition and both statement branches.
-        """
-        return f"If({self._condition})->{self._true_statement} else->{self._false_statement}"
-
-    def __repr__(self) -> str:
-        """Return detailed string representation of the if statement.
-
-        Returns:
-            str: Same as __str__ for this class.
-        """
-        return str(self)

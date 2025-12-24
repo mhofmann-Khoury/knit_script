@@ -1,26 +1,37 @@
 from typing import Any
 
 from knit_graphs.Knit_Graph import Knit_Graph
+from knitout_interpreter.debugger.knitout_debugger import Knitout_Debugger
 from knitout_interpreter.knitout_operations.Header_Line import Knitout_Header_Line
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
 from knitout_interpreter.run_knitout import run_knitout
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 
+from knit_script.debugger.knitscript_debugger import Knit_Script_Debugger
 from knit_script.interpret_knit_script import knit_script_to_knitout
 
 
 def interpret_test_ks(
-    ks_pattern: str, out_file_name: str = "test.k", pattern_is_filename: bool = False, print_k_lines: bool = False, execute_knitout: bool = True, **python_variables: dict[str:Any]
+    ks_pattern: str,
+    out_file_name: str = "test.k",
+    pattern_is_filename: bool = False,
+    ks_debugger: Knit_Script_Debugger | None = None,
+    print_k_lines: bool = False,
+    execute_knitout: bool = True,
+    ko_debugger: Knitout_Debugger | None = None,
+    **python_variables: Any,
 ) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
     """
     Process the given knit script pattern and printout the resulting knitout file.
     Args:
-        execute_knitout: If True, executes the resulting knitout and returns the parsed knitout line objects.
-        print_k_lines: If True, prints out the resulting knitout for review.
         ks_pattern: The knitscript pattern in a string or the filename of the knitscript pattern.
         out_file_name: The name of the knitout file to generate for this test.
         pattern_is_filename: If true, look for the pattern in a file. Otherwise, processes the pattern as a string.
-        **python_variables: The keyword variable pairs of python variables to initiate the knitscript interpreter with.
+        ks_debugger: The optional knitscript debugger to attach to this test process.
+        print_k_lines: If True, prints out the resulting knitout for review.
+        execute_knitout: If True, executes the resulting knitout and returns the parsed knitout line objects.
+        ko_debugger: The optional knitout debugger to attach to the knitout executer process
+        **python_variables [Any]: The keyword variable pairs of python variables to initiate the knitscript interpreter with.
 
     Returns: Tuple:
         - List of Knitout_Lines that make up the resulting knitout file. This will be empty if the knitout was not executed.
@@ -28,14 +39,14 @@ def interpret_test_ks(
         - The Knitting Machine after processing the given knitscript pattern.
 
     """
-    knit_graph, machine_state = knit_script_to_knitout(ks_pattern, out_file_name, pattern_is_filename=pattern_is_filename, **python_variables)
+    knit_graph, machine_state = knit_script_to_knitout(ks_pattern, out_file_name, pattern_is_filename=pattern_is_filename, debugger=ks_debugger, **python_variables)
     if print_k_lines:
         with open(out_file_name, "r") as f:
             lines = f.readlines()
             for line in lines:
                 print(line)
     if execute_knitout:
-        klines, machine_state, knit_graph = run_knitout(out_file_name)
+        klines, machine_state, knit_graph = run_knitout(out_file_name, debugger=ko_debugger)
         return klines, knit_graph, machine_state
     else:
         return [], knit_graph, machine_state
