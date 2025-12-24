@@ -1,6 +1,7 @@
+from itertools import count
 from unittest import TestCase
 
-from resources.interpret_test_ks import interpret_test_ks
+from resources.interpret_test_ks import interpret_test_ks, interpret_test_ks_with_return
 
 
 class Test_Sheet_Gauge_Handling(TestCase):
@@ -26,9 +27,13 @@ class Test_Sheet_Gauge_Handling(TestCase):
         assert len(Back_Loops) == 0;
         Gauge = 1;
         assert len(Front_Loops) == len(Back_Loops) and len(Front_Loops) == 5;
-        print Loops;
+        return Loops;
         """
-        interpret_test_ks(program)
+        _, __, ___, return_value = interpret_test_ks_with_return(program, print_k_lines=False)
+        self.assertTrue(isinstance(return_value, list))
+        self.assertEqual(len(return_value), 10)
+        self.assertEqual(5, len([r for r in return_value if r.is_front]))
+        self.assertEqual(5, len([r for r in return_value if r.is_back]))
 
     def test_push_layers(self):
         program = r"""

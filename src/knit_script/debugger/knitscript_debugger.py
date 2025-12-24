@@ -14,6 +14,7 @@ from virtual_knitting_machine.Knitting_Machine_Snapshot import Knitting_Machine_
 from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
 from knit_script.debugger.debug_protocol import Knit_Script_Debuggable_Protocol
 from knit_script.debugger.knitscript_frame import Knit_Script_Frame
+from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import KnitScript_Debug_Log
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_warnings.Knit_Script_Warning import Breakpoint_Condition_Error_Ignored_Warning
 
@@ -37,7 +38,8 @@ class Knit_Script_Debugger:
         machine_snapshots (dict[int, Knitting_Machine_Snapshot]): Dictionary mapping knitout line numbers that were paused on to the state of the knitting machine at that line.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, debug_logger: KnitScript_Debug_Log | None = None) -> None:
+        self._logger: KnitScript_Debug_Log = KnitScript_Debug_Log() if debug_logger is None else debug_logger
         self._context: Knit_Script_Debuggable_Protocol | None = None
         self.frame: Knit_Script_Frame | None = None
         self._debug_mode: KnitScript_Debug_Mode = KnitScript_Debug_Mode.Continue
@@ -135,19 +137,19 @@ class Knit_Script_Debugger:
             if self.taking_snapshots:
                 self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
             if self._is_interactive_debugger_attached():
-                print(f"\n{'=' * 70}")
-                print(f"KnitScript Debugger Paused {statement.location_str}")
-                print(f"\tPaused at {statement.position_context}")
+                self.print(f"\n{'=' * 70}")
+                self.print(f"KnitScript Debugger Paused {statement.location_str}")
+                self.print(f"\tPaused at {statement.position_context}")
                 if self._breakpoint_is_active(line_number):
-                    print("Paused at active breakpoint.")
+                    self.print("Paused at active breakpoint.")
                     if self._condition_error is not None:
-                        print(f"Breakpoint Condition triggered an exception:\n\t{self._condition_error}")
+                        self.print(f"Breakpoint Condition triggered an exception:\n\t{self._condition_error}")
                 elif was_step_out and self._exited_frame is not None:
                     if self._exited_frame.is_function:
-                        print(f"\t Exited function {self._exited_frame.function_name}")
+                        self.print(f"\t Exited function {self._exited_frame.function_name}")
                     elif self._exited_frame.is_module:
-                        print(f"\t Exited module {self._exited_frame.module_name}")
-                print(f"{'=' * 70}")
+                        self.print(f"\t Exited module {self._exited_frame.module_name}")
+                self.print(f"{'=' * 70}")
                 self.print_user_guide()
                 breakpoint()  # Break before statement
                 self._condition_error = None  # reset any condition errors
@@ -168,11 +170,11 @@ class Knit_Script_Debugger:
             if self.taking_snapshots:
                 self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
             if self._is_interactive_debugger_attached():
-                print(f"\n{'=' * 70}")
-                print(f"Knit Script paused by an {exception.__class__.__name__} raised {statement.location_str}")
-                print(f"\tPaused at {statement.position_context}")
-                print(f"\t{exception}")
-                print(f"{'=' * 70}")
+                self.print(f"\n{'=' * 70}")
+                self.print(f"Knit Script paused by an {exception.__class__.__name__} raised {statement.location_str}")
+                self.print(f"\tPaused at {statement.position_context}")
+                self.print(f"\t{exception}")
+                self.print(f"{'=' * 70}")
                 self.print_user_guide()
                 breakpoint()  # Break exception is raised
 
@@ -387,22 +389,29 @@ class Knit_Script_Debugger:
         if self.frame is not None:
             self.frame.add_statement(statement)
 
-    @staticmethod
-    def print_user_guide() -> None:
+    def print(self, message: str) -> None:
+        """
+        Prints the given message to the debug logger.
+        Args:
+            message (str): The message to print.
+        """
+        self._logger.print(message)
+
+    def print_user_guide(self) -> None:
         """Helper function that prints out the KnitScript Debugger Breakpoint command line interface and Usage Guide."""
-        print(f"\n{'=' * 10}KnitScript Debugger Options{'=' * 20}")
-        print("knitscript_debugger.step()                             # Sets the debugger to step through every statement")
-        print("knitscript_debugger.step_over()                        # Sets the debugger to step over sub-statements")
-        print("knitscript_debugger.step_out()                         # Sets the debugger to step out of the current scope")
-        print("knitscript_debugger.continue_knitscript()              # Sets the debugger to continue to the next breakpoint")
-        print("knitscript_debugger.set_breakpoint(N, condition)       # Sets a breakpoint at line N with an optional condition function.")
-        print("knitscript_debugger.enable_breakpoint(N)               # Enables a breakpoint at line N. If no breakpoint is there, an unconditioned breakpoint is created.")
-        print("knitscript_debugger.disable_breakpoint(N)              # Disables any breakpoint at line N. Any conditions are not removed.")
-        print("knitscript_debugger.clear_breakpoint(N)                # Clears any breakpoint at line N. Any conditions are removed.")
-        print("knitscript_debugger.enable_snapshots()                 # Enables the debugger to take snapshots of the machine state at any pause.")
-        print("knitscript_debugger.disable_snapshots()                # Disables the debugger to take snapshots of the machine state at any pause.")
-        print("knitscript_debugger.ignore_condition_exceptions()      # Stop the debugger from pausing when a breakpoint condition raises an exception.")
-        print("knitscript_debugger.pause_on_condition_exceptions()    # Force teh debugger to pause when a breakpoint condition raises an exception.")
+        self.print(f"\n{'=' * 10}KnitScript Debugger Options{'=' * 20}")
+        self.print("knitscript_debugger.step()                             # Sets the debugger to step through every statement")
+        self.print("knitscript_debugger.step_over()                        # Sets the debugger to step over sub-statements")
+        self.print("knitscript_debugger.step_out()                         # Sets the debugger to step out of the current scope")
+        self.print("knitscript_debugger.continue_knitscript()              # Sets the debugger to continue to the next breakpoint")
+        self.print("knitscript_debugger.set_breakpoint(N, condition)       # Sets a breakpoint at line N with an optional condition function.")
+        self.print("knitscript_debugger.enable_breakpoint(N)               # Enables a breakpoint at line N. If no breakpoint is there, an unconditioned breakpoint is created.")
+        self.print("knitscript_debugger.disable_breakpoint(N)              # Disables any breakpoint at line N. Any conditions are not removed.")
+        self.print("knitscript_debugger.clear_breakpoint(N)                # Clears any breakpoint at line N. Any conditions are removed.")
+        self.print("knitscript_debugger.enable_snapshots()                 # Enables the debugger to take snapshots of the machine state at any pause.")
+        self.print("knitscript_debugger.disable_snapshots()                # Disables the debugger to take snapshots of the machine state at any pause.")
+        self.print("knitscript_debugger.ignore_condition_exceptions()      # Stop the debugger from pausing when a breakpoint condition raises an exception.")
+        self.print("knitscript_debugger.pause_on_condition_exceptions()    # Force teh debugger to pause when a breakpoint condition raises an exception.")
 
     @staticmethod
     def _unconditioned_breakpoint(_self: Knit_Script_Debugger) -> bool:

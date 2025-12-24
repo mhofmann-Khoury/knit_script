@@ -90,3 +90,11 @@ class Knit_Script_Debugger_Protocol(Protocol):
             clear_snapshots (bool, optional): If True, clears all snapshots taken by the debugger. Defaults to False.
         """
         ...
+
+    def print(self, message: str) -> None:
+        """
+        Prints the given message to the debug logger.
+        Args:
+            message (str): The message to print.
+        """
+        ...

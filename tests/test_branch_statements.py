@@ -8,7 +8,6 @@ class Test_Branch_Statements(TestCase):
         program = r"""
             p = "dog";
             if True:{
-                print "In If";
                 p = "cat";
             }
             assert p == "cat";
@@ -21,7 +20,6 @@ class Test_Branch_Statements(TestCase):
             if False:{
                 assert False, "Shouldn't reach this statement";
             } elif True:{
-                print "In else if";
                 p = "cat";
             }
             assert p == "cat";
@@ -35,7 +33,6 @@ class Test_Branch_Statements(TestCase):
                 assert False, "Shouldn't reach this statement";
             } elif False:{ assert False, "shouldn't reach this statement";}
             else:{
-                print "In else";
                 p = "cat";
             }
             assert p == "cat";

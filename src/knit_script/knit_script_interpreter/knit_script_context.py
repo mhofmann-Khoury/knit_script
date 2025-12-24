@@ -26,6 +26,7 @@ from knit_script.debugger.debug_protocol import Knit_Script_Debugger_Protocol
 from knit_script.debugger.enter_frame_decorator import enters_new_scope
 from knit_script.debugger.exit_frame_decorator import exits_scope
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
+from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import Knit_Script_Logger, KnitScript_Error_Log, KnitScript_Logging_Level, KnitScript_Warning_Log
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
@@ -63,17 +64,22 @@ class Knit_Script_Context:
         parser: Knit_Script_Parser | None = None,
         knitout_version: int = 2,
         debugger: Knit_Script_Debugger_Protocol | None = None,
+        info_logger: Knit_Script_Logger | None = None,
+        warning_logger: KnitScript_Warning_Log | None = None,
+        error_logger: KnitScript_Error_Log | None = None,
     ):
         """Initialize the knit script context.
 
         Args:
-            debugger:
             parent_scope (Knit_Script_Scope | None, optional): Parent scope for variable management inheritance. Defaults to None.
             machine_specification (Knitting_Machine_Specification, optional): Specification for the knitting machine configuration. Defaults to Knitting_Machine_Specification().
             ks_file (str | None, optional): Path to the knit script file being executed. Defaults to None.
             parser (Knit_Script_Parser | None, optional): Parser instance for processing knit script syntax. Defaults to None.
             knitout_version (int, optional): Version number of the knitout format to generate. Defaults to 2.
-            debugger (Knit_Script_Debugger, optional): The optional debugger to attach to this context. Defaults to no debugger.
+            debugger (Knit_Script_Debugger_Protocol, optional): The optional debugger to attach to this context. Defaults to no debugger.
+            info_logger (Knit_Script_Logger, optional): The logger to attach to this context. Defaults to a standard logger which outputs only to console.
+            warning_logger (KnitScript_Warning_Log, optional): The warning logger to attach to this context. Defaults to a standard warning logger which outputs only to console.
+            error_logger (KnitScript_Error_Log, optional): The error logger to attach to this context. Defaults to a standard error logger which outputs only to console.
         """
         if machine_specification is None:
             machine_specification = Knitting_Machine_Specification()
@@ -90,6 +96,9 @@ class Knit_Script_Context:
         self.debugger: Knit_Script_Debugger_Protocol | None = None
         if debugger is not None:
             self.attach_debugger(debugger)
+        self.info_logger: Knit_Script_Logger = info_logger if info_logger is not None else Knit_Script_Logger()
+        self.warning_logger: KnitScript_Warning_Log = warning_logger if warning_logger is not None else KnitScript_Warning_Log()
+        self.error_logger: KnitScript_Error_Log = error_logger if error_logger is not None else KnitScript_Error_Log()
 
     @property
     def version(self) -> int:
@@ -117,6 +126,31 @@ class Knit_Script_Context:
             Gauged_Sheet_Record: The current record of loops stored on each sheet in the current gauge configuration.
         """
         return self.variable_scope.machine_scope.gauged_sheet_record
+
+    def print(self, message: str | BaseException | Warning, log_type: KnitScript_Logging_Level = KnitScript_Logging_Level.info) -> None:
+        """
+        Prints the given message to the appropriate log based on the given log type.
+        Args:
+            message (str): The message to print.
+            log_type (KnitScript_Logging_Level, optional): The log type to use for printing. Defaults to printing information.
+        """
+        if isinstance(message, Warning):
+            log_type = KnitScript_Logging_Level.warning
+            message = str(message)
+        elif isinstance(message, BaseException):
+            log_type = KnitScript_Logging_Level.error
+            message = str(message)
+        if log_type is KnitScript_Logging_Level.debug:
+            if self.debugger is not None:
+                self.debugger.print(message)
+            else:
+                self.info_logger.print(f"Debug:{message}")
+        elif log_type is KnitScript_Logging_Level.info:
+            self.info_logger.print(message)
+        elif log_type is KnitScript_Logging_Level.warning:
+            self.warning_logger.print(message)
+        else:
+            self.error_logger.print(message)
 
     def add_variable(self, key: str, value: Any) -> None:
         """Add a variable to the variable scope by the name of key.
@@ -284,11 +318,14 @@ class Knit_Script_Context:
             self.debugger.detach_context()
         self.debugger = None
 
-    def execute_statements(self, statements: Iterable[Statement]) -> None:
+    def execute_statements(self, statements: Iterable[Statement]) -> Any | None:
         """Execute the statements in the current context.
 
         Args:
             statements (Iterable[Statement]): Statements to execute in the current context.
+
+        Returns:
+            Any | None: Any return value from the executed program.
 
         Raises:
             AssertionError: If assertions in the script fail during execution.
@@ -297,6 +334,10 @@ class Knit_Script_Context:
         """
         for statement in statements:
             self.execute_statement(statement)
+        if self.variable_scope.returned:
+            return self.variable_scope.return_value
+        else:
+            return None
 
     def execute_statement(self, statement: Statement) -> None:
         """

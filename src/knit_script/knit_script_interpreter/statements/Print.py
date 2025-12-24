@@ -43,7 +43,7 @@ class Print(Statement):
         Args:
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
-        print_str = f"KS: {self._string.evaluate(context)}"
-        print(print_str)
+        print_str = str(self._string.evaluate(context))
+        context.print(print_str)
         ks_string = print_str.replace("\n", "\n;")
         context.knitout.append(Knitout_Comment_Line(ks_string))

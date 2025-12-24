@@ -21,6 +21,7 @@ from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from knit_script.debugger.debug_protocol import Knit_Script_Debugger_Protocol
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.Knit_Script_Parser import Knit_Script_Parser
+from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import Knit_Script_Logger, KnitScript_Error_Log, KnitScript_Warning_Log
 from knit_script.knit_script_interpreter.statements.Statement import Statement
 from knit_script.knit_script_std_library.carriers import cut_active_carriers
 
@@ -35,27 +36,34 @@ class Knit_Script_Interpreter:
     It manages the parsing process, maintains execution context, handles variable injection, and coordinates the generation of knitout instructions.
 
     The interpreter provides comprehensive error handling and debugging capabilities, making it suitable for both development and production use cases.
-
-    Attributes:
-        _parser (Knit_Script_Parser): The underlying parser for knit script syntax.
-        _knitscript_context (Knit_Script_Context): The execution context containing variables, machine state, and other runtime information.
     """
 
-    def __init__(self, context: Knit_Script_Context | None = None, debugger: Knit_Script_Debugger_Protocol | None = None) -> None:
+    def __init__(
+        self,
+        context: Knit_Script_Context | None = None,
+        info_logger: Knit_Script_Logger | None = None,
+        warning_logger: KnitScript_Warning_Log | None = None,
+        error_logger: KnitScript_Error_Log | None = None,
+        debugger: Knit_Script_Debugger_Protocol | None = None,
+    ) -> None:
         """Initialize the knit script interpreter.
 
         Creates a new interpreter instance with the specified configuration options.
 
         Args:
             context (Knit_Script_Context, optional): A pre-configured knit script context to use instead of creating a new one. Defaults to creating a new context.
+            info_logger (Knit_Script_Logger, optional): The logger to attach to this context. Defaults to a standard logger which outputs only to console.
+            warning_logger (KnitScript_Warning_Log, optional): The warning logger to attach to this context. Defaults to a standard warning logger which outputs only to console.
+            error_logger (KnitScript_Error_Log, optional): The error logger to attach to this context. Defaults to a standard error logger which outputs only to console.
             debugger (Knit_Script_Debugger, optional):
                 An optional debugger to attach to the knit script context.
                 Defaults to using any debugger already attached to a given context or not attaching any debugger if the context is also new.
         """
         self._parser: Knit_Script_Parser = Knit_Script_Parser()
-
         if context is None:
-            self._knitscript_context: Knit_Script_Context = Knit_Script_Context(parser=self._parser, debugger=debugger)
+            self._knitscript_context: Knit_Script_Context = Knit_Script_Context(
+                parser=self._parser, debugger=debugger, info_logger=info_logger, warning_logger=warning_logger, error_logger=error_logger
+            )
         else:
             self._knitscript_context = context
             self._knitscript_context.parser = self._parser
@@ -121,7 +129,7 @@ class Knit_Script_Interpreter:
 
     def write_knitout(
         self, pattern: str, out_file_name: str, pattern_is_file: bool = False, reset_context: bool = True, **python_variables: dict[str, Any]
-    ) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]:
+    ) -> tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine, Any | None]:
         """Write pattern knitout instructions to the specified output file.
 
         This is the main method for converting knit script patterns into knitout format.
@@ -142,10 +150,12 @@ class Knit_Script_Interpreter:
             **python_variables (dict[str, Any]): Additional keyword arguments that will be injected into the knit script execution scope as variables.
 
         Returns:
-            tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine]: A tuple containing:
+            tuple[list[Knitout_Line], Knit_Graph, Knitting_Machine, Any | None]:
+                A tuple containing:
                 - list[Knitout_Line]: The complete sequence of knitout instructions generated from the pattern.
                 - Knit_Graph: The knit graph representation showing the structure and relationships of all stitches in the pattern.
                 - Knitting_Machine: The final state of the virtual knitting machine after executing all pattern instructions.
+                - Any | None: The return value from the knitscript execution.
 
         Raises:
             FileNotFoundError: If pattern_is_file is True and the pattern file cannot be found.
@@ -163,10 +173,9 @@ class Knit_Script_Interpreter:
             self._knitscript_context.ks_file = caller_file
 
         self._add_variables(python_variables)
-        self._interpret_knit_script(pattern, pattern_is_file)
+        knitout, return_val = self._interpret_knit_script(pattern, pattern_is_file)
         self._knitscript_context.knitout.extend(cut_active_carriers(self._knitscript_context.machine_state))
 
-        knitout = self._knitscript_context.knitout
         with open(out_file_name, "w", encoding="utf-8", newline="\n") as out:
             out.writelines([str(k) for k in knitout])
 
@@ -176,9 +185,9 @@ class Knit_Script_Interpreter:
         if reset_context:
             self._reset_context()
 
-        return knitout, knitgraph, machine_state
+        return knitout, knitgraph, machine_state, return_val
 
-    def _interpret_knit_script(self, pattern: str, pattern_is_file: bool) -> list[Knitout_Line]:
+    def _interpret_knit_script(self, pattern: str, pattern_is_file: bool) -> tuple[list[Knitout_Line], Any | None]:
         """Interpret a knit script pattern into knitout instructions.
 
         This internal method handles the core interpretation logic, including parsing the pattern, executing statements, and handling errors.
@@ -189,19 +198,17 @@ class Knit_Script_Interpreter:
             pattern_is_file (bool): Whether the pattern parameter is a filename.
 
         Returns:
-            list[Knitout_Line]: The generated knitout instructions.
+            tuple[list[Knitout_Line], Any | None]: A tuple containing the list of generated knitout instructions and any returned value from the program.
 
         Note:
             This method includes comprehensive error handling.
             If an error occurs, it will attempt to save any successfully generated knitout instructions to an error.k file before re-raising the exception.
         """
         statements = self.parse(pattern, pattern_is_file)
-        on_file = ""
         if pattern_is_file:
-            on_file = f" on {pattern}"
-        print(f"\n###################Start Knit Script Interpreter{on_file}###################\n")
-        self._knitscript_context.execute_statements(statements)
-        return self._knitscript_context.knitout
+            self._knitscript_context.print(f"\n{'=' * 20}Interpreting Knitscript from {pattern}{'=' * 20}")
+        return_val = self._knitscript_context.execute_statements(statements)
+        return self._knitscript_context.knitout, return_val
 
     def knit_script_evaluate_expression(self, exp: Expression) -> Any:
         """Evaluate a knit script expression within the current context.

@@ -1,7 +1,8 @@
 from unittest import TestCase
 
 from knitout_interpreter.knitout_operations.needle_instructions import Knit_Instruction
-from resources.interpret_test_ks import count_lines, interpret_test_ks
+from resources.interpret_test_ks import count_lines, interpret_test_ks, interpret_test_ks_with_return
+from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 
 
 class TestNeedle_Set_Expression(TestCase):
@@ -53,9 +54,15 @@ class TestNeedle_Set_Expression(TestCase):
         releasehook;
         assert len(Front_Loops) == 4;
         xfer Front_Loops across sliders;
-        print Back_Slider_Loops;
+        return Back_Slider_Loops;
         """
-        interpret_test_ks(program, execute_knitout=False)
+        _, __, ___, return_value = interpret_test_ks_with_return(program, print_k_lines=False)
+        self.assertTrue(isinstance(return_value, list))
+        self.assertEqual(len(return_value), 4)
+        for i, n in enumerate(return_value):
+            self.assertTrue(isinstance(n, Slider_Needle))
+            self.assertEqual(i, n.position)
+            self.assertFalse(n.is_front)
 
     def test_Back_Loops(self):
         program = r"""
@@ -81,9 +88,15 @@ class TestNeedle_Set_Expression(TestCase):
         releasehook;
         assert len(Back_Loops) == 4;
         xfer Back_Loops across sliders;
-        print Front_Slider_Loops;
+        return Front_Slider_Loops;
         """
-        interpret_test_ks(program, execute_knitout=False)
+        _, __, ___, return_value = interpret_test_ks_with_return(program, print_k_lines=False)
+        self.assertTrue(isinstance(return_value, list))
+        self.assertEqual(len(return_value), 4)
+        for i, n in enumerate(return_value):
+            self.assertTrue(isinstance(n, Slider_Needle))
+            self.assertEqual(i, n.position)
+            self.assertTrue(n.is_front)
 
     def test_Loops(self):
         program = r"""

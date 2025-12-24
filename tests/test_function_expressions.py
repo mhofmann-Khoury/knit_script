@@ -68,14 +68,14 @@ class TestFunctions(TestCase):
     def test_function_parameter_scope(self):
         program = r"""
         p = "dog";
-        print f"before define f: {p}";
+        assert p== "dog", f"before define f: {p}";
         def f():{
             p = "cat";
-            print f"in f: {p}";
+            assert p=="cat", f"in f: {p}";
         }
-        print f"after define f: {p}";
+        assert p=="dog", f"after define f: {p}";
         f();
-        print f"after f: {p}";
+        assert p == "dog",  f"after f: {p}";
         """
         interpret_test_ks(program)
 
@@ -83,10 +83,9 @@ class TestFunctions(TestCase):
         program = r"""
         def f():{
             p = "cat";
-            print f"in f: {p}";
+            assert p=="cat", f"in f: {p}";
         }
         print f"{p} should raise Name error";
-        f();
         """
         try:
             interpret_test_ks(program)
@@ -97,7 +96,7 @@ class TestFunctions(TestCase):
         program = r"""
         def f():{
             p = "cat";
-            print f"in f: {p}";
+            assert p=="cat", f"in f: {p}";
         }
         f();
         print f"{p} should raise Name error";

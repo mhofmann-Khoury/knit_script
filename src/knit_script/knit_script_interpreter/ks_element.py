@@ -90,12 +90,9 @@ class KS_Element:
             str: The string used to contextualize this element in the knitscript program.
         """
         context_str = str(self.location.input_str)[self.location.start_position : self.location.start_position + self.location.column_end]
-        if ";" in context_str:
-            context_str = context_str[: context_str.rindex(";") + 1]
-        if "\n" in context_str:
-            context_str = context_str[: context_str.index("\n")]
+        context_str = context_str.strip()  # strip white space
+        context_str = context_str.rstrip(";")
         return context_str
-        # return position_context(self.location.input_str, self.location.start_position)
 
     def __hash__(self) -> int:
         return hash((self.location.start_position, self.location.end_position, self.file_name))

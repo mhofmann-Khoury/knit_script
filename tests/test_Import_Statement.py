@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from knitout_interpreter.knitout_operations.needle_instructions import Tuck_Instruction
-from resources.interpret_test_ks import count_lines, interpret_test_ks
+from resources.interpret_test_ks import count_lines, interpret_test_ks, interpret_test_ks_with_return
 from resources.load_test_resources import load_test_resource
 
 
@@ -9,9 +9,10 @@ class Test_Imports(TestCase):
     def test_import_python(self):
         program = r"""
         import random;
-        print random.random();
+        return random.random();
         """
-        interpret_test_ks(program, print_k_lines=False)
+        _, __, ___, return_value = interpret_test_ks_with_return(program, print_k_lines=False)
+        self.assertTrue(isinstance(return_value, float))
 
     def test_import_ks_in_std_library(self):
         program = r"""
@@ -25,9 +26,14 @@ class Test_Imports(TestCase):
     def test_import_python_in_std_library(self):
         program = r"""
         import needles;
-        print needles.direction_sorted_needles([f1,f3,f2], direction=Leftward);
+        return needles.direction_sorted_needles([f1,f3,f2], direction=Leftward);
         """
-        interpret_test_ks(program, print_k_lines=False)
+        _, __, ___, return_value = interpret_test_ks_with_return(program, print_k_lines=False)
+        self.assertTrue(isinstance(return_value, list))
+        self.assertEqual(3, len(return_value))
+        self.assertEqual(3, return_value[0].position)
+        self.assertEqual(2, return_value[1].position)
+        self.assertEqual(1, return_value[2].position)
 
     def test_import_local_ks_module(self):
         program = load_test_resource("imports_ks.ks")

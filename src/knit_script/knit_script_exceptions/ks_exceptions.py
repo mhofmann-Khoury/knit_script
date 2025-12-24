@@ -7,36 +7,11 @@ Each exception provides detailed context about the specific error condition and 
 
 from __future__ import annotations
 
-from typing import Any
-
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
 from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Located_Exception
 from knit_script.knit_script_interpreter.ks_element import KS_Element
-
-
-class Knit_Script_Assertion_Exception(AssertionError, Knit_Script_Located_Exception):
-    """Exception raised when a KnitScript assertion fails.
-
-    This exception is thrown when an assertion statement in KnitScript code evaluates to a falsy value.
-    It provides detailed information about the failed condition and its actual value, along with any additional assertion report information that was provided with the assertion.
-    """
-
-    def __init__(self, assertion_statement: KS_Element, condition: Any, condition_value: Any, assertion_report: str | None = None) -> None:
-        """Initialize the Knit_Script_Assertion_Exception.
-
-        Args:
-            assertion_statement (Assertion_Statement): The assertion statement from the knitscript file used to locate this error.
-            condition (Any): The assertion condition that failed, typically an expression or condition object.
-            condition_value (Any): The actual value that caused the assertion to fail.
-            assertion_report (str | None, optional): Optional additional report information about the assertion failure. Defaults to None.
-        """
-        message = f"{condition} <{condition_value}>"
-        if assertion_report is not None:
-            message += f":\t{assertion_report}"
-        AssertionError.__init__(self, condition, condition_value, assertion_report)
-        Knit_Script_Located_Exception.__init__(self, message, assertion_statement)
 
 
 class Needle_Instruction_Type_Exception(Knit_Script_Located_Exception):

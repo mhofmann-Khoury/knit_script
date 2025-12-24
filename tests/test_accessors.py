@@ -14,6 +14,7 @@ class TestAttribute_Accessor_Expression(TestCase):
             tuck Front_Needles[0:10];
         }
         releasehook;
-        print machine.carrier_system.active_carriers;
+        assert len(machine.carrier_system.active_carriers) == 1;
+        assert 1 in machine.carrier_system.active_carriers;
         """
         interpret_test_ks(pattern, print_k_lines=False)

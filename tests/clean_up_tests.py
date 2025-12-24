@@ -17,7 +17,7 @@ def cleanup_test_files(extensions: list[str] | None = None, preserve_set: set[st
         Number of files deleted.
     """
     if extensions is None:
-        extensions = [".k", ".dat"]
+        extensions = [".k", ".dat", ".log"]
 
     if preserve_set is None:
         preserve_set = set()

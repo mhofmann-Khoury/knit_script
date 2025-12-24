@@ -6,7 +6,6 @@ It allows developers to test conditions during script execution and raise except
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.ks_exceptions import Knit_Script_Assertion_Exception
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
@@ -52,8 +51,11 @@ class Assertion(Statement):
             The exception includes the original condition, the actual value that caused the failure, and any optional error message.
         """
         condition = self._condition.evaluate(context)
-        if not condition:
-            if self._error_str is None:
-                raise Knit_Script_Assertion_Exception(self, self._condition, condition)
-            else:
-                raise Knit_Script_Assertion_Exception(self, self._condition, condition, self._error_str.evaluate(context))
+        error_str = f"{self._error_str.evaluate(context)}" if self._error_str is not None else f"<{self._condition.position_context}> is False"
+        try:
+            assert condition, f"KnitScript Assertion Error: {error_str}"
+        except AssertionError as e:
+            e.ks_error_str = error_str  # type: ignore[attr-defined]
+            self.add_ks_information_to_error(e)
+            context.print(e)
+            raise e from None

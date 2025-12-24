@@ -1,9 +1,11 @@
 import warnings
 from unittest import TestCase
 
-from resources.interpret_test_ks import interpret_test_ks
+from resources.interpret_test_ks import interpret_test_ks, interpret_test_ks_with_return
 from virtual_knitting_machine.knitting_machine_warnings.Needle_Warnings import Knit_on_Empty_Needle_Warning
 from virtual_knitting_machine.knitting_machine_warnings.Yarn_Carrier_System_Warning import Yarn_Carrier_Warning
+
+from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import Knit_Script_Logger, KnitScript_Error_Log
 
 
 class Test_Documentation_Examples(TestCase):
@@ -13,7 +15,9 @@ class Test_Documentation_Examples(TestCase):
         // This is a single-line comment
         width = 20;  // End-of-line comment
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_var_assignment(self):
         program = r"""
@@ -27,18 +31,22 @@ class Test_Documentation_Examples(TestCase):
            needle_list = [1, 2, 3, 4];           // List
            pattern_dict = {"a": 1, "b": 2};      // Dictionary
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_fstrings(self):
         program = r"""
         name = "scarf";
        width = 20;
-       print f"Knitting {name} with {width} stitches";
+       message = f"Knitting {name} with {width} stitches";
 
        // Multi-expression formatting
        message = f"Pattern: {name}, Width: {width}, Total: {width * 2}";
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_comprehensions(self):
         program = r"""
@@ -46,7 +54,9 @@ class Test_Documentation_Examples(TestCase):
         dictionary_of_loops = {fl:Back_Needles[fl.position] for fl in Front_Loops};
         list_with_condition = [bl for bl in Back_Loops if bl.position % 2 == 0];
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_local_variables(self):
         program = r"""
@@ -59,7 +69,9 @@ class Test_Documentation_Examples(TestCase):
            return row_count;
         }
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_machine_state_variables(self):
         program = r"""
@@ -68,22 +80,25 @@ class Test_Documentation_Examples(TestCase):
        Carrier = c1;      // Active carrier
        Racking = 0.0;     // Bed alignment. Negative values are leftward. Positive values are rightward.
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_control_flow(self):
         program = r"""
         width = 5;
         if width > 20:{
-           print "Wide pattern";
+           return "Wide pattern";
        }
        elif width > 10:{
-           print "Medium pattern";
+           return "Medium pattern";
        }
        else:{
-           print "Narrow pattern";
+           return "Narrow pattern";
        }
         """
-        interpret_test_ks(program, print_k_lines=False)
+        _ko, _machine, _graph, return_val = interpret_test_ks_with_return(program, print_k_lines=False)
+        self.assertEqual(return_val, "Narrow pattern")
 
     def test_lr_for_loops(self):
         program = r"""
@@ -104,7 +119,7 @@ class Test_Documentation_Examples(TestCase):
            print f"Position: {x}, {y}";
        }
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False))
 
     def test_lr_while_loops(self):
         program = r"""
@@ -116,7 +131,9 @@ class Test_Documentation_Examples(TestCase):
                row = row + 1;
            }
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_function(self):
         program = r"""
@@ -144,7 +161,9 @@ class Test_Documentation_Examples(TestCase):
        // Mixed arguments
        cable_cross(8, cable_dir="left");
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_return_values(self):
         program = r"""
@@ -157,7 +176,7 @@ class Test_Documentation_Examples(TestCase):
        extra = calculate_remainder(40, 6);
        print f"Pattern has {extra} extra stitches";
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False))
 
     def test_lr_basic_stitching(self):
         with warnings.catch_warnings():
@@ -211,7 +230,8 @@ class Test_Documentation_Examples(TestCase):
         print Front_Needles[::2];      // Every other needle
         print Front_Needles[1:20:3];   // Every 3rd needle from 1 to 19
         """
-        interpret_test_ks(program, print_k_lines=False)
+
+        interpret_test_ks(program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False))
 
     def test_lr_exceptions(self):
         program = r"""
@@ -222,7 +242,9 @@ class Test_Documentation_Examples(TestCase):
            print f"Assertion failed: {e}";
        }
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_assertions(self):
         program = r"""
@@ -233,7 +255,9 @@ class Test_Documentation_Examples(TestCase):
        assert (Gauge >= 2) and (Gauge <= 9), "Invalid gauge setting";
         """
         try:
-            interpret_test_ks(program, print_k_lines=False)
+            interpret_test_ks(
+                program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+            )
         except AssertionError as _e:
             pass
 
@@ -246,7 +270,9 @@ class Test_Documentation_Examples(TestCase):
         }
         // Racking and Sheet automatically restored
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_arithmetic(self):
         program = r"""
@@ -257,7 +283,9 @@ class Test_Documentation_Examples(TestCase):
            e = 17 % 5;     // Modulo: 2
            f = 2 ^ 3;      // Exponentiation: 8
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_lists(self):
         program = r"""
@@ -274,7 +302,9 @@ class Test_Documentation_Examples(TestCase):
        // List comprehensions
        even_nums = [x for x in range(10) if x % 2 == 0];
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_dicts(self):
         program = r"""
@@ -288,7 +318,9 @@ class Test_Documentation_Examples(TestCase):
        // Dictionary comprehension
        squares = {x: x^2 for x in range(5)};
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_lr_common_funcs(self):
         program = r"""
@@ -307,7 +339,9 @@ class Test_Documentation_Examples(TestCase):
        max(1, 2, 3);   // Maximum: 3
        range(10);      // Range object: 0-9
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_mo_knit(self):
         with warnings.catch_warnings():
@@ -478,7 +512,9 @@ class Test_Documentation_Examples(TestCase):
        Sheet = 0;    // First sheet knit on even needle slots
        Sheet = 1;    // Second sheet knit on odd needle slots
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_mo_tube_gauged(self):
         program = r"""
@@ -535,7 +571,9 @@ class Test_Documentation_Examples(TestCase):
         swap Front_Needles[0:5] with layer 2; // Set to be 2nd layer over these needle slots.
         swap Front_Needles[10:15] with sheet s1; // Set to trade the layer of sheet 1 at these slots.
         """
-        interpret_test_ks(program, print_k_lines=False)
+        interpret_test_ks(
+            program, print_k_lines=False, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False)
+        )
 
     def test_mo_pause(self):
         program = r"""
@@ -547,4 +585,4 @@ class Test_Documentation_Examples(TestCase):
        pause;
        print "Continuing pattern...";
         """
-        interpret_test_ks(program)
+        interpret_test_ks(program, info_logger=Knit_Script_Logger(log_to_console=False, log_to_file=False), error_logger=KnitScript_Error_Log(log_to_console=False, log_to_file=False))
