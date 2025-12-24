@@ -285,7 +285,7 @@ class Knit_Script_Debugger:
         """
         self._debug_mode = KnitScript_Debug_Mode.Step_Out
 
-    def continue_knitout(self) -> None:
+    def continue_knitscript(self) -> None:
         """
         Sets the debugger to continue to the next breakpoint or end of the knitout program.
         """
@@ -389,12 +389,20 @@ class Knit_Script_Debugger:
 
     @staticmethod
     def print_user_guide() -> None:
-        """
-        Prints a guide of the knit script debuggers available commands and current state.
-
-        TODO: Finish this method
-        """
-        print("TODO User GUIDE")
+        """Helper function that prints out the KnitScript Debugger Breakpoint command line interface and Usage Guide."""
+        print(f"\n{'=' * 10}KnitScript Debugger Options{'=' * 20}")
+        print("knitscript_debugger.step()                             # Sets the debugger to step through every statement")
+        print("knitscript_debugger.step_over()                        # Sets the debugger to step over sub-statements")
+        print("knitscript_debugger.step_out()                         # Sets the debugger to step out of the current scope")
+        print("knitscript_debugger.continue_knitscript()              # Sets the debugger to continue to the next breakpoint")
+        print("knitscript_debugger.set_breakpoint(N, condition)       # Sets a breakpoint at line N with an optional condition function.")
+        print("knitscript_debugger.enable_breakpoint(N)               # Enables a breakpoint at line N. If no breakpoint is there, an unconditioned breakpoint is created.")
+        print("knitscript_debugger.disable_breakpoint(N)              # Disables any breakpoint at line N. Any conditions are not removed.")
+        print("knitscript_debugger.clear_breakpoint(N)                # Clears any breakpoint at line N. Any conditions are removed.")
+        print("knitscript_debugger.enable_snapshots()                 # Enables the debugger to take snapshots of the machine state at any pause.")
+        print("knitscript_debugger.disable_snapshots()                # Disables the debugger to take snapshots of the machine state at any pause.")
+        print("knitscript_debugger.ignore_condition_exceptions()      # Stop the debugger from pausing when a breakpoint condition raises an exception.")
+        print("knitscript_debugger.pause_on_condition_exceptions()    # Force teh debugger to pause when a breakpoint condition raises an exception.")
 
     @staticmethod
     def _unconditioned_breakpoint(_self: Knit_Script_Debugger) -> bool:
