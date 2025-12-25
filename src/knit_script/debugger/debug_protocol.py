@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
+from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
+from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 if TYPE_CHECKING:
     from knit_script.knit_script_interpreter.ks_element import KS_Element
@@ -17,6 +19,9 @@ class Knit_Script_Debuggable_Protocol(Protocol):
     debugger: Knit_Script_Debugger_Protocol | None  # The debuggable protocol attached to the debuggable value
     variable_scope: Knit_Script_Scope  # The scope of the debuggable process.
     machine_state: Knitting_Machine  # The machine state being executed on during the knit script process
+    carrier: Yarn_Carrier_Set | None  # The current carrier set or None if no carrier is active.
+    sheet: Sheet_Identifier  # The current sheet identifier.
+    gauge: int  # The current gauge value.
 
 
 class Knit_Script_Debugger_Protocol(Protocol):

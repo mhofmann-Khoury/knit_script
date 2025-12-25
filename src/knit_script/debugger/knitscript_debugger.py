@@ -134,6 +134,11 @@ class Knit_Script_Debugger:
             was_step_out = self._is_step_out()
             self._checking_frame = self.frame
             line_number: int = statement.line_number
+            machine = self._context.machine_state  # noqa: F841 Intentional unused variable displayed in debugger
+            active_carrier = self._context.carrier  # noqa: F841 Intentional unused variable displayed in debugger
+            gauge: int = self._context.gauge  # noqa: F841 Intentional unused variable displayed in debugger
+            if gauge > 1:
+                sheet: int = self._context.sheet.sheet  # noqa: F841 Intentional unused variable displayed in debugger
             if self.taking_snapshots:
                 self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
             if self._is_interactive_debugger_attached():
@@ -167,6 +172,11 @@ class Knit_Script_Debugger:
         if self._context is not None and exception not in self._raised_exceptions:
             self._raised_exceptions.add(exception)
             line_number: int = statement.line_number
+            machine = self._context.machine_state  # noqa: F841 Intentional unused variable displayed in debugger
+            active_carrier = self._context.carrier  # noqa: F841 Intentional unused variable displayed in debugger
+            gauge: int = self._context.gauge  # noqa: F841 Intentional unused variable displayed in debugger
+            if gauge > 1:
+                sheet: int = self._context.sheet.sheet  # noqa: F841 Intentional unused variable displayed in debugger
             if self.taking_snapshots:
                 self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
             if self._is_interactive_debugger_attached():
