@@ -6,27 +6,10 @@ similar to how Python's sys.settrace() provides frame objects during debugging.
 
 from __future__ import annotations
 
-from enum import Enum
 from typing import Any
 
 from knit_script.debugger.debug_protocol import Debuggable_Element
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
-
-
-class KnitScript_Event_Type(Enum):
-    """Event types for KnitScript execution tracing.
-
-    Attributes:
-        CALL: A function or block is being entered.
-        LINE: About to execute a new line/statement.
-        RETURN: A function is returning.
-        EXCEPTION: An exception occurred.
-    """
-
-    CALL = "call"
-    LINE = "line"
-    RETURN = "return"
-    EXCEPTION = "exception"
 
 
 class Knit_Script_Frame:
