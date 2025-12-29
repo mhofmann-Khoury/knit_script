@@ -16,11 +16,12 @@ from parglare.common import Location
 from parglare.parser import LRStackNode
 
 from knit_script.debugger.debug_decorator import debug_knitscript_statement
+from knit_script.debugger.debug_protocol import Debuggable_Element
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import KnitScript_Logging_Level
 
 
-class KS_Element:
+class KS_Element(Debuggable_Element):
     """Superclass of all parser elements in KS.
 
     The KS_Element class provides the base functionality for all elements created during knit script parsing as a part of the abstract syntax tree.

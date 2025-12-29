@@ -10,7 +10,7 @@ from enum import Enum
 
 from virtual_knitting_machine.Knitting_Machine_Snapshot import Knitting_Machine_Snapshot
 
-from knit_script.debugger.debug_protocol import Debuggable_Element, Knit_Script_Debuggable_Protocol
+from knit_script.debugger.debug_protocol import Debuggable_Element, Knit_Script_Debuggable_Protocol, Knit_Script_Debugger_Protocol
 from knit_script.debugger.knitscript_frame import Knit_Script_Frame
 from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import KnitScript_Debug_Log
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
@@ -26,7 +26,7 @@ class KnitScript_Debug_Mode(Enum):
     Step_Over = "step-over"  # Sets the debugger to step to the next sibling statement of the current step or out to the next parent.
 
 
-class Knit_Script_Debugger:
+class Knit_Script_Debugger(Knit_Script_Debugger_Protocol):
     """Attaches to knitscript interpreters to provide interactive debugging support through the python debugger.
 
     Attributes:
@@ -129,13 +129,9 @@ class Knit_Script_Debugger:
             was_step_out = self._is_step_out()
             self._checking_frame = self.frame
             line_number: int = statement.line_number
-            machine = self._context.machine_state  # noqa: F841 Intentional unused variable displayed in debugger
-            active_carrier = self._context.carrier  # noqa: F841 Intentional unused variable displayed in debugger
-            gauge: int = self._context.gauge  # noqa: F841 Intentional unused variable displayed in debugger
-            if gauge > 1:
-                sheet: int = self._context.sheet.sheet  # noqa: F841 Intentional unused variable displayed in debugger
+            machine_state, active_carrier, sheet, gauge = self._context.report_locals()
             if self.taking_snapshots:
-                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
+                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(machine_state)
             if self._is_interactive_debugger_attached():
                 self.print(f"\n{'=' * 70}")
                 self.print(f"KnitScript Debugger Paused at <{repr(statement)}>")
@@ -166,13 +162,9 @@ class Knit_Script_Debugger:
         if self._context is not None and exception not in self._raised_exceptions:
             self._raised_exceptions.add(exception)
             line_number: int = statement.line_number
-            machine = self._context.machine_state  # noqa: F841 Intentional unused variable displayed in debugger
-            active_carrier = self._context.carrier  # noqa: F841 Intentional unused variable displayed in debugger
-            gauge: int = self._context.gauge  # noqa: F841 Intentional unused variable displayed in debugger
-            if gauge > 1:
-                sheet: int = self._context.sheet.sheet  # noqa: F841 Intentional unused variable displayed in debugger
+            machine_state, active_carrier, sheet, gauge = self._context.report_locals()
             if self.taking_snapshots:
-                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
+                self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(machine_state)
             if self._is_interactive_debugger_attached():
                 self.print(f"\n{'=' * 70}")
                 self.print(f"Knit Script paused by an {exception.__class__.__name__}")

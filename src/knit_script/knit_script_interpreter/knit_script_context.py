@@ -21,7 +21,7 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Needle import She
 from virtual_knitting_machine.machine_components.needles.Slider_Needle import Slider_Needle
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier, Yarn_Carrier_Set
 
-from knit_script.debugger.debug_protocol import Knit_Script_Debugger_Protocol
+from knit_script.debugger.debug_protocol import Knit_Script_Debuggable_Protocol, Knit_Script_Debugger_Protocol
 from knit_script.debugger.enter_frame_decorator import enters_new_scope
 from knit_script.debugger.exit_frame_decorator import exits_scope
 from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import Knit_Script_Logger, KnitScript_Error_Log, KnitScript_Logging_Level, KnitScript_Warning_Log
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
-class Knit_Script_Context:
+class Knit_Script_Context(Knit_Script_Debuggable_Protocol):
     """Manages the state of the Knitting machine during program execution.
 
     The Knit_Script_Context class serves as the primary execution context for knit script programs.
@@ -402,3 +402,15 @@ class Knit_Script_Context:
             Needle: The exact needle instance in use on the machine state.
         """
         return self.machine_state[self.get_needle(is_front, pos, is_slider, global_needle, sheet, gauge)]
+
+    def report_locals(self) -> tuple[Knitting_Machine, Yarn_Carrier_Set | None, Sheet_Identifier, int]:
+        """
+        Returns:
+            tuple[Knitting_Machine, Yarn_Carrier_Set | None, Sheet_Identifier, int]:
+                A tuple containing the following values from the state of the debugged protocol:
+                * The current state of the knitting machine.
+                * The active yarn-carrier set or None if no carrier set is active.
+                * The current sheet that the machine is set to.
+                * The gauge that the machine is set to.
+        """
+        return self.machine_state, self.carrier, self.sheet, self.gauge

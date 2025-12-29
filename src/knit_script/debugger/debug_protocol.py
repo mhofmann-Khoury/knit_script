@@ -39,10 +39,18 @@ class Knit_Script_Debuggable_Protocol(Protocol):
 
     debugger: Knit_Script_Debugger_Protocol | None  # The debuggable protocol attached to the debuggable value
     variable_scope: Knit_Script_Scope  # The scope of the debuggable process.
-    machine_state: Knitting_Machine  # The machine state being executed on during the knit script process
-    carrier: Yarn_Carrier_Set | None  # The current carrier set or None if no carrier is active.
-    sheet: Sheet_Identifier  # The current sheet identifier.
-    gauge: int  # The current gauge value.
+
+    def report_locals(self) -> tuple[Knitting_Machine, Yarn_Carrier_Set | None, Sheet_Identifier, int]:
+        """
+        Returns:
+            tuple[Knitting_Machine, Yarn_Carrier_Set | None, Sheet_Identifier, int]:
+                A tuple containing the following values from the state of the debugged protocol:
+                * The current state of the knitting machine.
+                * The active yarn-carrier set or None if no carrier set is active.
+                * The current sheet that the machine is set to.
+                * The gauge that the machine is set to.
+        """
+        ...
 
 
 class Knit_Script_Debugger_Protocol(Protocol):
