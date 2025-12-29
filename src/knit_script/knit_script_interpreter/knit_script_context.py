@@ -50,8 +50,6 @@ class Knit_Script_Context(Knit_Script_Debuggable_Protocol):
         parser (Knit_Script_Parser): Parser instance used for processing knit script code.
         last_carriage_pass_result (list[Needle] | dict[Needle, Needle | NOne]): Results from the most recent carriage pass operation.
         knitout (list[Knitout_Line]): List of knitout instructions generated during execution.
-        variable_scope (Knit_Script_Scope): The current variable scope for the execution context.
-        debugger (Knit_Script_Debugger | None): The optional debugger attached to this context. Defaults to not debugging the context.
     """
 
     def __init__(

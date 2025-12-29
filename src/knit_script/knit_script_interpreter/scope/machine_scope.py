@@ -145,8 +145,7 @@ class Machine_Scope:
     def last_working_carrier(self) -> Yarn_Carrier_Set | None:
         """
         Returns:
-            Yarn_Carrier_Set | None:
-                The explicitly set working carrier, or if no carrier is set get the active carrier with the most recently formed loop. If there are no active carriers, returns None.
+            Yarn_Carrier_Set | None: The explicitly set working carrier or the active carrier with the most recently formed loop or None if there are no active carriers.
         """
         if self._working_carrier is not None:
             return self._working_carrier
