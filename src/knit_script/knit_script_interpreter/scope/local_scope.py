@@ -17,7 +17,6 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script.knit_script_interpreter.scope.global_scope import Knit_Script_Globals
 from knit_script.knit_script_interpreter.scope.machine_scope import Machine_Scope
 from knit_script.knit_script_interpreter.scope.variable_space import Variable_Space
 from knit_script.knit_script_warnings.Knit_Script_Warning import Shadows_Global_Variable_Warning
@@ -75,7 +74,7 @@ class Knit_Script_Scope:
         assert module_scope is None or module_scope.is_module, f"Expected Module for module scope but got {module_scope}"
         self._module_scope: Knit_Script_Scope | None = module_scope
         if self._parent is None:
-            self._globals: Knit_Script_Globals = Knit_Script_Globals()
+            self._globals: Variable_Space = Variable_Space()
             self._machine_scope: Machine_Scope = Machine_Scope(self._context)
         else:
             self._globals = self._parent._globals
