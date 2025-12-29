@@ -9,7 +9,6 @@ from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Carriage_Pass_Specification import Carriage_Pass_Specification
@@ -59,7 +58,7 @@ class Drop_Pass(Statement):
                 needles.append(n)
         for n in needles:
             if not isinstance(n, Needle):
-                raise Knit_Script_TypeError(f"Expected to drop needles but got {n} in {self._needles} <{needles}>", self)
+                raise TypeError(f"Expected to drop needles but got {n} in {self._needles} <{needles}>")
 
         needles_to_instruction = {n: Knitout_Instruction_Type.Drop for n in needles}
 

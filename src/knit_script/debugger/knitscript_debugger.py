@@ -7,19 +7,14 @@ import sys
 import warnings
 from collections.abc import Callable
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from virtual_knitting_machine.Knitting_Machine_Snapshot import Knitting_Machine_Snapshot
 
-from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
-from knit_script.debugger.debug_protocol import Knit_Script_Debuggable_Protocol
+from knit_script.debugger.debug_protocol import Debuggable_Element, Knit_Script_Debuggable_Protocol
 from knit_script.debugger.knitscript_frame import Knit_Script_Frame
 from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import KnitScript_Debug_Log
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_warnings.Knit_Script_Warning import Breakpoint_Condition_Error_Ignored_Warning
-
-if TYPE_CHECKING:
-    from knit_script.knit_script_interpreter.ks_element import KS_Element
 
 
 class KnitScript_Debug_Mode(Enum):
@@ -123,7 +118,7 @@ class Knit_Script_Debugger:
         self.frame = None
         self._checking_frame = None
 
-    def debug_statement(self, statement: KS_Element) -> None:
+    def debug_statement(self, statement: Debuggable_Element) -> None:
         """
         Triggers a pause in the debugger based on the given statement and context.
 
@@ -143,8 +138,7 @@ class Knit_Script_Debugger:
                 self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
             if self._is_interactive_debugger_attached():
                 self.print(f"\n{'=' * 70}")
-                self.print(f"KnitScript Debugger Paused {statement.location_str}")
-                self.print(f"\tPaused at {statement.position_context}")
+                self.print(f"KnitScript Debugger Paused at <{repr(statement)}>")
                 if self._breakpoint_is_active(line_number):
                     self.print("Paused at active breakpoint.")
                     if self._condition_error is not None:
@@ -161,7 +155,7 @@ class Knit_Script_Debugger:
         self.add_statement_to_frame(statement)
         self._exited_frame = None
 
-    def debug_error(self, statement: KS_Element, exception: BaseException) -> None:
+    def debug_error(self, statement: Debuggable_Element, exception: BaseException) -> None:
         """
         Pause the debugger because the given statement raised the given exception.
 
@@ -181,8 +175,8 @@ class Knit_Script_Debugger:
                 self.machine_snapshots[line_number] = Knitting_Machine_Snapshot(self._context.machine_state)
             if self._is_interactive_debugger_attached():
                 self.print(f"\n{'=' * 70}")
-                self.print(f"Knit Script paused by an {exception.__class__.__name__} raised {statement.location_str}")
-                self.print(f"\tPaused at {statement.position_context}")
+                self.print(f"Knit Script paused by an {exception.__class__.__name__}")
+                self.print(f"\tPaused at <{repr(statement)}>")
                 self.print(f"\t{exception}")
                 self.print(f"{'=' * 70}")
                 self.print_user_guide()
@@ -358,10 +352,10 @@ class Knit_Script_Debugger:
                 self._condition_error = condition_error
                 return True
             else:
-                warnings.warn(Breakpoint_Condition_Error_Ignored_Warning(condition_error, line), stacklevel=get_user_warning_stack_level_from_knitscript_package())
+                warnings.warn(Breakpoint_Condition_Error_Ignored_Warning(condition_error, line), stacklevel=1)
                 return False
 
-    def pause_on_statement(self, statement: KS_Element) -> bool:
+    def pause_on_statement(self, statement: Debuggable_Element) -> bool:
         """
         Determines if the given statement should trigger the next pause in the debugger.
 
@@ -390,7 +384,7 @@ class Knit_Script_Debugger:
         """
         return self.take_step_over and self._checking_frame is not None and self.frame is not None and not self.frame.is_below(self._checking_frame)
 
-    def add_statement_to_frame(self, statement: KS_Element) -> None:
+    def add_statement_to_frame(self, statement: Debuggable_Element) -> None:
         """
         Adds the given statement to those that have been executed in the current frame.
         Args:

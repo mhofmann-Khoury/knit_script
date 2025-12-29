@@ -10,8 +10,6 @@ from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_I
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.ks_exceptions import Needle_Instruction_Type_Exception
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
@@ -63,10 +61,8 @@ class Needle_Instruction_Exp(Expression):
             instruction_type = self._instruction_type
         else:
             instruction_type = self._instruction_type.evaluate(context)
-            if not isinstance(instruction_type, Knitout_Instruction_Type):
-                raise Knit_Script_TypeError(f"Expected Knitout_Instruction_Type but got {instruction_type}", self)
-            if not instruction_type.is_needle_instruction:
-                raise Needle_Instruction_Type_Exception(self, instruction_type)
+            if not isinstance(instruction_type, Knitout_Instruction_Type) or not instruction_type.is_needle_instruction:
+                raise TypeError(f"Expected knit, tuck, miss, split, or drop but got {instruction_type}")
         needles: list[Needle] = []
         for exp in self._needles:
             value = exp.evaluate(context)
@@ -76,7 +72,7 @@ class Needle_Instruction_Exp(Expression):
                 needles.append(value)
         for needle in needles:
             if not isinstance(needle, Needle):
-                raise Knit_Script_TypeError(f"Expected List of needles, but got {needle} in {needles}", self)
+                raise TypeError(f"Expected List of needles, but got {needle} in {needles}")
 
         return instruction_type, needles
 

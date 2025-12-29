@@ -11,7 +11,6 @@ from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -157,12 +156,12 @@ class Sliced_List(Expression):
                 assert isinstance(self._start, Expression)
                 start = self._start.evaluate(context)
                 if not isinstance(start, Needle):
-                    raise Knit_Script_TypeError(f"Knitting machine requires needles to index but got {self._start}<{start}>", self)
+                    raise TypeError(f"Knitting machine requires needles to index but got {self._start}<{start}>")
                 return context.machine_state[start]
             else:
-                raise Knit_Script_TypeError(f"Knitting Machine is not iterable and cannot be iterated over [{self._start}:{self._end}:{self._spacer}]", self)
+                raise TypeError(f"Knitting Machine is not iterable and cannot be iterated over [{self._start}:{self._end}:{self._spacer}]")
         if not isinstance(iterable, Iterable):
-            raise Knit_Script_TypeError(f"Cannot Slice non-iterable {self._iter_exp}<{iterable}>.", self)
+            raise TypeError(f"Cannot Slice non-iterable {self._iter_exp}<{iterable}>.")
         iterable = list(iterable)
         if self._is_index:
             assert isinstance(self._start, Expression)
@@ -261,7 +260,7 @@ class Comprehension(Expression):
             else:  # multiple vars to unpack
                 iterated_var = [*var]
                 if len(iterated_var) != len(self._variables):
-                    raise self.add_ks_information_to_error(ValueError(f"Number of keys <{iterated_var}> do not match number of variables <{self._variables}>"))
+                    raise ValueError(f"Number of keys <{iterated_var}> do not match number of variables <{self._variables}>")
                 for var_name, var_val in zip(self._variables, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
             if bool(self._comp_cond.evaluate(context)) if isinstance(self._comp_cond, Expression) else True:

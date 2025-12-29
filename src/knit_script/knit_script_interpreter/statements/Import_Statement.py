@@ -10,7 +10,6 @@ from types import ModuleType
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.parsing_exception import Parsing_Exception
 from knit_script.knit_script_interpreter.expressions.accessors import Attribute_Accessor_Expression
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -59,7 +58,7 @@ class Import_Statement(Scoped_Statement):
         elif isinstance(self.src.attribute, Variable_Expression):
             return f"{self.src.parent_path()}.{self.src.attribute.variable_name}"
         else:
-            raise self.src.add_ks_information_to_error(ImportError(f"Expected to import path-like-string but got attribute {self.src.attribute}"))
+            raise ImportError(f"Expected to import path-like-string but got attribute {self.src.attribute}")
 
     @property
     def source_ks_file(self) -> str:
@@ -147,10 +146,7 @@ class Import_Statement(Scoped_Statement):
         Raises:
             Parsing_Exception: If the imported module has a knitscript syntax error.
         """
-        try:
-            statements = context.parser.parse(path, pattern_is_file=True)
-        except Parsing_Exception as e:
-            raise self.add_ks_information_to_error(e) from None
+        statements = context.parser.parse(path, pattern_is_file=True)
         module = context.enter_sub_scope(module_name=self.alias_name)  # enter sub scope for module
         context.execute_statements(statements)
         context.exit_current_scope()
@@ -180,7 +176,7 @@ class Import_Statement(Scoped_Statement):
 
         Raises:
             ImportError: If src is not a module name or path expression, or if alias is not a valid variable expression.
-            If the module cannot be found in any location after trying all resolution methods.
+                If the module cannot be found in any location after trying all resolution methods.
         """
 
         module: ModuleType | Knit_Script_Scope | None = self._get_python_module()
@@ -189,7 +185,7 @@ class Import_Statement(Scoped_Statement):
         if module is None:
             module = self._execute_ks_file_in_std_lbry(context)
         if module is None:
-            raise self.add_ks_information_to_error(ImportError(f"Could not find a python or knitscript module <{self.source_ks_file}> in local module or ks standard library"))
+            raise ImportError(f"Could not find a python or knitscript module <{self.source_ks_file}> in local module or ks standard library")
         if self.alias is not None or isinstance(self.src, Variable_Expression):
             context.variable_scope[self.alias_name] = module
         else:  # attribute accessor path

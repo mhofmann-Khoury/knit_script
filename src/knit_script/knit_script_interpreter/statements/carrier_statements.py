@@ -12,8 +12,6 @@ from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
@@ -53,7 +51,7 @@ class Cut_Statement(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         if len(self._carriers) == 0:
-            warnings.warn(Cut_Unspecified_Carrier_Warning(context.carrier, self), stacklevel=get_user_warning_stack_level_from_knitscript_package())
+            warnings.warn(Cut_Unspecified_Carrier_Warning(context.carrier), stacklevel=1)
             if isinstance(context.carrier, Yarn_Carrier_Set):
                 for carrier in context.carrier:
                     outhook_op = Outhook_Instruction.execute_outhook(context.machine_state, carrier, f"Cutting working carrier {carrier} of {context.carrier}")
@@ -80,7 +78,7 @@ class Cut_Statement(Statement):
                 elif isinstance(cr, Yarn_Carrier):
                     carrier_set.add(cr.carrier_id)
                 else:
-                    raise Knit_Script_TypeError(f"Expected to cut a carrier, integer representing a carrier, or list of carriers, but got {cr}", self)
+                    raise TypeError(f"Expected to cut a carrier, integer representing a carrier, or list of carriers, but got {cr}")
 
             for c in self._carriers:
                 carrier = c.evaluate(context)
@@ -154,7 +152,7 @@ class Remove_Statement(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
         """
         if len(self._carriers) == 0:
-            warnings.warn(Cut_Unspecified_Carrier_Warning(context.carrier, self), stacklevel=get_user_warning_stack_level_from_knitscript_package())
+            warnings.warn(Cut_Unspecified_Carrier_Warning(context.carrier), stacklevel=1)
             if isinstance(context.carrier, Yarn_Carrier_Set):
                 for carrier in context.carrier:
                     out_op = Out_Instruction.execute_out(context.machine_state, carrier, f"Removing working carrier {carrier} of {context.carrier}")

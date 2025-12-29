@@ -2,6 +2,7 @@
 
 from enum import Enum
 from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, FileHandler, Formatter, Logger, StreamHandler, getLogger
+from typing import Any
 
 
 class KnitScript_Logging_Level(Enum):
@@ -56,7 +57,7 @@ class Knit_Script_Logger:
         self._level: KnitScript_Logging_Level = logging_level
         self._logger: Logger = getLogger(f"{log_name}")
         self._logger.setLevel(int(logging_level))
-        self._formatter: Formatter = Formatter("KS-%(levelname)s: %(message)s")
+        self._formatter: Formatter = Formatter("KS-%(levelname)s:\n%(message)s")
         self._file_handler: FileHandler | None = FileHandler(f"{self.name}.log") if log_to_file else None
         if self._file_handler is not None:
             self._file_handler.setFormatter(self._formatter)
@@ -136,6 +137,15 @@ class KnitScript_Warning_Log(Knit_Script_Logger):
     def __init__(self, log_to_console: bool = True, log_to_file: bool = False, log_name: str = "KnitScript Warnings"):
         super().__init__(log_to_console, log_to_file, logging_level=KnitScript_Logging_Level.warning, log_name=log_name)
 
+    def warn(self, warning: RuntimeWarning, source_element: Any) -> None:
+        """
+        Prints out the given warning message.
+        Args:
+            warning (RuntimeWarning): The warning message to print.
+            source_element (Any): The KS element that is the source of the warning.
+        """
+        self.print(f"{repr(source_element)}: {warning.__class__.__name__}: {warning}")
+
 
 class KnitScript_Error_Log(Knit_Script_Logger):
     """
@@ -144,6 +154,15 @@ class KnitScript_Error_Log(Knit_Script_Logger):
 
     def __init__(self, log_to_console: bool = True, log_to_file: bool = False, log_name: str = "KnitScript Errors"):
         super().__init__(log_to_console, log_to_file, logging_level=KnitScript_Logging_Level.error, log_name=log_name)
+
+    def report_error(self, error: BaseException, source_element: Any) -> None:
+        """
+        Prints out the given error message.
+        Args:
+            error (BaseException): The error to report.
+            source_element (Any): The KS element that is the source of the error.
+        """
+        self.print(f"{repr(source_element)}: {error}")
 
 
 class KnitScript_Debug_Log(Knit_Script_Logger):

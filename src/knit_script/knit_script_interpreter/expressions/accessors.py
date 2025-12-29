@@ -19,6 +19,7 @@ from knit_script.knit_script_interpreter.expressions.function_expressions import
 from knit_script.knit_script_interpreter.expressions.needle_set_expression import Needle_Set_Expression, Needle_Sets
 from knit_script.knit_script_interpreter.expressions.variables import Variable_Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 from knit_script.knit_script_interpreter.statements.function_dec_statement import Function_Signature
 
 
@@ -90,7 +91,7 @@ class Attribute_Accessor_Expression(Expression):
         for p in self.parent:
             if require_var_names:
                 if not isinstance(p, Variable_Expression):
-                    raise self.add_ks_information_to_error(AttributeError(f"Expected variable names in path but got {p} after <{parent_source_str}"))
+                    raise AttributeError(f"Expected variable names in path but got {p} after <{parent_source_str}")
                 parent_source_str += f"{p.variable_name}."
             else:
                 parent_source_str += f"{p}."
@@ -112,7 +113,7 @@ class Attribute_Accessor_Expression(Expression):
         for p in self.parent:
             if require_var_names:
                 if not isinstance(p, Variable_Expression):
-                    raise self.add_ks_information_to_error(AttributeError(f"Expected variable names in path but got {p} after <{parent_list}"))
+                    raise AttributeError(f"Expected variable names in path but got {p} after <{parent_list}")
                 parent_list.append(p.variable_name)
             else:
                 parent_list.append(str(p))
@@ -204,10 +205,10 @@ class Attribute_Accessor_Expression(Expression):
                 elif kp_set is Needle_Sets.Slider_Loops:
                     return context.gauged_sheet_record.all_slider_loops(parent.sheet)
             else:
-                raise self.add_ks_information_to_error(AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>"))
+                raise AttributeError(f"Cannot access needle-set attribute {kp_set} from {self.parent} <{parent}>")
         elif isinstance(self.attribute, Function_Call):
             method_name = self.attribute.func_name.variable_name
-            attribute = getattr(parent, method_name)
+            attribute = parent[method_name] if isinstance(parent, Knit_Script_Scope) else getattr(parent, method_name)
             if isinstance(attribute, Function_Signature):
                 return_value = attribute.execute(context, self.attribute.args, self.attribute.kwargs)
                 return return_value
@@ -229,4 +230,4 @@ class Attribute_Accessor_Expression(Expression):
             elif isinstance(attribute, Yarn_Carrier_Set) and len(attribute) == 1:
                 return context.machine_state.carrier_system[attribute[0]]
             else:
-                return getattr(parent, attribute)
+                return parent[attribute] if isinstance(parent, Knit_Script_Scope) else getattr(parent, attribute)

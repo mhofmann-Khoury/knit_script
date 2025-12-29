@@ -11,9 +11,8 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, cast
 
 from knitout_interpreter.knitout_operations.Header_Line import get_machine_header
-from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line, Knitout_Line
+from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Line
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
-from virtual_knitting_machine.knitting_machine_exceptions.Knitting_Machine_Exception import Knitting_Machine_Exception
 from virtual_knitting_machine.Knitting_Machine_Specification import Knitting_Machine_Specification
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
@@ -25,7 +24,6 @@ from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Se
 from knit_script.debugger.debug_protocol import Knit_Script_Debugger_Protocol
 from knit_script.debugger.enter_frame_decorator import enters_new_scope
 from knit_script.debugger.exit_frame_decorator import exits_scope
-from knit_script.knit_script_exceptions.Knit_Script_Exception import Knit_Script_Exception
 from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import Knit_Script_Logger, KnitScript_Error_Log, KnitScript_Logging_Level, KnitScript_Warning_Log
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
@@ -127,11 +125,12 @@ class Knit_Script_Context:
         """
         return self.variable_scope.machine_scope.gauged_sheet_record
 
-    def print(self, message: str | BaseException | Warning, log_type: KnitScript_Logging_Level = KnitScript_Logging_Level.info) -> None:
+    def print(self, message: str | BaseException | Warning, source: Any | None = None, log_type: KnitScript_Logging_Level = KnitScript_Logging_Level.info) -> None:
         """
         Prints the given message to the appropriate log based on the given log type.
         Args:
             message (str): The message to print.
+            source (KS_Element, optional): An optional knitscript element that is the source of the printed information. Defaults to having no known source.
             log_type (KnitScript_Logging_Level, optional): The log type to use for printing. Defaults to printing information.
         """
         if isinstance(message, Warning):
@@ -140,17 +139,18 @@ class Knit_Script_Context:
         elif isinstance(message, BaseException):
             log_type = KnitScript_Logging_Level.error
             message = str(message)
+        source_line = f" from {repr(source)}:\n\t" if source is not None else ""
         if log_type is KnitScript_Logging_Level.debug:
             if self.debugger is not None:
-                self.debugger.print(message)
+                self.debugger.print(f"{source_line}{message}")
             else:
-                self.info_logger.print(f"Debug:{message}")
+                self.info_logger.print(f"Debug{source_line}: {message}")
         elif log_type is KnitScript_Logging_Level.info:
-            self.info_logger.print(message)
+            self.info_logger.print(f"{source_line}{message}")
         elif log_type is KnitScript_Logging_Level.warning:
-            self.warning_logger.print(message)
+            self.warning_logger.print(f"{source_line}{message}")
         else:
-            self.error_logger.print(message)
+            self.error_logger.print(f"{source_line}{message}")
 
     def add_variable(self, key: str, value: Any) -> None:
         """Add a variable to the variable scope by the name of key.
@@ -159,7 +159,7 @@ class Knit_Script_Context:
             key (str): Name of variable to be used in the knit script.
             value (Any): Value of the variable to store in the scope.
         """
-        self.variable_scope.__setattr__(key, value)
+        self.variable_scope[key] = value
 
     @enters_new_scope
     def enter_sub_scope(self, function_name: str | None = None, module_name: str | None = None, module_scope: Knit_Script_Scope | None = None) -> Knit_Script_Scope:
@@ -354,12 +354,9 @@ class Knit_Script_Context:
                 if len(self.knitout) > 0:
                     with open("error.k", "w") as out:
                         out.writelines([str(k) for k in self.knitout])
-                        if isinstance(e, (Knitting_Machine_Exception, Knit_Script_Exception)):
-                            error_comments = [Knitout_Comment_Line(e.message)]
-                            out.writelines([str(ec) for ec in error_comments])
             except Exception as cut_e:
                 e.add_note(f"Couldn't produce valid error.k file because of error: {cut_e}")
-            raise statement.add_ks_information_to_error(e) from None
+            raise
 
     def get_needle(self, is_front: bool, pos: int, is_slider: bool = False, global_needle: bool = False, sheet: int | None = None, gauge: int | None = None) -> Needle:
         """Get a needle based on current gauging configuration.

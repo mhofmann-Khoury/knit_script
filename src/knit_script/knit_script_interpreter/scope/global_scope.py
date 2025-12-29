@@ -18,8 +18,6 @@ class Knit_Script_Globals:
     This class is designed to be extensible, allowing new global variables to be added dynamically during program execution.
     It provides containment checking to determine whether specific variables have been defined in the global scope.
 
-    Attributes:
-        exit_value (Any): The exit value of the program, used to store the result or status when the program terminates. Initially set to None.
     """
 
     def __init__(self) -> None:
@@ -27,13 +25,10 @@ class Knit_Script_Globals:
 
         Creates a new instance of the global variable space with the exit_value initialized to None. Additional global variables can be added dynamically by setting attributes on the instance.
         """
-        self.exit_value: Any = None
+        pass
 
     def __contains__(self, key: str) -> bool:
-        """Check if a global variable with the given name exists.
-
-        Determines whether a global variable with the specified name has been defined in this global namespace. This method enables the use of the 'in' operator for checking variable existence.
-
+        """
         Args:
             key (str): The name of the global variable to check for existence.
 
@@ -41,3 +36,38 @@ class Knit_Script_Globals:
             bool: True if the global variable exists, False otherwise.
         """
         return hasattr(self, key)
+
+    def __getitem__(self, key: str) -> Any:
+        """
+        Args:
+            key (str): The name of the global variable to access.
+
+        Returns:
+            Any: The value of the global variable.
+
+        Raises:
+            AttributeError: If the global variable does not exist.
+        """
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """
+        Set a global variable with the given key name.
+        Overrides any global variable already defined by that key.
+
+        Args:
+            key (str): The name of the global variable to set.
+            value (Any): The value of the global variable.
+        """
+        setattr(self, key, value)
+
+    def __delitem__(self, key: str) -> None:
+        """
+        Delete the global variable with the given key name.
+        Args:
+            key (str): The name of the global variable to delete.
+
+        Raises:
+             AttributeError: If the global variable does not exist.
+        """
+        delattr(self, key)

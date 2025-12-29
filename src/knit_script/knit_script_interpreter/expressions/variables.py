@@ -4,15 +4,12 @@ This module provides the Variable_Expression class, which handles variable acces
 It provides the mechanism for retrieving variable values from the current execution scope, following the scope resolution hierarchy established by the knit script context system.
 """
 
-import warnings
 from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_warnings.Knit_Script_Warning import Shadow_Variable_Warning
 
 
 class Variable_Expression(Expression):
@@ -60,20 +57,4 @@ class Variable_Expression(Expression):
         Returns:
             Any: The value of the variable found in the lowest applicable scope level.
         """
-        new_warnings: list[Shadow_Variable_Warning | warnings.WarningMessage] = []
-        with warnings.catch_warnings(record=True) as w:
-            variable_value = context.variable_scope[self.variable_name]
-            for warning in w:
-                if isinstance(warning.message, Shadow_Variable_Warning):
-                    new_warnings.append(warning.message.__class__(warning.message.variable_name, self))
-                else:
-                    new_warnings.append(warning)
-        for new_warning in new_warnings:
-            if isinstance(new_warning, warnings.WarningMessage):
-                warnings.warn(message=new_warning.message, category=new_warning.category, source=new_warning.source, stacklevel=get_user_warning_stack_level_from_knitscript_package())
-            else:
-                warnings.warn(new_warning, stacklevel=get_user_warning_stack_level_from_knitscript_package())
-        return variable_value
-
-    # def __hash__(self) -> int:
-    #     return hash(self.variable_name)
+        return context.variable_scope[self.variable_name]

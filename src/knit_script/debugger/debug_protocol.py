@@ -9,8 +9,29 @@ from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
 if TYPE_CHECKING:
-    from knit_script.knit_script_interpreter.ks_element import KS_Element
     from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
+
+
+class Debuggable_Element(Protocol):
+    """
+    Protocol for debuggable elements in knitscript execution (i.e., statements).
+    """
+
+    @property
+    def line_number(self) -> int:
+        """
+        Returns:
+            int: The line number where this element appears in the source file.
+        """
+        ...
+
+    @property
+    def file_name(self) -> str | None:
+        """
+        Returns:
+            str | None: The file name of the knitscript program this was parsed from or None if the program was passed as a string.
+        """
+        ...
 
 
 class Knit_Script_Debuggable_Protocol(Protocol):
@@ -44,7 +65,7 @@ class Knit_Script_Debugger_Protocol(Protocol):
         """
         ...
 
-    def debug_statement(self, statement: KS_Element) -> None:
+    def debug_statement(self, statement: Debuggable_Element) -> None:
         """
         Triggers a pause in the debugger based on the given statement and context.
 
@@ -53,7 +74,7 @@ class Knit_Script_Debugger_Protocol(Protocol):
         """
         ...
 
-    def debug_error(self, statement: KS_Element, exception: BaseException) -> None:
+    def debug_error(self, statement: Debuggable_Element, exception: BaseException) -> None:
         """
         Pause the debugger because the given statement raised the given exception.
 

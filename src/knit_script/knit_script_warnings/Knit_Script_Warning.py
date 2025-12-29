@@ -7,15 +7,9 @@ The warning system helps developers write more robust knit script programs by id
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
-
-from knit_script.knit_script_interpreter.ks_element import KS_Element
-
-if TYPE_CHECKING:
-    from knit_script.knit_script_interpreter.statements.Statement import Statement
 
 
 class Knit_Script_Warning(RuntimeWarning):
@@ -27,54 +21,17 @@ class Knit_Script_Warning(RuntimeWarning):
 
     This base class automatically prefixes warning messages with "KnitScript Warning:" to clearly identify KnitScript-related warnings and distinguish them from other system warnings.
     The warning system is designed to help developers identify potentially problematic code without stopping program execution.
-
-    Attributes:
-        message (str): The formatted warning message including the KnitScript warning prefix.
     """
 
-    def __init__(self, message: str, ks_element: KS_Element | None = None):
+    def __init__(self, message: str):
         """Initialize the Knit_Script_Warning.
 
         Creates a new KnitScript warning with the provided message. The message is automatically formatted with a KnitScript warning prefix and newline formatting for consistent warning display.
 
         Args:
             message (str): The warning message to display. This will be prefixed with "KnitScript Warning:" in the final formatted message.
-            ks_element (KS_Element | None, optional): The KnitScript element that triggered the warning. Used to identify the location in the knitscript code.
         """
-        self._ks_element: KS_Element | None = ks_element
-        self.message = message
-        super().__init__(self.full_message)
-
-    @property
-    def full_message(self) -> str:
-        """
-        Returns:
-            str: The full warning including the prefix and message.
-        """
-        return f"{self.prefix}: {self.message}"
-
-    @property
-    def prefix(self) -> str:
-        """
-        Returns:
-            str: The prefix of the warning message based on the name of the warning and if the ks_element that triggered it is known.
-        """
-        prefix = f"\n{self.__class__.__name__}"
-        if self.ks_element is not None:
-            prefix += self.ks_element.location_str
-        return prefix
-
-    @property
-    def ks_element(self) -> KS_Element | None:
-        """
-        Returns:
-            None | KS_Element: The element that triggered this warning, or None if that was not known.
-        """
-        return self._ks_element
-
-    @ks_element.setter
-    def ks_element(self, element: KS_Element) -> None:
-        self._ks_element = element
+        super().__init__(message)
 
 
 class Shadow_Variable_Warning(Knit_Script_Warning):
@@ -87,15 +44,14 @@ class Shadow_Variable_Warning(Knit_Script_Warning):
         variable_name (str): The variable that shadows a higher scope.
     """
 
-    def __init__(self, variable_name: str, ks_element: KS_Element | None = None):
+    def __init__(self, variable_name: str):
         """Initialize the Shadow_Variable_Warning.
 
         Args:
-            ks_element (KS_Element | None): The KnitScript element that triggered the warning. Used to identify the location in the knitscript code.
             variable_name (str): The name of the variable that is shadowing another variable in an outer scope.
         """
         self.variable_name: str = variable_name
-        super().__init__(f"Variable <{variable_name}> shadows a variable in the outer scope.", ks_element)
+        super().__init__(f"Variable <{variable_name}> shadows a variable in the outer scope.")
 
 
 class Shadows_Global_Variable_Warning(Shadow_Variable_Warning):
@@ -130,21 +86,47 @@ class Sheet_Beyond_Gauge_Warning(Knit_Script_Warning):
             sheet (int | Sheet_Identifier): The sheet value that exceeds the gauge limits and triggered the warning.
             gauge (int): The current gauge setting that defines the valid range for sheet values.
         """
-        super().__init__(f"Gauge of {gauge} is greater than current sheet {sheet} so sheet is set to {gauge - 1}", None)
+        super().__init__(f"Gauge of {gauge} is greater than current sheet {sheet} so sheet is set to {gauge - 1}")
+
+
+class Negative_Sheet_Warning(Knit_Script_Warning):
+    """Warning raised when the sheet value is negative and reset to 0.
+
+    This warning occurs when attempting to set a sheet number that is outside the valid range for the current gauge configuration.
+    Since sheet numbers must be between 0 and gauge-1, this warning is issued when automatic correction is applied to bring the sheet value back within acceptable bounds.
+    """
+
+    def __init__(self, sheet: int | Sheet_Identifier):
+        """Initialize the Sheet_Beyond_Gauge_Warning.
+
+        Args:
+            sheet (int | Sheet_Identifier): The sheet value that exceeds the gauge limits and triggered the warning.
+        """
+        super().__init__(f"Sheets must be positive values but given {sheet} so sheet is set to 0")
+
+
+class Gauge_Value_Warning(Knit_Script_Warning):
+    """Warning raised when gauge is set to a non-positive value."""
+
+    def __init__(self, gauge: int) -> None:
+        """
+        Args:
+            gauge (int): The invalid gauge value that was provided and caused the warning.
+        """
+        super().__init__(f"Gauge must be 1 or greater but got {gauge}. Gauge set to to 1 (Full Gauge)")
 
 
 class Cut_Unspecified_Carrier_Warning(Knit_Script_Warning):
     """Warning raised when no carrier is specified with a cut operation."""
 
-    def __init__(self, cur_carrier_set: Yarn_Carrier_Set | None, cut_statement: Statement):
+    def __init__(self, cur_carrier_set: Yarn_Carrier_Set | None):
         """Initialize the Sheet_Beyond_Gauge_Warning.
 
         Args:
             cur_carrier_set (Yarn_Carrier_Set | None): The current carrier that will be cut because no carrier set was specified.
-            cut_statement (Cut_Statement | Remove_Statement): The cut statement that triggered the warning.
         """
         message = "No carrier specified and no carrier is active. Cut is a No-Op" if cur_carrier_set is None else f"No carrier specified to cut, so cutting active carrier set {cur_carrier_set}"
-        super().__init__(message, cut_statement)
+        super().__init__(message)
 
 
 class Breakpoint_Condition_Error_Ignored_Warning(Knit_Script_Warning):
@@ -155,4 +137,32 @@ class Breakpoint_Condition_Error_Ignored_Warning(Knit_Script_Warning):
     def __init__(self, condition_error: BaseException, line_number: int) -> None:
         self.error: BaseException = condition_error
         self.line: int = line_number
-        super().__init__("Conditional Breakpoint at Line {line_number} triggered Error: {condition_error}")
+        super().__init__(f"Conditional Breakpoint at Line {line_number} triggered Error:\n{condition_error}")
+
+
+class Repeated_Needle_Warning(Knit_Script_Warning):
+    """Warning raised when a carriage pass would require passing over the same needle more than once.
+
+    This exception prevents machine operations that would attempt to work on the same needle multiple times within a single carriage pass, which is not physically possible on most knitting machines.
+
+    Attributes:
+        needle (Needle): The needle that would be worked on multiple times.
+    """
+
+    def __init__(self, needle: Needle):
+        """Initialize the Repeated_Needle_Exception.
+
+        Args:
+            needle (Needle): The needle that would be worked on multiple times.
+        """
+        self.needle = needle
+        super().__init__(f"Cannot work on {self.needle} more than once in a carriage pass.\n\tThis needle was skipped after its first use.")
+
+
+class Unspecified_Carrier_Warning(Knit_Script_Warning):
+    """
+    Warning raised when no carrier is specified for a directed carriage pass but a valid carrier could be inferred.
+    """
+
+    def __init__(self, carrier: Yarn_Carrier_Set):
+        super().__init__(f"No Carrier is specified so working carrier is presumed to be active carrier {carrier} which most recently formed a loop")

@@ -8,9 +8,8 @@ from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.debugger.debug_decorator import debug_knitscript_statement
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.ks_element import KS_Element
+from knit_script.knit_script_interpreter.ks_element import KS_Element, associate_error
 
 
 class Statement(KS_Element):
@@ -32,24 +31,21 @@ class Statement(KS_Element):
         super().__init__(parser_node)
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
-        """Automatically wrap execute method in subclasses with debug decorator.
+        """Automatically wrap execute methods in subclasses with appropriate error handling and debugging decorators.
 
-        This method is called whenever a class inherits from Statement. It checks if
-        the subclass defines its own execute method and wraps it with the debug decorator.
+        This method is called whenever a class inherits from Statement.
+        It checks if the subclass defines its own execute method and wraps it with the appropriate decorators
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to super().__init_subclass__
         """
         super().__init_subclass__(**kwargs)
 
-        # Check if this subclass defines its own execute method (not inherited)
+        # Check if this subclass defines its own execute or evaluate method (not inherited)
         if "execute" in cls.__dict__:
             original_execute = cls.__dict__["execute"]
-
-            # Only wrap if not already wrapped (check for __wrapped__ attribute)
             if not hasattr(original_execute, "__wrapped__"):
-                # Apply the debug decorator and set it back on the class
-                wrapped_execute = debug_knitscript_statement(original_execute)
+                wrapped_execute = associate_error(original_execute)
                 cls.execute = wrapped_execute  # type: ignore[method-assign]
 
     def execute(self, context: Knit_Script_Context) -> None:

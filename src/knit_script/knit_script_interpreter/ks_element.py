@@ -7,9 +7,17 @@ It provides common functionality for accessing parser node information, location
 from __future__ import annotations
 
 import os
+import warnings
+from collections.abc import Callable
+from functools import wraps
+from typing import ParamSpec, TypeVar, cast
 
 from parglare.common import Location
 from parglare.parser import LRStackNode
+
+from knit_script.debugger.debug_decorator import debug_knitscript_statement
+from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
+from knit_script.knit_script_interpreter.knitscript_logging.knitscript_logger import KnitScript_Logging_Level
 
 
 class KS_Element:
@@ -24,8 +32,6 @@ class KS_Element:
     Attributes:
         parser_node (LRStackNode): The parser node that created this element.
     """
-
-    _KNITSCRIPT_NOTE = "Raised in when Processing KnitScript"
 
     def __init__(self, parser_node: LRStackNode):
         """Initialize the KS element with parser node information.
@@ -103,29 +109,54 @@ class KS_Element:
     def __repr__(self) -> str:
         return f"<{self.position_context}> {self.location_str}"
 
-    @staticmethod
-    def has_ks_notes(error: BaseException) -> bool:
+
+# Type variables for the decorator
+_P = ParamSpec("_P")  # Captures all parameters for methods that start with the instruction
+_R = TypeVar("_R")  # Captures return type for methods that start with the instruction
+
+
+def associate_error(execution_method: Callable[_P, _R]) -> Callable[_P, _R]:
+    """
+
+    Args:
+        execution_method (Callable[[KS_Element,], Any]): The wrapped method of a knitscript element to annotate associated errors.
+
+    Returns:
+        Callable[[KS_Element,], Any]: The wrapped method.
+    """
+    ks_error_note: str = "Error Raised when Executing Knitscript Program"
+
+    @wraps(execution_method)
+    def annotate_errors(*args: _P.args, **kwargs: _P.kwargs) -> _R:
         """
+        Wrap the method associated with the knit script element and annotate any caught errors with their location in the knitscript file.
         Args:
-            error (BaseException): The error raised to determine if it has already been marked with knitscript context information.
-
-        Returns:
-            bool: True if the error has been annotated with knitscript context information.
-
+            self [KS_Element]: The method should start with or have a keyword self that is a knitscript element to associate with this error.
         """
-        return hasattr(error, "__notes__") and error.__notes__[0] == KS_Element._KNITSCRIPT_NOTE
+        self: KS_Element = cast(KS_Element, args[0] if len(args) >= 1 else kwargs["self"])
+        context: Knit_Script_Context = cast(Knit_Script_Context, args[1] if len(args) > 1 else kwargs["context"])
+        caught_warnings = []
 
-    def add_ks_information_to_error(self, error: BaseException) -> BaseException:
-        """
-        Args:
-            error (BaseException): The error raised to add contextual notes based on this knitscript element.
+        try:
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                return_val = execution_method(*args, **kwargs)
+            for warning in caught:
+                if not isinstance(warning.source, KS_Element):
+                    warning.source = self
+                    context.print(warning.message, self, KnitScript_Logging_Level.warning)
+                    caught_warnings.append(warning)
+            for warning in caught_warnings:
+                warnings.warn(warning.message, stacklevel=1)
+            return return_val
+        except Exception as e:
+            if not hasattr(e, "__notes__") or ks_error_note not in e.__notes__:
+                e.add_note(ks_error_note)
+                e.add_note(f"\t{e.__class__.__name__} at <{self.position_context}> in {self.location_str}")
+                context.print(e, self, KnitScript_Logging_Level.error)
+            raise
 
-        Returns:
-            BaseException: The same exception modified with notes that document the location in the knitscript file that triggered the error.
-        """
-        if self.has_ks_notes(error):
-            return error  # Already annotated, return as is.
-        error.add_note(self._KNITSCRIPT_NOTE)
-        error.add_note(f"\t{error.__class__.__name__} {self.location_str}")
-        error.add_note(f"\t{self.position_context}")
-        return error
+    if execution_method.__name__ == "execute":  # Wrapping an execute method which must also be debuggable.
+        return debug_knitscript_statement(annotate_errors)
+    else:  # Evaluations of expressions are not marked as debuggable, but their errors are annotated.
+        return annotate_errors

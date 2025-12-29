@@ -10,7 +10,6 @@ from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_I
 from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
@@ -71,13 +70,13 @@ class Xfer_Pass_Statement(Statement):
                 needles.append(n)
         for n in needles:
             if not isinstance(n, Needle):
-                raise Knit_Script_TypeError(f"Expected xfer from needles but got {n}", self)
+                raise TypeError(f"Expected xfer from needles but got {n}")
 
         target_bed = None
         if self._bed is not None:  # throw out needles that are on target bed already
             target_bed = self._bed.evaluate(context)
             if not isinstance(target_bed, Machine_Bed_Position):
-                raise Knit_Script_TypeError(f"Expected xfer to Front or Back Bed but got {target_bed}", self)
+                raise TypeError(f"Expected xfer to Front or Back Bed but got {target_bed}")
 
         needles_to_instruction = {n: Knitout_Instruction_Type.Xfer for n in needles}
 

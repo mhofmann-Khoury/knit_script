@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_interpreter.ks_element import KS_Element
+from knit_script.knit_script_interpreter.ks_element import KS_Element, associate_error
 
 if TYPE_CHECKING:
     from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -33,6 +33,24 @@ class Expression(KS_Element):
             parser_node (LRStackNode): The parser node from the parse tree that created this expression.
         """
         super().__init__(parser_node)
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Automatically wrap evaluate methods in subclasses with appropriate error handling decorator.
+
+        This method is called whenever a class inherits from Expression.
+        It checks if the subclass defines its own evaluate method and wraps it with the appropriate decorator.
+
+        Args:
+            **kwargs (Any): Additional keyword arguments passed to super().__init_subclass__
+        """
+        super().__init_subclass__(**kwargs)
+
+        # Check if this subclass defines its own evaluate method (not inherited)
+        if "evaluate" in cls.__dict__:
+            original_evaluate = cls.__dict__["evaluate"]
+            if not hasattr(original_evaluate, "__wrapped__"):
+                wrapped_evaluate = associate_error(original_evaluate)
+                cls.evaluate = wrapped_evaluate  # type: ignore[method-assign]
 
     def evaluate(self, context: Knit_Script_Context) -> Any:
         """Evaluate the expression to produce a value.

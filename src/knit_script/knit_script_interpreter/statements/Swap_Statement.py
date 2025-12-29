@@ -8,7 +8,6 @@ from parglare.parser import LRStackNode
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression, get_expression_value_list
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.statements.Statement import Statement
@@ -67,12 +66,12 @@ class Swap_Statement(Statement):
             if isinstance(sheet, Sheet_Identifier):
                 sheet = sheet.sheet
             if not isinstance(sheet, int):
-                raise Knit_Script_TypeError(f"Expected an integer for a sheet but got {sheet}", self)
+                raise TypeError(f"Expected an integer for a sheet but got {sheet}")
             layer = None
         else:
             layer = self._layer.evaluate(context)
             if not isinstance(layer, int):
-                raise Knit_Script_TypeError(f"Expected an integer for a layer but got {layer}", self)
+                raise TypeError(f"Expected an integer for a layer but got {layer}")
             sheet = None
         for needle_pos in positions:
             if layer is not None:

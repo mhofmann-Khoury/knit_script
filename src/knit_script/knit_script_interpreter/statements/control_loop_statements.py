@@ -135,7 +135,7 @@ class For_Each_Statement(Statement):
             else:  # multiple vars to unpack
                 iterated_var = [*var]
                 if len(iterated_var) != len(self._variables):
-                    raise self.add_ks_information_to_error(ValueError(f"Expected {len(self._variables)} variables, got {len(iterated_var)} from {iterated_var}"))
+                    raise ValueError(f"Expected {len(self._variables)} variables, got {len(iterated_var)} from {iterated_var}")
                 for var_name, var_val in zip(self._variables, iterated_var, strict=False):
                     context.variable_scope[var_name.variable_name] = var_val
             self._statement.execute(context)

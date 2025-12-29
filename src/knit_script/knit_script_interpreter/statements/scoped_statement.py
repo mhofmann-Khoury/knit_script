@@ -49,10 +49,7 @@ class Scoped_Statement(Statement):
         execute_statements = self.pre_scope_action(context)
         if execute_statements:
             for statement in self._subscope_statements:
-                try:
-                    statement.execute(context)
-                except Exception as e:
-                    raise statement.add_ks_information_to_error(e) from None
+                statement.execute(context)
                 if context.variable_scope.returned:  # executed statement updated scope with return value
                     break  # don't continue to execute block statements
         context.exit_current_scope(collapse_into_parent=self._collapse_scope_into_parent)

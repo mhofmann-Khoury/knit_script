@@ -47,15 +47,7 @@ class Assertion(Statement):
             context (Knit_Script_Context): The current execution context of the knit script interpreter.
 
         Raises:
-            Knit_Script_Assertion_Exception: If the condition evaluates to False or any other falsy value.
-            The exception includes the original condition, the actual value that caused the failure, and any optional error message.
+            AssertionError: If the condition evaluates to False or any other falsy value.
         """
         condition = self._condition.evaluate(context)
-        error_str = f"{self._error_str.evaluate(context)}" if self._error_str is not None else f"<{self._condition.position_context}> is False"
-        try:
-            assert condition, f"KnitScript Assertion Error: {error_str}"
-        except AssertionError as e:
-            e.ks_error_str = error_str  # type: ignore[attr-defined]
-            self.add_ks_information_to_error(e)
-            context.print(e)
-            raise e from None
+        assert condition, f"{self._error_str.evaluate(context)}" if self._error_str is not None else f"<{self._condition.position_context}> is False"

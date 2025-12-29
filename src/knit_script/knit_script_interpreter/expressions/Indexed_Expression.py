@@ -8,7 +8,6 @@ from typing import Any
 
 from parglare.parser import LRStackNode
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_IndexError, Knit_Script_KeyError, Knit_Script_TypeError, Knit_Script_ValueError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
@@ -51,27 +50,9 @@ class Slice_Index(Expression):
         Returns:
             slice: A Python slice object with the evaluated start, end, and step values.
         """
-        if self.start is not None:
-            try:
-                start = int(self.start.evaluate(context))
-            except ValueError as e:
-                raise Knit_Script_ValueError(str(e), self) from e
-        else:
-            start = None
-        if self.end is not None:
-            try:
-                end = int(self.end.evaluate(context))
-            except ValueError as e:
-                raise Knit_Script_ValueError(str(e), self) from e
-        else:
-            end = None
-        if self.spacer is not None:
-            try:
-                spacer = int(self.spacer.evaluate(context))
-            except ValueError as e:
-                raise Knit_Script_ValueError(str(e), self) from e
-        else:
-            spacer = None
+        start = int(self.start.evaluate(context)) if self.start is not None else None
+        end = int(self.end.evaluate(context)) if self.end is not None else None
+        spacer = int(self.spacer.evaluate(context)) if self.spacer is not None else None
         return slice(start, end, spacer)
 
 
@@ -122,17 +103,17 @@ class Indexed_Expression(Expression):
         key = self.key.evaluate(context)
         if self.assign is not None:
             if isinstance(key, slice):
-                raise Knit_Script_TypeError(f"Cannot set the value of {self.item} of value {item} with type slice {self.key} <{key}> ", self)
+                raise TypeError(f"Cannot set the value of {self.item} of value {item} with type slice {self.key} <{key}> ")
             assign_value = self.assign.evaluate(context)
             item[key] = assign_value
         try:
             return item[key]
-        except IndexError as e:
-            raise Knit_Script_IndexError(f"Index {self.key}<{key}> is out of range of {self.item} <{item}>", self) from e
-        except KeyError as e:
-            raise Knit_Script_KeyError(f"Key {self.key}<{key}> is not in {self.item} <{item}>", self) from e
-        except TypeError as e:
+        except IndexError as _e:
+            raise IndexError(f"Index {self.key}<{key}> is out of range of {self.item} <{item}>") from None
+        except KeyError as _e:
+            raise KeyError(f"Key {self.key}<{key}> is not in {self.item} <{item}>") from None
+        except TypeError as _e:
             try:
                 return item[int(key)]  # attempt to convert to integer
             except ValueError as _e:
-                raise Knit_Script_ValueError(f"Key {self.key}<{key}> cannot be set to integer to index in to {self.item} <{item}>", self) from e
+                raise ValueError(f"Key {self.key}<{key}> cannot be set to integer to index in to {self.item} <{item}>") from None

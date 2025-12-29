@@ -12,19 +12,18 @@ import warnings
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, cast
 
-from knitout_interpreter.knitout_operations.carrier_instructions import In_Instruction, Inhook_Instruction, Releasehook_Instruction
+from knitout_interpreter.knitout_operations.carrier_instructions import Inhook_Instruction, Releasehook_Instruction
 from knitout_interpreter.knitout_operations.Knitout_Line import Knitout_Comment_Line
 from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruction
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
+from virtual_knitting_machine.knitting_machine_exceptions.Yarn_Carrier_Error_State import Yarn_Carrier_Exception
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Sheet_Identifier import Sheet_Identifier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier import Yarn_Carrier
 from virtual_knitting_machine.machine_components.yarn_management.Yarn_Carrier_Set import Yarn_Carrier_Set
 
-from knit_script._warning_stack_level_helper import get_user_warning_stack_level_from_knitscript_package
-from knit_script.knit_script_exceptions.gauge_sheet_exceptions import Gauge_Value_Exception, Sheet_Value_Exception
 from knit_script.knit_script_interpreter.scope.gauged_sheet_schema.Gauged_Sheet_Record import Gauged_Sheet_Record
-from knit_script.knit_script_warnings.Knit_Script_Warning import Sheet_Beyond_Gauge_Warning
+from knit_script.knit_script_warnings.Knit_Script_Warning import Gauge_Value_Warning, Negative_Sheet_Warning, Sheet_Beyond_Gauge_Warning
 
 if TYPE_CHECKING:
     from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
@@ -53,50 +52,17 @@ class Machine_Scope:
             prior_settings (Machine_Scope | None, optional): A parent machine scope to inherit settings from. If provided, all machine settings will be copied from this scope. Defaults to None.
         """
         self._context: Knit_Script_Context = context
-        self._direction: Carriage_Pass_Direction = Carriage_Pass_Direction.Leftward
+        self._direction: Carriage_Pass_Direction = self.machine_state.carriage.last_direction
         self._working_carrier: Yarn_Carrier_Set | None = None
-        self._working_racking: float = 0.0
+        all_needle_mod = 0.0
+        if self.machine_state.all_needle_rack:
+            all_needle_mod = 0.25 if self.machine_state.rack >= 0 else -0.75
+        self._working_racking: float = self.machine_state.rack + all_needle_mod
         self._gauge: int = 1
         self._sheet: Sheet_Identifier = Sheet_Identifier(0, self._gauge)
         self._gauged_sheet_record: Gauged_Sheet_Record = Gauged_Sheet_Record(self.Gauge, self.machine_state)
-        if prior_settings is not None:
+        if prior_settings is not None:  # Update these values but do not update the machine state.
             self.inherit_from_scope(prior_settings, inherit_raw_values=True)
-
-    def inherit_from_scope(self, scope: Machine_Scope, inherit_raw_values: bool = False) -> None:
-        """Set the machine scope values based on the given scope.
-
-        Copies all machine configuration settings from the specified scope to this scope, including direction, carrier, racking, gauge, sheet, and gauged sheet record.
-        This method is used to establish initial settings when creating child scopes.
-
-        Args:
-            inherit_raw_values (bool): If true, don't use the property setters which may modify the knitout.
-            scope (Machine_Scope): The machine scope to inherit the values from.
-        """
-        if inherit_raw_values:
-            self._direction = scope.direction
-            self._working_carrier = scope.Carrier
-            self._working_racking = scope.Racking
-            self._gauge = scope.Gauge
-            self._sheet = scope.Sheet
-        else:
-            self.direction = scope.direction
-            self.Carrier = scope.Carrier
-            self.Racking = scope.Racking
-            self.Gauge = scope.Gauge
-            self.Sheet = scope.Sheet
-        self._gauged_sheet_record = scope._gauged_sheet_record
-
-    def update_parent_machine_scope(self, parent_scope: Machine_Scope) -> None:
-        """
-        Passes machine status values up to the given parent scope.
-        Args:
-            parent_scope (Machine_Scope): The parent machine scope to pass values up to.
-        """
-        self.Racking = parent_scope.Racking  # will trigger a rack instruction to be added if there is a shift back to a prior racking
-        parent_scope.direction = self._direction
-        if parent_scope.Gauge == self.Gauge:  # Gauge did not change, so keep the gauged sheet record.
-            self.Sheet = parent_scope.Sheet  # set back to prior sheet before passing record along.
-            parent_scope._gauged_sheet_record = self._gauged_sheet_record
 
     @property
     def machine_state(self) -> Knitting_Machine:
@@ -154,62 +120,69 @@ class Machine_Scope:
         Raises:
             TypeError: If carrier is not one of the accepted types.
         """
-        if isinstance(carrier, int):
-            carrier = Yarn_Carrier_Set([carrier])
-        elif isinstance(carrier, float):
-            carrier = Yarn_Carrier_Set([int(carrier)])
-        elif isinstance(carrier, Sequence):
-            carrier_list = [int(c) for c in carrier]  # ensure integers and yarn-carriers are in one format.
-            carrier = Yarn_Carrier_Set(carrier_list)
-        elif isinstance(carrier, Yarn_Carrier):
-            carrier = Yarn_Carrier_Set([carrier.carrier_id])
-        elif not isinstance(carrier, Yarn_Carrier_Set) and carrier is not None:
-            raise TypeError(f"Expected carrier to bes set by int, list of ints,  Yarn Carrier (e.g., c1, c2.., c10) or a Yarn Carrier Set but got {carrier}")
-        if self._working_carrier != carrier:
-            self._working_carrier = carrier
-            if self.Carrier is not None and not self.machine_state.carrier_system.is_active(
-                cast(list[int | Yarn_Carrier], self.Carrier.carrier_ids)
-            ):  # not all carriers are active. Needs an inhook operation.
-                for carrier in self.Carrier:
-                    if self.machine_state.carrier_system.yarn_is_loose(carrier):  # inhook loose yarns
-                        if self.machine_state.carrier_system.hooked_carrier is not None:
-                            release_op = Releasehook_Instruction.execute_releasehook(self.machine_state, self.machine_state.carrier_system.hooked_carrier, "Attempt release before new inhook")
-                            self._context.knitout.append(release_op)
-                        inhook_op = Inhook_Instruction.execute_inhook(self.machine_state, carrier, f"Activating carrier {carrier}")
-                        self._context.knitout.append(inhook_op)
-                    else:  # bring connected yarns out from grippers
-                        in_op = In_Instruction.execute_in(self.machine_state, carrier, f"Bring in {carrier} from grippers")
-                        self._context.knitout.append(in_op)
+        if isinstance(carrier, float):
+            carrier_set: Yarn_Carrier_Set | None = Yarn_Carrier_Set(int(carrier))
+        elif isinstance(carrier, (int, Sequence, Yarn_Carrier)):
+            carrier_set = Yarn_Carrier_Set(carrier)
+        else:
+            carrier_set = carrier
+        if not isinstance(carrier_set, Yarn_Carrier_Set) and carrier_set is not None:
+            raise TypeError(f"Cannot set Carrier to value {carrier}.\n\tExpected Carrier to be one or more carriers or numbers")
+        if self._working_carrier != carrier_set:
+            self._working_carrier = carrier_set
+            if self.Carrier is not None:  # Check for missing carrier to inhook prior to operations.
+                missing_carriers = self.machine_state.carrier_system.missing_carriers(cast(list[int | Yarn_Carrier], self.Carrier.carrier_ids))
+                if len(missing_carriers) > 1:
+                    raise Yarn_Carrier_Exception(missing_carriers[1], f"Cannot Inhook multiple carriers at once without unstable yarns. \n\tActivate missing carriers <{missing_carriers}>")
+                elif len(missing_carriers) == 1:
+                    if self.machine_state.carrier_system.hooked_carrier is not None:
+                        release_op = Releasehook_Instruction.execute_releasehook(self.machine_state, self.machine_state.carrier_system.hooked_carrier)
+                        self._context.knitout.append(release_op)
+                    inhook_op = Inhook_Instruction.execute_inhook(self.machine_state, missing_carriers[0])
+                    self._context.knitout.append(inhook_op)
+
+    @property
+    def last_working_carrier(self) -> Yarn_Carrier_Set | None:
+        """
+        Returns:
+            Yarn_Carrier_Set | None:
+                The explicitly set working carrier, or if no carrier is set get the active carrier with the most recently formed loop. If there are no active carriers, returns None.
+        """
+        if self._working_carrier is not None:
+            return self._working_carrier
+        elif len(self.machine_state.carrier_system.active_carriers) > 0:
+            latest_used_carrier = max(self.machine_state.carrier_system.active_carriers, key=lambda carrier: max(carrier.yarn.active_loops))
+            return Yarn_Carrier_Set(latest_used_carrier)
+        else:
+            return None
 
     @property
     def Racking(self) -> float:
-        """Get current racking of the machine.
-
+        """
         Returns:
             float: Current racking of the machine as a floating-point value.
         """
         return self._working_racking
 
     @Racking.setter
-    def Racking(self, value: float) -> None:
+    def Racking(self, rack: float) -> None:
         """Set the current racking of the machine.
 
         When the racking value changes, automatically generates a rack instruction with the gauge-adjusted racking value and appends it to the knitout.
         The actual racking sent to the machine is multiplied by the current gauge value.
 
         Args:
-            value (float): The new racking value to set.
+            rack (float): The new racking value to set.
         """
-        if value != self.Racking:
-            self._working_racking = value
+        if rack != self.Racking:
+            self._working_racking = rack
             gauge_adjusted_racking = self.Gauge * self.Racking
-            rack_instruction = Rack_Instruction.execute_rack(self.machine_state, gauge_adjusted_racking, comment=f"Rack to {self.Racking} at {self.Gauge} gauge")
+            rack_instruction = Rack_Instruction.execute_rack(self.machine_state, gauge_adjusted_racking, comment=None if self.Gauge == 1 else f"{rack} Rack adjusted for 1/{self.Gauge} gauge")
             self._context.knitout.append(rack_instruction)
 
     @property
     def Rack(self) -> float:
-        """Get current racking of the machine.
-
+        """
         Returns:
             float: Current racking of the machine as a floating-point value.
         """
@@ -220,7 +193,7 @@ class Machine_Scope:
         """
         Alternate name for setter for the Racking property.
         Args:
-            racking (float): Current racking of the machine as a floating-point value.:
+            racking (float): Current racking of the machine as a floating-point value.
         """
         self.Racking = racking
 
@@ -243,14 +216,14 @@ class Machine_Scope:
         return self._gauge
 
     @Gauge.setter
-    def Gauge(self, value: int | None) -> None:
+    def Gauge(self, gauge_value: int | None) -> None:
         """Set the current gauge (number of sheets) on the machine.
 
         When the gauge changes, creates a new gauged sheet record and adjusts the current sheet if necessary to ensure it remains within the valid range.
         Issues warnings if the current sheet exceeds the new gauge limits.
 
         Args:
-            value (int | None): The new gauge value. If None, defaults to 1. Must be between 1 and 9 inclusive.
+            gauge_value (int | None): The new gauge value. If None, defaults to 1. Must be between 1 and 9 inclusive.
 
         Raises:
             Gauge_Value_Exception: If the gauge value is not between 1 and 9 inclusive.
@@ -258,18 +231,14 @@ class Machine_Scope:
         Warns:
             Sheet_Beyond_Gauge_Warning: If the current sheet number exceeds the new gauge limits.
         """
-        if value is None:
-            value = 1
-        if not (1 <= value < 10):  # Todo Set max gauge based on header and knitscript context.
-            raise Gauge_Value_Exception(value)
-        if self.Gauge != int(value):  # New gauge, update the Gauged Sheet Record
-            self._gauge = int(value)
-            self._gauged_sheet_record = Gauged_Sheet_Record(value, self.machine_state)  # change in gauge forces new gauge-sheet record to be created.
-            if self.Gauge <= int(self.Sheet):
-                warnings.warn(Sheet_Beyond_Gauge_Warning(self.Sheet, self.Gauge), stacklevel=get_user_warning_stack_level_from_knitscript_package())
-                self.Sheet = self.Gauge - 1
-            else:
-                self.Sheet = Sheet_Identifier(self.Sheet.sheet, self.Gauge)
+        gauge = gauge_value if gauge_value is not None else 1
+        if gauge < 1:
+            warnings.warn(Gauge_Value_Warning(gauge), stacklevel=1)
+            gauge = 1
+        if self.Gauge != gauge:
+            self._gauged_sheet_record = Gauged_Sheet_Record(gauge, self.machine_state)  # change in gauge forces new gauge-sheet record to be created.
+            self._gauge = gauge
+            self.Sheet = Sheet_Identifier(self.Sheet.sheet, gauge)  # Sheet change will handle any discrepancies in sheet-gauge range values.
 
     @property
     def Sheet(self) -> Sheet_Identifier:
@@ -281,37 +250,124 @@ class Machine_Scope:
         return self._sheet
 
     @Sheet.setter
-    def Sheet(self, value: int | Sheet_Identifier | None) -> None:
+    def Sheet(self, sheet_value: int | Sheet_Identifier | None) -> None:
         """Set the current active sheet on the machine.
 
         When the sheet changes, automatically generates sheet reset instructions and appends them to the knitout.
         Also validates that the sheet number is within the current gauge limits and issues warnings for out-of-range values.
 
         Args:
-            value (int | Sheet_Identifier | None): The sheet to set as active. If None, defaults to sheet 0. If an integer, must be within the current gauge range.
-
-        Raises:
-            Sheet_Value_Exception: If an integer sheet value is outside the valid range for the current gauge.
+            sheet_value (int | Sheet_Identifier | None): The sheet to set as active. If None, defaults to sheet 0. If an integer, must be within the current gauge range.
 
         Warns:
             Sheet_Beyond_Gauge_Warning: If the sheet number is outside the valid range and gets automatically corrected.
+            Negative_Sheet_Warning: If the sheet number is less than 0 and automatically reset to 0.
         """
-        if value is None:
-            value = Sheet_Identifier(0, self.Gauge)
-        elif isinstance(value, int):
-            if not (0 <= value < self.Gauge):
-                raise Sheet_Value_Exception(value, self.Gauge)
-            value = Sheet_Identifier(value, self.Gauge)
-        assert isinstance(value, Sheet_Identifier)
-        if self.Gauge != value.gauge:
-            self.Gauge = value.gauge
-        if self.Sheet != value:
-            self._sheet = value
+        if sheet_value is None:
+            sheet = 0
+            gauge = self.Gauge
+        elif isinstance(sheet_value, int):
+            sheet = sheet_value
+            gauge = self.Gauge
+        else:
+            sheet = sheet_value.sheet
+            gauge = sheet_value.gauge
+        if sheet < 0:
+            warnings.warn(Negative_Sheet_Warning(sheet), stacklevel=1)
+            sheet = 0
+        elif gauge <= sheet:
+            warnings.warn(Sheet_Beyond_Gauge_Warning(sheet, gauge), stacklevel=1)
+            sheet = gauge - 1
+        if self.Gauge != gauge:
+            self.Gauge = gauge
+        if self.Sheet != Sheet_Identifier(sheet, self.Gauge):
+            self._sheet = Sheet_Identifier(sheet, self.Gauge)
             self._context.knitout.append(Knitout_Comment_Line(f"Resetting to sheet {self.Sheet} of {self.Gauge}"))
             self._context.knitout.extend(self.gauged_sheet_record.reset_to_sheet(self.Sheet.sheet))
-        if int(self.Sheet) < 0:
-            warnings.warn(Sheet_Beyond_Gauge_Warning(self.Sheet, self.Gauge), stacklevel=get_user_warning_stack_level_from_knitscript_package())
-            self.Sheet = 0
-        elif self.Gauge <= int(self.Sheet):
-            warnings.warn(Sheet_Beyond_Gauge_Warning(self.Sheet, self.Gauge), stacklevel=get_user_warning_stack_level_from_knitscript_package())
-            self.Sheet = self.Gauge - 1
+
+    def inherit_from_scope(self, scope: Machine_Scope, inherit_raw_values: bool = False) -> None:
+        """Set the machine scope values based on the given scope.
+
+        Copies all machine configuration settings from the specified scope to this scope, including direction, carrier, racking, gauge, sheet, and gauged sheet record.
+        This method is used to establish initial settings when creating child scopes.
+
+        Args:
+            inherit_raw_values (bool): If true, don't use the property setters which may modify the knitout.
+            scope (Machine_Scope): The machine scope to inherit the values from.
+        """
+        if inherit_raw_values:
+            self._direction = scope.direction
+            self._working_carrier = scope.Carrier
+            self._working_racking = scope.Racking
+            self._gauge = scope.Gauge
+            self._sheet = scope.Sheet
+        else:
+            self.direction = scope.direction
+            self.Carrier = scope.Carrier
+            self.Racking = scope.Racking
+            self.Gauge = scope.Gauge
+            self.Sheet = scope.Sheet
+        self._gauged_sheet_record = scope._gauged_sheet_record
+
+    def update_parent_machine_scope(self, parent_scope: Machine_Scope) -> None:
+        """
+        Passes machine status values up to the given parent scope with the following effects:
+        * Resets the rack of the machine to the racking value of the parent scope.
+        * Sets the direction of the parent scope to match the direction of this scope.
+        * Update the sheet to the sheet in the parent scope.
+        * Update the gauge sheet record of the parent to reflect the current state.
+
+        Args:
+            parent_scope (Machine_Scope): The parent machine scope to pass values up to.
+        """
+        self.Racking = parent_scope.Racking  # will trigger a rack instruction to be added if there is a shift back to a prior racking
+        parent_scope.direction = self._direction
+        self.Sheet = parent_scope.Sheet  # set back to prior sheet before passing record along.
+        parent_scope._gauged_sheet_record = self._gauged_sheet_record
+
+    def __contains__(self, variable_name: str) -> bool:
+        """
+
+        Args:
+            variable_name (str): The variable to search for in the machine scope.
+
+        Returns:
+            bool: True if the variable name is a machine scope property, False otherwise.
+        """
+        return hasattr(self, variable_name) and isinstance(getattr(type(self), variable_name, None), property)
+
+    def __getitem__(self, variable_name: str) -> Sheet_Identifier | int | float | Yarn_Carrier_Set | Carriage_Pass_Direction | Knitting_Machine | None:
+        """
+        Args:
+            variable_name (str): The variable to get from the machine scope.
+
+        Returns:
+            Sheet_Identifier | int | float | Yarn_Carrier_Set | Carriage_Pass_Direction | Knitting_Machine | None:
+                The value to return from the machine scope.
+                * Sheet will return a Sheet_Identifier.
+                * Gauge will return an integer.
+                * Racking or Rack will return a float.
+                * Carrier will return a Yarn_Carrier_Set or None if there is not working carrier.
+                * Direction will return a Carriage_Pass_Direction.
+                * machine_state will return the current knitting machine state.
+
+        Raises:
+            AttributeError: If the variable name is not a machine scope variable.
+        """
+        if variable_name not in self:
+            raise AttributeError(f"Cannot get attribute {variable_name} from Machine Scope.\n\t Expected Sheet, Gauge, Rack, Racking, Carrier, Direction, or machine_state")
+        return cast((Sheet_Identifier | int | float | Yarn_Carrier_Set | Carriage_Pass_Direction | Knitting_Machine | None), getattr(self, variable_name))
+
+    def __setitem__(self, variable_name: str, value: int | float | Sheet_Identifier | Sequence[int | Yarn_Carrier] | Yarn_Carrier_Set | Yarn_Carrier | Carriage_Pass_Direction | None) -> None:
+        """
+        Sets the given value to the specified machine scope variable.
+        Args:
+            variable_name (str): The variable to set to the machine scope. Expects: Sheet, Gauge, Rack, Racking, Carrier, or Direction.
+            value (int | float | Sheet_Identifier | Sequence[int | Yarn_Carrier] | Yarn_Carrier_Set | Yarn_Carrier | Carriage_Pass_Direction | None): The value to set the specified variable.
+
+        Raises:
+            AttributeError: If the variable name is not a machine scope variable.
+        """
+        if variable_name not in self or variable_name == "machine_state":
+            raise AttributeError(f"Cannot set attribute {variable_name} in Machine Scope.")
+        setattr(self, variable_name, value)

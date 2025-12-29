@@ -9,11 +9,9 @@ class TestAssertion(TestCase):
             program = r"""assert 1==2, "failure"; """
             interpret_test_ks(program, print_k_lines=False)
         except AssertionError as e:
-            assert hasattr(e, "ks_error_str")
-            assert getattr(e, "ks_error_str") == "failure"
+            self.assertEqual("failure", str(e))
         try:
             program = r"""assert 1==2; """
             interpret_test_ks(program, print_k_lines=False)
         except AssertionError as e:
-            assert hasattr(e, "ks_error_str")
-            assert getattr(e, "ks_error_str") == "<1==2> is False"
+            self.assertEqual("<1==2> is False", str(e))

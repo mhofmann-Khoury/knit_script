@@ -6,8 +6,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import ParamSpec, TypeVar, cast
 
-from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
-from knit_script.knit_script_interpreter.ks_element import KS_Element
+from knit_script.debugger.debug_protocol import Debuggable_Element, Knit_Script_Debuggable_Protocol
 
 # Type variables for the decorator
 _P = ParamSpec("_P")  # Captures all parameters for methods that start with the instruction
@@ -36,8 +35,8 @@ def debug_knitscript_statement(execution_method: Callable[_P, _R]) -> Callable[_
                 - context (Knit_Script_Context): The context in which the statement is being executed and debugged.
             **_kwargs: Additional keyword arguments passed to the wrapped method.
         """
-        statement: KS_Element = cast(KS_Element, _args[0] if len(_args) >= 1 else _kwargs["self"])
-        context: Knit_Script_Context = cast(Knit_Script_Context, _args[1] if len(_args) >= 2 else _kwargs["context"])
+        statement: Debuggable_Element = cast(Debuggable_Element, _args[0] if len(_args) >= 1 else _kwargs["self"])
+        context: Knit_Script_Debuggable_Protocol = cast(Knit_Script_Debuggable_Protocol, _args[1] if len(_args) >= 2 else _kwargs["context"])
         if context.debugger is None:
             return execution_method(*_args, **_kwargs)
 

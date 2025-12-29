@@ -8,7 +8,6 @@ from parglare.parser import LRStackNode
 from virtual_knitting_machine.Knitting_Machine import Knitting_Machine
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
 from knit_script.knit_script_interpreter.expressions.expressions import Expression
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 
@@ -73,7 +72,7 @@ class Xfer_Pass_Racking(Expression):
             assert isinstance(self._direction_expression, Expression)
             direction = self._direction_expression.evaluate(context)
             if not isinstance(direction, Carriage_Pass_Direction):
-                raise Knit_Script_TypeError(f"Expected Left or Right Direction but got {direction}", self)
+                raise TypeError(f"Expected Left or Right Direction but got {direction}")
             if direction is Carriage_Pass_Direction.Leftward:
                 return int(Knitting_Machine.get_rack(front_pos=0, back_pos=-1 * distance))
             else:

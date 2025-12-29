@@ -9,7 +9,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from knit_script.knit_script_interpreter.ks_element import KS_Element
+from knit_script.debugger.debug_protocol import Debuggable_Element
 from knit_script.knit_script_interpreter.scope.local_scope import Knit_Script_Scope
 
 
@@ -55,7 +55,7 @@ class Knit_Script_Frame:
         self.parent_frame: Knit_Script_Frame | None = parent_frame
         self._depth: int = 0 if self.parent_frame is None else self.parent_frame.depth + 1
 
-        self.statement_history: list[KS_Element] = []
+        self.statement_history: list[Debuggable_Element] = []
         self.ks_scope: Knit_Script_Scope = scope
 
         # Execution history
@@ -73,7 +73,7 @@ class Knit_Script_Frame:
         return self._depth
 
     @property
-    def first_statement(self) -> KS_Element | None:
+    def first_statement(self) -> Debuggable_Element | None:
         """
         Returns:
             Statement | None: The first statement executed in this frame, or None if this frame is empty.
@@ -81,7 +81,7 @@ class Knit_Script_Frame:
         return self.statement_history[0] if len(self.statement_history) > 0 else None
 
     @property
-    def last_statement(self) -> KS_Element | None:
+    def last_statement(self) -> Debuggable_Element | None:
         """
         Returns:
             Statement | None: The last statement executed in this frame, or None if this frame is empty.
@@ -195,7 +195,7 @@ class Knit_Script_Frame:
         """
         self.child_frames.append(child_frame)
 
-    def add_statement(self, statement: KS_Element) -> None:
+    def add_statement(self, statement: Debuggable_Element) -> None:
         """Add a statement to the execution history.
 
         Args:

@@ -4,6 +4,8 @@ This module provides the Carriage_Pass_Specification class, which coordinates th
 It ensures proper sequencing, compatibility checking, and execution of operations while handling complex scenarios like all-needle operations and drop pass separation.
 """
 
+import warnings
+
 from knitout_interpreter.knitout_operations.knitout_instruction import Knitout_Instruction_Type
 from knitout_interpreter.knitout_operations.knitout_instruction_factory import build_instruction
 from knitout_interpreter.knitout_operations.needle_instructions import Needle_Instruction
@@ -11,11 +13,11 @@ from knitout_interpreter.knitout_operations.Rack_Instruction import Rack_Instruc
 from virtual_knitting_machine.machine_components.carriage_system.Carriage_Pass_Direction import Carriage_Pass_Direction
 from virtual_knitting_machine.machine_components.needles.Needle import Needle
 
-from knit_script.knit_script_exceptions.ks_exceptions import All_Needle_Operation_Exception, Incompatible_In_Carriage_Pass_Exception, Repeated_Needle_Exception, Required_Direction_Exception
-from knit_script.knit_script_exceptions.python_style_exceptions import Knit_Script_TypeError
+from knit_script.knit_script_exceptions.Knit_Script_Exception import All_Needle_Operation_Exception, Incompatible_In_Carriage_Pass_Exception, Required_Direction_Exception
 from knit_script.knit_script_interpreter.knit_script_context import Knit_Script_Context
 from knit_script.knit_script_interpreter.ks_element import KS_Element
 from knit_script.knit_script_interpreter.Machine_Specification import Machine_Bed_Position
+from knit_script.knit_script_warnings.Knit_Script_Warning import Repeated_Needle_Warning
 
 
 class Carriage_Pass_Specification:
@@ -107,9 +109,9 @@ class Carriage_Pass_Specification:
                     self._require_second = True
             else:
                 if not first_instruction_type.compatible_pass(instruction_type):
-                    raise Incompatible_In_Carriage_Pass_Exception(self._source_statement, first_instruction_type, instruction_type)
+                    raise Incompatible_In_Carriage_Pass_Exception(first_instruction_type, instruction_type)
             if instruction_type.directed_pass and self._direction is None:
-                raise Required_Direction_Exception(self._source_statement, instruction_type)
+                raise Required_Direction_Exception(instruction_type)
 
     def _needs_released_hook(self, context: Knit_Script_Context) -> bool:
         """Check if the yarn hook needs to be released for this pass.
@@ -167,10 +169,11 @@ class Carriage_Pass_Specification:
         for n, m in zip(needles_in_order[0:-1], needles_in_order[1:], strict=False):
             if n.racked_position_on_front(int(context.racking)) == m.racked_position_on_front(int(context.racking)):
                 if n.is_front == m.is_front:
-                    raise Repeated_Needle_Exception(self._source_statement, n)
+                    warnings.warn(Repeated_Needle_Warning(n), stacklevel=1)
+                    continue
                 n_instruction = self._needle_to_instruction[n]
                 if not n_instruction.all_needle_instruction:
-                    raise All_Needle_Operation_Exception(self._source_statement, n, m, context.machine_state.rack, n_instruction)
+                    raise All_Needle_Operation_Exception(n, m, context.machine_state.rack, n_instruction)
                 needs_all_needle_rack = True
 
         if needs_all_needle_rack:
@@ -211,7 +214,7 @@ class Carriage_Pass_Specification:
         """
         if self._target_bed is not None:  # throw out needles that are on target bed already
             if not isinstance(self._target_bed, Machine_Bed_Position):
-                raise Knit_Script_TypeError(f"Expected xfer to Front or Back Bed but got {self._target_bed}", self._source_statement)
+                raise TypeError(f"Expected xfer to Front or Back Bed but got {self._target_bed}")
             if self._target_bed is Machine_Bed_Position.Front:
                 return [n for n in needles if n.is_back]
             else:

@@ -63,10 +63,7 @@ class Function_Call(Expression):
         if self.func_name.variable_name in context.variable_scope:
             function_signature = context.variable_scope[self.func_name.variable_name]
             if isinstance(function_signature, Function_Signature):
-                try:
-                    return function_signature.execute(context, self.args, self.kwargs)
-                except (NameError, TypeError) as error:
-                    raise self.add_ks_information_to_error(error) from None
+                return function_signature.execute(context, self.args, self.kwargs)
             else:
                 args = [arg.evaluate(context) for arg in self.args]
                 kwargs = {kwarg.variable_name: kwarg.value(context) for kwarg in self.kwargs}
@@ -76,4 +73,4 @@ class Function_Call(Expression):
                     func_str = f"{self.func_name.variable_name}(*args, **kwargs)"
                     return eval(func_str)
         else:
-            raise self.add_ks_information_to_error(NameError(f"name {self.func_name.variable_name} is not defined."))
+            raise NameError(f"Function {self.func_name.variable_name} is not defined.")
