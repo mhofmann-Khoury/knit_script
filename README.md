@@ -82,51 +82,63 @@ pre-commit install
 ```knitscript
 width = 10; // Basic variable declaration
 with Carrier as c1:{ // Carrier is a reserved variable used to set the active working carrier in the code.
+
   in Leftward direction:{  // Directed Carriage pass statements are used to specify the direction of multiple needle operations.
-    tuck Front_Needles[0::width]; // tucks are applied to a given list of needles on the front bed.
+    tuck Front_Needles[0:width]; // tucks are applied to a given list of needles on the front bed.
   }
+
   in reverse direction:{ // the reverse keyword is used to keep track of the relative direction of the carriage.
     tuck Front_Needles[1:width];
   }
+  
+  releasehook;
+
   for _ in range(10):{ // python functions like range can be used as they would in python code.
     in reverse direction:{
       knit Loops; // Loops variables keep track of the current set of needles holding stitches.
     }
   }
 }
+
 cut c1; // The cut operation will outhook the given carrier.
 ```
 ```python
 """Convert a simple KnitScript pattern to knitout"""
-from knit_script import knit_script_to_knitout
+from knit_script.interpret_knit_script import knit_script_to_knitout
 
 # Convert to knitout
-knit_graph, machine = knit_script_to_knitout( pattern="stockinette.ks", out_file_name="stockinette.k", pattern_is_filename=False)
+knit_graph, machine = knit_script_to_knitout( pattern="stockinette.ks", out_file_name="stockinette.k", pattern_is_filename=True)
 ```
 
 ### Patterns with Arguments from Python
 ```knitscript
 with Carrier as c1:{ // Carrier is a reserved variable used to set the active working carrier in the code.
+
   in Leftward direction:{  // Directed Carriage pass statements are used to specify the direction of multiple needle operations.
-    tuck Front_Needles[0::width]; // tucks are applied to a given list of needles on the front bed.
+    tuck Front_Needles[0:width]; // tucks are applied to a given list of needles on the front bed.
   }
+
   in reverse direction:{ // the reverse keyword is used to keep track of the relative direction of the carriage.
     tuck Front_Needles[1:width];
   }
+  
+  releasehook;
+
   for _ in range(height):{ // python functions like range can be used as they would in python code.
     in reverse direction:{
       knit Loops; // Loops variables keep track of the current set of needles holding stitches.
     }
   }
 }
+
 cut c1; // The cut operation will outhook the given carrier.
 ```
 ```python
 """Convert a simple KnitScript pattern to knitout"""
-from knit_script import knit_script_to_knitout
+from knit_script.interpret_knit_script import knit_script_to_knitout
 
 # Convert to knitout
-knit_graph, machine = knit_script_to_knitout( pattern="stockinette.ks", out_file_name="stockinette.k", pattern_is_filename=False,
+knit_graph, machine = knit_script_to_knitout( pattern="stockinette.ks", out_file_name="stockinette.k", pattern_is_filename=True,
                                               width=10, height=10)
 ```
 Variables from the python environment can be directly loaded into the file, allowing for parameterized runs of the code.
