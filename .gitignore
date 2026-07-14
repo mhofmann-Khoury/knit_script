@@ -195,3 +195,7 @@ fabric.properties
 
 #ignore vs code files
 .vscode/
+
+# ds_store mac files
+.DS_Store
+*.DS_Store

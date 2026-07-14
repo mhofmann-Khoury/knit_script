@@ -143,5 +143,11 @@ class Operator_Expression(Expression):
         """
         first_num = self._lhs.evaluate(context)
         op = Operator.get_op(self.op_str)
+        # don't proceed to second operation if first is false and it's an AND condition
+        if op is Operator.And and not first_num:
+            return first_num
+        # don't proceed to second operation if first is ture and it's an OR condition
+        if op is Operator.Or and first_num:
+            return first_num
         second_num = self._rhs.evaluate(context)
         return op.operate(first_num, second_num)

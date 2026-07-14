@@ -88,17 +88,18 @@ with Carrier as c1:{ // Carrier is a reserved variable used to set the active wo
   in reverse direction:{ // the reverse keyword is used to keep track of the relative direction of the carriage.
     tuck Front_Needles[1:width];
   }
+  releasehook; //release from inserting hook after yarn is on needles so it can be cut later
   for _ in range(10):{ // python functions like range can be used as they would in python code.
     in reverse direction:{
       knit Loops; // Loops variables keep track of the current set of needles holding stitches.
     }
   }
+  cut c1; // The cut operation will outhook the given carrier.
 }
-cut c1; // The cut operation will outhook the given carrier.
 ```
 ```python
 """Convert a simple KnitScript pattern to knitout"""
-from knit_script import knit_script_to_knitout
+from knit_script.interpret_knit_script import knit_script_to_knitout
 
 # Convert to knitout
 knit_graph, machine = knit_script_to_knitout( pattern="stockinette.ks", out_file_name="stockinette.k", pattern_is_filename=False)
@@ -113,6 +114,7 @@ with Carrier as c1:{ // Carrier is a reserved variable used to set the active wo
   in reverse direction:{ // the reverse keyword is used to keep track of the relative direction of the carriage.
     tuck Front_Needles[1:width];
   }
+  releasehook;
   for _ in range(height):{ // python functions like range can be used as they would in python code.
     in reverse direction:{
       knit Loops; // Loops variables keep track of the current set of needles holding stitches.
@@ -123,7 +125,7 @@ cut c1; // The cut operation will outhook the given carrier.
 ```
 ```python
 """Convert a simple KnitScript pattern to knitout"""
-from knit_script import knit_script_to_knitout
+from knit_script.interpret_knit_script import knit_script_to_knitout
 
 # Convert to knitout
 knit_graph, machine = knit_script_to_knitout( pattern="stockinette.ks", out_file_name="stockinette.k", pattern_is_filename=False,
@@ -224,13 +226,13 @@ For example, we can divide this tube at the halfway point using a push statement
 with Carrier as c1, Gauge as 2:{ // set the working gauge to 2 sheets
   With Sheet as s0: { // localize knitting operations to only the first sheet of fabric
     push Front_Needles[0:width/2] to back; // make the first half of this sheet fall behind other sheets in this region.
-    in Leftward direciton:{ // set up the rib pattern on the front of the tube.
+    in Leftward direction:{ // set up the rib pattern on the front of the tube.
       knit Front_Needles[0:width:2];
       knit Back_Needles[1:width:2];
     }
   }
   With Sheet as s1: { // The loops in this sheet will fall behind s0 from width/2 and then in front for the remaining needles.
-    in reverse direciton:{ // directions are not specific to a sheet, but the whole program
+    in reverse direction:{ // directions are not specific to a sheet, but the whole program
       knit Front_Needles[0:width:2]; // these needles will not overlap those in sheet s0.
       knit Back_Needles[1:width:2];
     }
@@ -299,7 +301,7 @@ else: {print "second branch";}
 // While loops
 row = 0
 while row < total_rows:{
-    row += 1
+    row = row+1;
 }
 
 // For loops with ranges
@@ -309,7 +311,7 @@ for row in range(10):{
     }
 }
 
-# For loops with collections
+// For loops with collections
 for needle in front_needles:{
   print needle;
 }
@@ -329,7 +331,8 @@ in reverse direction:{ // The given instructions will be executed in the given d
 xfer Front_Loops across to back bed; // transfer all loops on the front bed to the back bed.
 xfer Loops across to back bed; // transfer all loops to the back bed if they are not already there.
 xfer Front_Loops 2 to Right to back bed; // transfer all loops on the front bed to the back bed with a righward 2 needle offset.
-xfer Front_Loops across to sliders; // transfer to sliders on back bed.
+xfer Front_Loops across to Back bed sliders; // transfer to sliders on back bed
+xfer Front_Loops across sliders; // alternative for above line
 
 # Drop operations
 drop Front_Needles[0:5]; // Drop specific needles
